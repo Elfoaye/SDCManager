@@ -57,8 +57,6 @@ h2 {
     margin-top: 0;
     margin-bottom: 0.3rem;
     margin-left: 0.3rem;
-    
-    
 }
 
 button {
