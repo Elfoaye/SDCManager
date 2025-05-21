@@ -1,10 +1,13 @@
 <script setup>
 import { ref, computed } from 'vue';
+import Multiselect from 'vue-multiselect';
 
 const list_content = [
     {nom:"Stairville Retro Flat Par 18x10W RGBWA UV",  type:"Lumière", disponible:8, total:12, contribution:9, valeur:269},
     {nom:"JBL EON710",  type:"Diff", disponible:2, total:2, contribution:15, valeur:535}, 
     {nom:"Shure SM58 LC ",  type:"Micros", disponible:6, total:16, contribution:4, valeur:109}];
+
+const types = ['Lumière','Diff','Micros'];
 
 const columns = [
   { label: 'Nom', key: 'nom' },
@@ -15,16 +18,28 @@ const columns = [
   { label: 'Valeur', key: 'valeur' }
 ]
 
+const show_filters = ref(false);
+
+function toggle_filters() {
+    show_filters.value = !show_filters.value;
+}
+
 const sort_property = ref(null);
 const sort_asc = ref(true);
 
 const filter_search = ref('');
+const filter_type = ref(null);
 
 const filtered_content = computed(() => {
     const query = String(filter_search.value).trim().toLowerCase();
-    if(!query) return list_content;
 
-    return list_content.filter((el) => el.nom.toLowerCase().includes(query) || el.type.toLowerCase().includes(query));
+    return list_content.filter(item =>  {
+        // Search bar
+        if (query && !(item.nom.toLowerCase().includes(query) || item.type.toLowerCase().includes(query)))
+            return false;
+
+        return true;
+    });
 });
 
 const sorted_content = computed(() => {
@@ -49,10 +64,15 @@ const sorted_content = computed(() => {
     <div class="content">
         <div class="search">
             <input v-model="filter_search" type="text" placeholder="Chercher par nom, catégorie..."/>
-            <button>Filtrer</button>
+            <button @click="toggle_filters">Filtrer</button>
         </div>
 
         <p v-if="filter_search">Recherche actuelle : {{ filter_search }}</p>
+
+        <div class="filters" v-if="show_filters">
+            <p>Filtres</p>
+            <Multiselect v-model="filter_type" :options="types" :multiple="true" :close-on-select="false"></Multiselect>
+        </div>
 
         <ul>
             <li class = "head">
@@ -76,6 +96,10 @@ const sorted_content = computed(() => {
     </div>
 </template>
 
+<style src="vue-multiselect/dist/vue-multiselect.min.css">
+
+</style>
+
 <style scoped>
 .content {
     flex-grow: 1;
@@ -97,6 +121,17 @@ input {
     height: 100%;
     padding-left: 0.5rem;
     padding-right: 0.5rem;
+}
+
+.filters {
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+}
+
+.filters p {
+    margin: 0;
 }
 
 ul {
