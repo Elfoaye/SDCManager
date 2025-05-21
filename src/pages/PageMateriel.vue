@@ -18,19 +18,19 @@ const columns = [
 const sort_property = ref(null);
 const sort_asc = ref(true);
 
-function set_sort(property) {
-    if(sort_property.value == property) {
-        sort_asc.value = !sort_asc.value;
-        return;
-    }
-    sort_asc.value = true;
-    sort_property.value = property;
-}
+const filter_search = ref('');
+
+const filtered_content = computed(() => {
+    const query = String(filter_search.value).trim().toLowerCase();
+    if(!query) return list_content;
+
+    return list_content.filter((el) => el.nom.toLowerCase().includes(query) || el.type.toLowerCase().includes(query));
+});
 
 const sorted_content = computed(() => {
-    if(!sort_property.value) return list_content;
+    if(!sort_property.value) return filtered_content.value;
 
-    return [...list_content].sort((a, b) => {
+    return [...filtered_content.value].sort((a, b) => {
         console.log(sort_property.value);
         const valA = a[sort_property.value] ;
         const valB = b[sort_property.value];
@@ -48,9 +48,11 @@ const sorted_content = computed(() => {
 <template>
     <div class="content">
         <div class="search">
-            <input type="text" placeholder="Chercher par nom..."/>
+            <input v-model="filter_search" type="text" placeholder="Chercher par nom, catégorie..."/>
             <button>Filtrer</button>
         </div>
+
+        <p v-if="filter_search">Recherche actuelle : {{ filter_search }}</p>
 
         <ul>
             <li class = "head">
