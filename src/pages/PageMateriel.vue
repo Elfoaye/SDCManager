@@ -5,6 +5,21 @@ import Multiselect from 'vue-multiselect';
 const list_content = [
     {nom:"Stairville Retro Flat Par 18x10W RGBWA UV",  type:"Lumière", disponible:8, total:12, contribution:9, valeur:269},
     {nom:"JBL EON710",  type:"Diff", disponible:2, total:2, contribution:15, valeur:535}, 
+    {nom:"Shure SM58 LC ",  type:"Micros", disponible:6, total:16, contribution:4, valeur:109},
+    {nom:"Stairville Retro Flat Par 18x10W RGBWA UV",  type:"Lumière", disponible:8, total:12, contribution:9, valeur:269},
+    {nom:"JBL EON710",  type:"Diff", disponible:2, total:2, contribution:15, valeur:535}, 
+    {nom:"Shure SM58 LC ",  type:"Micros", disponible:6, total:16, contribution:4, valeur:109},
+    {nom:"Stairville Retro Flat Par 18x10W RGBWA UV",  type:"Lumière", disponible:8, total:12, contribution:9, valeur:269},
+    {nom:"JBL EON710",  type:"Diff", disponible:2, total:2, contribution:15, valeur:535}, 
+    {nom:"Shure SM58 LC ",  type:"Micros", disponible:6, total:16, contribution:4, valeur:109},
+    {nom:"Stairville Retro Flat Par 18x10W RGBWA UV",  type:"Lumière", disponible:8, total:12, contribution:9, valeur:269},
+    {nom:"JBL EON710",  type:"Diff", disponible:2, total:2, contribution:15, valeur:535}, 
+    {nom:"Shure SM58 LC ",  type:"Micros", disponible:6, total:16, contribution:4, valeur:109},
+    {nom:"Stairville Retro Flat Par 18x10W RGBWA UV",  type:"Lumière", disponible:8, total:12, contribution:9, valeur:269},
+    {nom:"JBL EON710",  type:"Diff", disponible:2, total:2, contribution:15, valeur:535}, 
+    {nom:"Shure SM58 LC ",  type:"Micros", disponible:6, total:16, contribution:4, valeur:109},
+    {nom:"Stairville Retro Flat Par 18x10W RGBWA UV",  type:"Lumière", disponible:8, total:12, contribution:9, valeur:269},
+    {nom:"JBL EON710",  type:"Diff", disponible:2, total:2, contribution:15, valeur:535}, 
     {nom:"Shure SM58 LC ",  type:"Micros", disponible:6, total:16, contribution:4, valeur:109}];
 
 const types = ['Lumière','Diff','Micros'];
@@ -27,8 +42,19 @@ function toggle_filters() {
 const sort_property = ref(null);
 const sort_asc = ref(true);
 
+function set_sort(key) {
+    if(sort_property.value == key) {
+        sort_asc.value = !sort_asc.value;
+        return;
+    }
+
+    sort_property.value = key;
+}
+
 const filter_search = ref('');
-const filter_type = ref(null);
+const filter_type = ref([]);
+const filter_min_disp = ref('');
+const filter_max_price = ref('');
 
 const filtered_content = computed(() => {
     const query = String(filter_search.value).trim().toLowerCase();
@@ -36,6 +62,15 @@ const filtered_content = computed(() => {
     return list_content.filter(item =>  {
         // Search bar
         if (query && !(item.nom.toLowerCase().includes(query) || item.type.toLowerCase().includes(query)))
+            return false;
+
+        if (filter_type.value.length > 0 && !filter_type.value.includes(item.type))
+            return false;
+
+        if (filter_min_disp.value && filter_min_disp.value > item.disponible)
+            return false;
+
+        if (filter_max_price.value && filter_max_price.value < item.contribution)
             return false;
 
         return true;
@@ -66,24 +101,32 @@ const sorted_content = computed(() => {
             <input v-model="filter_search" type="text" placeholder="Chercher par nom, catégorie..."/>
             <button @click="toggle_filters">Filtrer</button>
         </div>
-
-        <p v-if="filter_search">Recherche actuelle : {{ filter_search }}</p>
-
+        
         <div class="filters" v-if="show_filters">
-            <p>Filtres</p>
-            <Multiselect v-model="filter_type" :options="types" :multiple="true" :close-on-select="false"></Multiselect>
+            <section>
+                <label for="type">Types</label>
+                <Multiselect name="type" v-model="filter_type" :options="types" :multiple="true" :close-on-select="false"></Multiselect>
+            </section>
+            <section>
+                <label for="mindispo">Minimum disponible</label>
+                <input v-model="filter_min_disp" label="mindispo" type="number" min="0"/>
+            </section>
+            <section>
+                <label for="prixmax">Contribution maximum</label>
+                <input v-model="filter_max_price" label="prixmax" type="number" min="0"/>
+            </section>
         </div>
 
-        <ul>
-            <li class = "head">
-                <button 
-                    v-for="col in columns"
-                    :key="col.key"
-                    @click="set_sort(col.key)"
-                >
+        <li class="head">
+            <button 
+                v-for="col in columns"
+                :key="col.key"
+                @click="set_sort(col.key)"
+            >
                 {{ col.label }} <span v-if="sort_property === col.key">{{ sort_asc ? '▲' : '▼' }}</span>
             </button>
-            </li>
+        </li>
+        <ul>
             <li v-for="item in sorted_content">
                 <p>{{ item.nom }}</p>
                 <p>{{ item.type }}</p>
@@ -106,7 +149,9 @@ const sorted_content = computed(() => {
     display: flex;
     flex-direction: column;
     max-width: 60rem;
+    max-height: 100%;
     padding: 2rem;
+    overflow: hidden;
 }
 
 .search {
@@ -119,8 +164,7 @@ input {
 
 .search button {
     height: 100%;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
+    padding: 0.5rem;
 }
 
 .filters {
@@ -140,6 +184,7 @@ ul {
     list-style-type: none;
     margin: 0;
     padding: 0;
+    overflow-y: auto;
 }
 
 li {

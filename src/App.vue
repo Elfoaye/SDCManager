@@ -16,8 +16,10 @@ const current_page = ref(null);
         <div class="layout">
             <NavBar v-model="current_page"/>
 
-            <PageMateriel v-if="current_page !== null" />
-            <PageAccueil v-else/>
+            <div class="content">
+                <PageMateriel v-if="current_page !== null" />
+                <PageAccueil v-else/>
+            </div>
         </div>
     </div>
 </template>
@@ -32,6 +34,12 @@ const current_page = ref(null);
 .layout {
     display: flex;
     flex: 1;
+    overflow: hidden;
+}
+
+.content {
+    flex: 1;
+    padding: 1rem;
     overflow: hidden;
 }
 </style>

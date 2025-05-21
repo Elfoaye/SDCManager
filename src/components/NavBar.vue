@@ -31,6 +31,7 @@ function setPage(value) {
 nav{
     height: auto;
     width: clamp(5rem, 18vw, 12rem);
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
