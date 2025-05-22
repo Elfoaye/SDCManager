@@ -53,7 +53,7 @@ section {
 }
 
 h2 {
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 500;
     margin-top: 0;
     margin-bottom: 0.3rem;
@@ -62,6 +62,7 @@ h2 {
 
 button {
     text-align: start;
+    font-size: 1rem;
     background-color: var(--accent);
     color: var(--text);
     border: none;

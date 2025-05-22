@@ -54,13 +54,13 @@ function set_sort(key) {
 const filter_search = ref('');
 const filter_type = ref([]);
 const filter_min_disp = ref('');
+const filter_min_total = ref('');
 const filter_max_price = ref('');
 
 const filtered_content = computed(() => {
     const query = String(filter_search.value).trim().toLowerCase();
 
     return list_content.filter(item =>  {
-        // Search bar
         if (query && !(item.nom.toLowerCase().includes(query) || item.type.toLowerCase().includes(query)))
             return false;
 
@@ -68,6 +68,9 @@ const filtered_content = computed(() => {
             return false;
 
         if (filter_min_disp.value && filter_min_disp.value > item.disponible)
+            return false;
+
+        if (filter_min_disp.value && filter_min_total.value > item.total)
             return false;
 
         if (filter_max_price.value && filter_max_price.value < item.contribution)
@@ -103,16 +106,30 @@ const sorted_content = computed(() => {
         </div>
         
         <div class="filters" v-if="show_filters">
-            <section>
+            <section class="type">
                 <label for="type">Types</label>
-                <Multiselect name="type" v-model="filter_type" :options="types" :multiple="true" :close-on-select="false"></Multiselect>
+                <Multiselect 
+                    name="type" 
+                    v-model="filter_type" 
+                    :options="types" 
+                    :multiple="true" 
+                    :close-on-select="false" 
+                    placeholder="Selectionner des types"
+                    selectLabel="Appuyez sur entrée pour selectionner"
+                    selectedLabel="Selectionné"
+                    deselectLabel="Appuyez sur entrée pour enlever">
+                </Multiselect>
             </section>
-            <section>
+            <section class="mindispo">
                 <label for="mindispo">Minimum disponible</label>
                 <input v-model="filter_min_disp" label="mindispo" type="number" min="0"/>
             </section>
-            <section>
-                <label for="prixmax">Contribution maximum</label>
+            <section class="mintotal">
+                <label for="mintotal">Minimum total</label>
+                <input v-model="filter_min_total" label="mintotal" type="number" min="0"/>
+            </section class="number">
+            <section class="prixmax">
+                <label for="prixmax">Prix journalier maximum</label>
                 <input v-model="filter_max_price" label="prixmax" type="number" min="0"/>
             </section>
         </div>
@@ -167,7 +184,29 @@ input {
     padding: 0.5rem;
 }
 
+.type {
+    grid-area: type;
+}
+
+.mindispo {
+    grid-area: dispo;
+}
+
+.mintotal {
+    grid-area: total;
+}
+
+.prixmax {
+    grid-area: prix;
+}
+
 .filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: auto;
+    grid-template-areas: 
+        "type type type"
+        "dispo total prix";
     margin-bottom: 1rem;
     padding: 0.5rem;
     border: 1px solid var(--border);
@@ -176,6 +215,12 @@ input {
 
 .filters p {
     margin: 0;
+}
+
+.filters section {
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem;
 }
 
 ul {
