@@ -1,10 +1,5 @@
 <script setup>
-const page = defineModel()
-
-function setPage(value) {
-    page.value = value;
-    console.log(page.value);
-}
+const props = defineProps(['setPage']);
 </script>
 
 <template>
@@ -62,13 +57,14 @@ h2 {
 
 button {
     text-align: start;
+    padding: 0.5rem;
     font-size: 1rem;
+    height: 2rem;
+    border-radius: 0.5rem;
     background-color: var(--accent);
     color: var(--text);
     border: none;
     cursor: pointer;
-    height: 2rem;
-    border-radius: 0.5rem;
 
     transition: all 0.1s;
 }

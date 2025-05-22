@@ -1,6 +1,13 @@
 <script setup>
 import { ref, computed } from 'vue';
 import Multiselect from 'vue-multiselect';
+import { useBreadcrumb } from '../composables/breadcrumb';
+
+const { setBreadcrumb } = useBreadcrumb();
+setBreadcrumb([
+    { label: 'Accueil', page: null },
+    { label: 'Matériel', page: 'mat' },
+])
 
 const list_content = [
     {nom:"Stairville Retro Flat Par 18x10W RGBWA UV",  type:"Lumière", disponible:8, total:12, contribution:9, valeur:269},
@@ -236,6 +243,7 @@ li {
     display: grid;
     grid-template-columns: 3fr 1fr 1fr 1fr 1fr 1fr;
     padding: 0 0.5rem;
+    margin: 0;
     gap: 1rem;
     align-items: center;
     border-bottom: 1px solid var(--border);
