@@ -113,6 +113,7 @@ const sorted_content = computed(() => {
         </div>
         
         <div class="filters" v-if="show_filters">
+            <h2>Filtres</h2>
             <section class="type">
                 <label for="type">Types</label>
                 <Multiselect 
@@ -122,9 +123,9 @@ const sorted_content = computed(() => {
                     :multiple="true" 
                     :close-on-select="false" 
                     placeholder="Selectionner des types"
-                    selectLabel="Appuyez sur entrée pour selectionner"
-                    selectedLabel="Selectionné"
-                    deselectLabel="Appuyez sur entrée pour enlever">
+                    selectLabel="Ajouter"
+                    selectedLabel="Sélectionné"
+                    deselectLabel="Retirer">
                 </Multiselect>
             </section>
             <section class="mindispo">
@@ -178,17 +179,45 @@ const sorted_content = computed(() => {
     overflow: hidden;
 }
 
+input {
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 0.3rem;
+}
+
 .search {
     margin-bottom: 2rem;
 }
 
-input {
-    padding: 0.5rem;
+.search input {
+    width: 40%;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
 }
 
 .search button {
     height: 100%;
     padding: 0.5rem;
+    width: 4rem;
+    background-color: var(--accent);
+    border: 1px solid var(--border);
+    border-left: 0;
+    border-top-right-radius: 0.3rem;
+    border-bottom-right-radius: 0.3rem;
+
+    transition: all 0.2s;
+}
+
+.search button:hover {
+    background-color: var(--accent-hover);
+    
+    transition: all 0.2s;
+}
+
+.filters h2 {
+    grid-area: title;
+    margin: 0;
+    padding-left: 0.5rem;
 }
 
 .type {
@@ -209,9 +238,10 @@ input {
 
 .filters {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
     grid-template-rows: auto;
     grid-template-areas: 
+        "title title title" 
         "type type type"
         "dispo total prix";
     margin-bottom: 1rem;
@@ -228,6 +258,16 @@ input {
     display: flex;
     flex-direction: column;
     padding: 0.5rem;
+}
+
+.filters section label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+:deep(.multiselect__tag) {
+    background: var(--accent-hover);
 }
 
 ul {

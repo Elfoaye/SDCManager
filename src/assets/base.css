@@ -5,6 +5,7 @@
   --text: #1A1A1A;
   --text-muted: #666666;
   --border: #DADADA;
+  --border-focus: #999999;
   --border-accent: #1A1A1A;
   --accent: #C9EDEA;
   --accent-hover: #119194;
@@ -18,13 +19,14 @@
 }
 
 /* Mode sombre */
-/* @media (prefers-color-scheme: dark) {
+/*@media (prefers-color-scheme: dark) {
   :root {
     --background: #1A1A1A;
     --background-alt: #232323;
     --text: #FFFFFF;
     --text-muted: #BBBBBB;
     --border: #1A1A1A;
+    --border-focus: #555555;
     --border-accent: #DADADA;
     --accent: #119194;
     --accent-hover: #C9EDEA;
@@ -37,7 +39,7 @@
     --disabled: #555555;
   }
 } */
-
+ 
 body {
   min-height: 100vh;
   color: var(--text);
