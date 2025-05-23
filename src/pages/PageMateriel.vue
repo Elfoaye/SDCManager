@@ -4,44 +4,24 @@ import { useBreadcrumb } from '../composables/breadcrumb';
 import { ref, computed } from 'vue';
 import Multiselect from 'vue-multiselect';
 
-
 const { setBreadcrumb } = useBreadcrumb();
 setBreadcrumb([
     { label: 'Accueil', page: null },
     { label: 'Matériel', page: 'mat' },
 ])
 
-invoke('get_data').then((data) => console.log(data));
+const list_content = ref([]);
+invoke('get_data').then((data) => list_content.value = data);
 
-const list_content = [
-    {nom:"Stairville Retro Flat Par 18x10W RGBWA UV",  type:"Lumière", disponible:8, total:12, contribution:9, valeur:269},
-    {nom:"JBL EON710",  type:"Diff", disponible:2, total:2, contribution:15, valeur:535}, 
-    {nom:"Shure SM58 LC ",  type:"Micros", disponible:6, total:16, contribution:4, valeur:109},
-    {nom:"Stairville Retro Flat Par 18x10W RGBWA UV",  type:"Lumière", disponible:8, total:12, contribution:9, valeur:269},
-    {nom:"JBL EON710",  type:"Diff", disponible:2, total:2, contribution:15, valeur:535}, 
-    {nom:"Shure SM58 LC ",  type:"Micros", disponible:6, total:16, contribution:4, valeur:109},
-    {nom:"Stairville Retro Flat Par 18x10W RGBWA UV",  type:"Lumière", disponible:8, total:12, contribution:9, valeur:269},
-    {nom:"JBL EON710",  type:"Diff", disponible:2, total:2, contribution:15, valeur:535}, 
-    {nom:"Shure SM58 LC ",  type:"Micros", disponible:6, total:16, contribution:4, valeur:109},
-    {nom:"Stairville Retro Flat Par 18x10W RGBWA UV",  type:"Lumière", disponible:8, total:12, contribution:9, valeur:269},
-    {nom:"JBL EON710",  type:"Diff", disponible:2, total:2, contribution:15, valeur:535}, 
-    {nom:"Shure SM58 LC ",  type:"Micros", disponible:6, total:16, contribution:4, valeur:109},
-    {nom:"Stairville Retro Flat Par 18x10W RGBWA UV",  type:"Lumière", disponible:8, total:12, contribution:9, valeur:269},
-    {nom:"JBL EON710",  type:"Diff", disponible:2, total:2, contribution:15, valeur:535}, 
-    {nom:"Shure SM58 LC ",  type:"Micros", disponible:6, total:16, contribution:4, valeur:109},
-    {nom:"Stairville Retro Flat Par 18x10W RGBWA UV",  type:"Lumière", disponible:8, total:12, contribution:9, valeur:269},
-    {nom:"JBL EON710",  type:"Diff", disponible:2, total:2, contribution:15, valeur:535}, 
-    {nom:"Shure SM58 LC ",  type:"Micros", disponible:6, total:16, contribution:4, valeur:109}];
-
-const types = ['Lumière','Diff','Micros'];
+const types = ['Lumière','Diff','Micros']; //TODO Importer les types depuis config.json
 
 const columns = [
   { label: 'Nom', key: 'nom' },
-  { label: 'Catégorie', key: 'type' },
-  { label: 'Disponible', key: 'disponible' },
+  { label: 'Catégorie', key: 'item_type' },
+  { label: 'Disponible', key: 'dispo' },
   { label: 'Total', key: 'total' },
-  { label: 'Prix/Journée', key: 'contribution' },
-  { label: 'Valeur', key: 'valeur' }
+  { label: 'Prix/Journée', key: 'contrib' },
+  { label: 'Valeur', key: 'value' }
 ]
 
 const show_filters = ref(false);
@@ -59,6 +39,7 @@ function set_sort(key) {
         return;
     }
 
+    sort_asc.value = true;
     sort_property.value = key;
 }
 
@@ -71,20 +52,20 @@ const filter_max_price = ref('');
 const filtered_content = computed(() => {
     const query = String(filter_search.value).trim().toLowerCase();
 
-    return list_content.filter(item =>  {
-        if (query && !(item.nom.toLowerCase().includes(query) || item.type.toLowerCase().includes(query)))
+    return list_content.value.filter(item =>  {
+        if (query && !(String(item.nom).toLowerCase().includes(query) || String(item.item_type).toLowerCase().includes(query)))
             return false;
 
-        if (filter_type.value.length > 0 && !filter_type.value.includes(item.type))
+        if (filter_type.value.length > 0 && !filter_type.value.includes(item.item_type))
             return false;
 
-        if (filter_min_disp.value && filter_min_disp.value > item.disponible)
+        if (filter_min_disp.value && filter_min_disp.value > item.dispo)
             return false;
 
-        if (filter_min_disp.value && filter_min_total.value > item.total)
+        if (filter_min_total.value && filter_min_total.value > item.total)
             return false;
 
-        if (filter_max_price.value && filter_max_price.value < item.contribution)
+        if (filter_max_price.value && filter_max_price.value < item.contrib)
             return false;
 
         return true;
@@ -158,11 +139,11 @@ const sorted_content = computed(() => {
         <ul>
             <li v-for="item in sorted_content">
                 <p>{{ item.nom }}</p>
-                <p>{{ item.type }}</p>
-                <p>{{ item.disponible }}</p>
+                <p>{{ item.item_type }}</p>
+                <p>{{ item.dispo }}</p>
                 <p>{{ item.total }}</p>
-                <p>{{ item.contribution }}</p>
-                <p>{{ item.valeur }}</p>
+                <p>{{ item.contrib }}</p>
+                <p>{{ item.value }}</p>
             </li>
         </ul>
     </div>

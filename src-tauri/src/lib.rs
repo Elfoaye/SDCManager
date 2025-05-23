@@ -20,8 +20,6 @@ fn get_data(handle: tauri::AppHandle) -> Result<Vec<Item>, String> {
         .resolve("sync_data/database.db", BaseDirectory::Resource)
         .map_err(|e| e.to_string())?;
 
-    println!("Runtime path = {:?}", path);
-
     let conn = Connection::open(path)
         .map_err(|e| e.to_string())?;
 
