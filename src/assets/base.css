@@ -19,17 +19,17 @@
 }
 
 /* Mode sombre */
-/*@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: dark) {
   :root {
     --background: #1A1A1A;
     --background-alt: #232323;
     --text: #FFFFFF;
     --text-muted: #BBBBBB;
-    --border: #1A1A1A;
+    --border: #919191;
     --border-focus: #555555;
     --border-accent: #DADADA;
-    --accent: #119194;
-    --accent-hover: #C9EDEA;
+    --accent: #1d5a54;
+    --accent-hover: #119194;
     --surface-hover: #2A3F3F;
     --surface-selected: #2C4E4D;
     --neutral: #3A3A3A;
@@ -38,7 +38,7 @@
     --error: #EF5350;
     --disabled: #555555;
   }
-} */
+}
  
 body {
   min-height: 100vh;

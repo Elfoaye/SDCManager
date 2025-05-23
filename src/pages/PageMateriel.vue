@@ -149,9 +149,7 @@ const sorted_content = computed(() => {
     </div>
 </template>
 
-<style src="vue-multiselect/dist/vue-multiselect.min.css">
-
-</style>
+<style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
 
 <style scoped>
 .content {
@@ -166,6 +164,8 @@ const sorted_content = computed(() => {
 
 input {
     padding: 0.5rem;
+    background-color: var(--background-alt);
+    color: var(--text);
     border: 1px solid var(--border);
     border-radius: 0.3rem;
 }
@@ -185,6 +185,7 @@ input {
     padding: 0.5rem;
     width: 4rem;
     background-color: var(--accent);
+    color: var(--text);
     border: 1px solid var(--border);
     border-left: 0;
     border-top-right-radius: 0.3rem;
@@ -251,8 +252,27 @@ input {
     text-overflow: ellipsis;
 }
 
+:deep(.multiselect__tags) {
+    background: var(--background-alt);
+    color: var(--text);
+}
+
+:deep(.multiselect__input) {
+    background: var(--background-alt);
+    color: var(--text);
+}
+
+:deep(.multiselect__input::placeholder) {
+    color: var(--text-muted);
+}
+
 :deep(.multiselect__tag) {
     background: var(--accent-hover);
+}
+
+:deep(.multiselect__content) {
+    background: var(--background-alt);
+    color: var(--text);
 }
 
 ul {
@@ -294,6 +314,7 @@ li.head {
     cursor: pointer;
     padding-left: 0;
     padding-bottom: 0.5rem;
+    color: var(--text);
     background-color: var(--background);
     text-align: start;
     font-weight: 600;
