@@ -1,13 +1,17 @@
 <script setup>
+import { invoke } from '@tauri-apps/api/core';
+import { useBreadcrumb } from '../composables/breadcrumb';
 import { ref, computed } from 'vue';
 import Multiselect from 'vue-multiselect';
-import { useBreadcrumb } from '../composables/breadcrumb';
+
 
 const { setBreadcrumb } = useBreadcrumb();
 setBreadcrumb([
     { label: 'Accueil', page: null },
     { label: 'Matériel', page: 'mat' },
 ])
+
+invoke('get_data').then((data) => console.log(data));
 
 const list_content = [
     {nom:"Stairville Retro Flat Par 18x10W RGBWA UV",  type:"Lumière", disponible:8, total:12, contribution:9, valeur:269},

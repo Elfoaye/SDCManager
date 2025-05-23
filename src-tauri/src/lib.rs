@@ -1,5 +1,6 @@
 use serde::Serialize;
 use rusqlite::{Connection, Result};
+use tauri::{Manager, path::BaseDirectory};
 
 #[derive(Serialize)]
 struct Item {
@@ -14,8 +15,14 @@ struct Item {
 }
 
 #[tauri::command]
-fn get_data() -> Result<Vec<Item>, String> {
-    let conn = Connection::open("../../sync_data/database.db")
+fn get_data(handle: tauri::AppHandle) -> Result<Vec<Item>, String> {
+    let path = handle.path()
+        .resolve("sync_data/database.db", BaseDirectory::Resource)
+        .map_err(|e| e.to_string())?;
+
+    println!("Runtime path = {:?}", path);
+
+    let conn = Connection::open(path)
         .map_err(|e| e.to_string())?;
 
     let mut request = conn.prepare("SELECT * FROM Materiel")
