@@ -1,0 +1,9 @@
+{
+    "data": {
+        "types": ["Accessoires", "BackLine", "Diff", "Electricité", "Light", "Micros", "Mix", "Modules", "Périph", "Pieds", "Projection", "Studio"]
+    },
+    "formula": {
+        "contrib_first_day": 0.033,
+        "contrib_following": 0.01
+    }
+}
