@@ -11,9 +11,10 @@ setBreadcrumb([
 ])
 
 const list_content = ref([]);
-invoke('get_data').then((data) => list_content.value = data);
+invoke('get_materiel_data').then((data) => list_content.value = data);
 
-const types = ['Lumière','Diff','Micros']; //TODO Importer les types depuis config.json
+const types = ref([]);
+invoke('get_materiel_types').then((data) => types.value = data);
 
 const columns = [
   { label: 'Nom', key: 'nom' },
@@ -158,7 +159,7 @@ const sorted_content = computed(() => {
     flex-direction: column;
     max-width: 60rem;
     max-height: 100%;
-    padding: 2rem;
+    margin: 2rem;
     overflow: hidden;
 }
 
@@ -281,6 +282,7 @@ ul {
     list-style-type: none;
     margin: 0;
     padding: 0;
+    padding-bottom: 2rem;
     overflow-y: auto;
 }
 

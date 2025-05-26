@@ -4,6 +4,6 @@
     },
     "formula": {
         "contrib_first_day": 0.033,
-        "contrib_following": 0.01
+        "contrib_following": 0.3
     }
 }

@@ -15,7 +15,7 @@ struct Item {
 }
 
 #[tauri::command]
-fn get_data(handle: tauri::AppHandle) -> Result<Vec<Item>, String> {
+fn get_materiel_data(handle: tauri::AppHandle) -> Result<Vec<Item>, String> {
     let path = handle.path()
         .resolve("sync_data/database.db", BaseDirectory::Resource)
         .map_err(|e| e.to_string())?;
@@ -49,12 +49,46 @@ fn get_data(handle: tauri::AppHandle) -> Result<Vec<Item>, String> {
     Ok(items)
 }
 
+fn get_settings_json(handle: tauri::AppHandle) -> Result<serde_json::Value, String> {
+    let path = handle.path()
+        .resolve("sync_data/settings.json", BaseDirectory::Resource)
+        .map_err(|e| e.to_string())?;
+
+    let file = std::fs::File::open(&path).map_err(|e| e.to_string())?;
+    serde_json::from_reader(file).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn get_materiel_types(handle: tauri::AppHandle) -> Result<Vec<serde_json::Value>, String> {
+    let json = get_settings_json(handle).map_err(|e| e.to_string())?;
+    let types = json
+        .get("data")
+        .and_then(|d| d.get("types"))
+        .and_then(|t| t.as_array())
+        .ok_or("Champ data.types introuvable ou invalide")?;
+
+    Ok(types.clone())
+}
+
+#[tauri::command]
+fn get_loc_formulas(handle: tauri::AppHandle) -> Result<serde_json::Value, String> {
+    let json = get_settings_json(handle).map_err(|e| e.to_string())?;
+    let formulas = json
+        .get("formula")
+        .ok_or("Champ data.types introuvable ou invalide")?;
+
+    Ok(formulas.clone())
+}
+
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![get_data])
+        .invoke_handler(tauri::generate_handler!
+            [get_materiel_data, 
+            get_materiel_types,
+            get_loc_formulas])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
