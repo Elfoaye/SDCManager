@@ -154,12 +154,12 @@ const sorted_content = computed(() => {
 
 <style scoped>
 .content {
-    flex-grow: 1;
+    flex-grow: 2;
     display: flex;
     flex-direction: column;
     max-width: 60rem;
     max-height: 100%;
-    margin: 2rem;
+    margin: 0.5rem;
     overflow: hidden;
 }
 
@@ -197,6 +197,7 @@ input {
 
 .search button:hover {
     background-color: var(--accent-hover);
+    cursor: pointer;
     
     transition: all 0.2s;
 }
@@ -297,7 +298,12 @@ li {
 }
 
 li:not(.head):nth-child(even) {
-  background-color: var(--background-alt);
+    background-color: var(--background-alt);
+}
+
+li:not(.head):hover {
+    cursor: pointer;
+    background-color: var(--accent);
 }
 
 li p {

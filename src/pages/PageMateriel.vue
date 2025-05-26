@@ -11,23 +11,22 @@ function handleResize() {
 }
 
 onMounted(() => {
-    window.addEventListener('resize', handleResize)
+    window.addEventListener('resize', handleResize);
 });
 
 onUnmounted(() => {
-    window.removeEventListener('resize', handleResize)
+    window.removeEventListener('resize', handleResize);
 });
 
 const display = ref(null)
 function setDisplay(value) {
     display.value = value;
-    console.log(value);
 }
 </script>
 
 <template>
     <div class="wrapper" :class="{'item-display': display !== null, wide: isWide}">
-        <ListeMateriel v-show="display === null || isWide" class="list" @display="setDisplay"/>
+        <ListeMateriel class="list" @display="setDisplay"/>
         <Transition name="slide">
             <DisplayMateriel 
                 v-if="display !== null" 
@@ -43,9 +42,11 @@ function setDisplay(value) {
 .wrapper {
     height: 100%;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .wrapper.item-display.wide {
-  display: flex;
+    flex-direction: row;
 }
 </style>
