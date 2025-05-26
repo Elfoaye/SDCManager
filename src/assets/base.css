@@ -19,7 +19,7 @@
 }
 
 /* Mode sombre */
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   :root {
     --background: #1A1A1A;
     --background-alt: #232323;
@@ -38,7 +38,7 @@
     --error: #EF5350;
     --disabled: #555555;
   }
-}
+} */
  
 body {
   min-height: 100vh;

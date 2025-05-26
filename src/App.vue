@@ -45,8 +45,8 @@ function setPage(value) {
 }
 
 .layout {
-    display: flex;
     flex: 1;
+    display: flex;
     overflow: hidden;
 }
 
