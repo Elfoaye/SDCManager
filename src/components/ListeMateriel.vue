@@ -94,7 +94,7 @@ const sorted_content = computed(() => {
 <template>
     <div class="content">
         <div class="search">
-            <input v-model="filter_search" type="text" placeholder="Chercher par nom, catégorie..."/>
+            <input v-model="filter_search" name="searchbar" type="text" placeholder="Chercher par nom, catégorie..."/>
             <button @click="toggle_filters">Filtrer</button>
         </div>
         
@@ -143,8 +143,8 @@ const sorted_content = computed(() => {
                 <p>{{ item.item_type }}</p>
                 <p>{{ item.dispo }}</p>
                 <p>{{ item.total }}</p>
-                <p>{{ item.contrib }}</p>
-                <p>{{ item.value }}</p>
+                <p>{{ item.contrib }} €</p>
+                <p>{{ item.value }} €</p>
             </li>
         </ul>
     </div>

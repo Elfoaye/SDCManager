@@ -1,13 +1,19 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
-import { computed, ref, watch } from 'vue';
-import { Chart, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
-Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+import { computed, nextTick, ref, watch } from 'vue';
+// import { Chart, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
+// Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+
 const props = defineProps(['item','setItem']);
 
 const formulas = ref(null);
 invoke('get_loc_formulas').then((data) => {
     formulas.value = data
+});
+
+const following_rate = computed(() => {
+    if(!props.item || !formulas.value) return 0;
+    return props.item.contrib * formulas.value.contrib_following;
 });
 
 const usageFill = computed(() => {
@@ -21,49 +27,45 @@ const usageColor = computed(() => {
     return "#f44336";
 });
 
-const following_rate = computed(() => {
-    if(!props.item || !formulas.value) return 0;
-    return (props.item.contrib * formulas.value.contrib_following).toFixed(2);
-});
+// const nbDays = ref(7);
+// const contribLabels = computed(() =>{
+//     return Array.from({ length: nbDays.value }, (_, i) => `Jour ${i + 1}`);
+// });
+// const contribData = computed(() => {
+//     return Array.from({ length: nbDays.value }, (_, i) => (props.item.contrib + (i * following_rate.value)).toFixed(2));
+// });
+// const chartRef  = ref(null);
+// const chartInstance = ref(null);
 
-const nbDays = ref(7);
-const contribLabels = computed(() =>{
-    return Array.from({ length: nbDays.value }, (_, i) => `Jour ${i + 1}`);
-});
-const contribData = computed(() => {
-    return Array.from({ length: nbDays.value }, (_, i) => (props.item.contrib + (i * following_rate.value)).toFixed(2));
-});
-const chartRef  = ref(null);
-const chartInstance = ref(null);
+// watch([chartRef, contribData], () => {
+//     if (!chartRef.value || contribData.value.length === 0) return;
 
-watch([chartRef, contribData], ([canvas, data]) => {
-    if (!canvas || data.length === 0) return;
+//     if(chartInstance.value) {
+//         chartInstance.value.data.datasets[0].data = contribData.value;
+//         chartInstance.value.data.labels = contribLabels.value;
+//         chartInstance.value.update();
+//     }
 
-    if(chartInstance.value) {
-        chartInstance.value.data.datasets[0].data = contribData.value;
-        chartInstance.value.data.labels = contribLabels.value;
-        chartInstance.value.update();
-    }
-
-    chartInstance.value = new Chart(chartRef.value, {
-        type: 'bar',
-        data: {
-            labels: contribLabels.value,
-            datasets: [{
-                label: 'Contribution (€)',
-                data: contribData.value,
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-});
+//     chartInstance.value = new Chart(chartRef.value, {
+//         type: 'bar',
+//         data: {
+//             labels: contribLabels.value,
+//             datasets: [{
+//                 label: 'Contribution (€)',
+//                 data: contribData.value,
+//             }]
+//         },
+//         options: {
+//             responsive: true,
+//             maintainAspectRatio: false,
+//             scales: {
+//                 y: {
+//                     beginAtZero: true
+//                 }
+//             }
+//         }
+//     });
+// });
 </script>
 
 <template>
@@ -89,8 +91,8 @@ watch([chartRef, contribData], ([canvas, data]) => {
             <p>Taux de rentabilité estimée : {{ ((item.nb_sorties * item.contrib * 100)/item.value).toFixed(2) }}%</p>
         </div>
         <div class="price">
-            <p>Contribution : <span>{{ item.contrib.toFixed(2) }}€</span> + {{ (item.contrib * formulas.contrib_following).toFixed(2) }}€ par jour supplémentaire</p>
-            <canvas ref="chartRef"></canvas>
+            <p>Contribution : <span>{{ item.contrib.toFixed(2) }}€</span> + {{ following_rate.toFixed(2) }}€ par jour supplémentaire</p>
+            <!-- <canvas ref="chartRef" style="width: 100%; height: 100%;"></canvas> -->
         </div>
     </div>
 </template>
@@ -193,5 +195,9 @@ watch([chartRef, contribData], ([canvas, data]) => {
     display: flex;
     flex-direction: column;
     margin-top: 0.5rem;
+    height: 40%;
+    max-height: 20rem;
+    overflow: hidden;
 }
+
 </style>
