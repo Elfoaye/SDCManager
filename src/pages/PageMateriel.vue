@@ -1,7 +1,23 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import ListeMateriel from '../components/ListeMateriel.vue';
 import DisplayMateriel from '../components/DisplayMateriel.vue'
+
+const componentKey = ref(0);
+
+const display = ref(null)
+function setDisplay(value) {
+    display.value = value;
+    componentKey.value++;
+}
+
+const listRef = ref(null);
+async function onDataChange() {
+    if(!listRef.value) return;
+
+    await listRef.value.updateData();
+    setDisplay(listRef.value.list_content.find(item => item.id === display.value.id))
+}
 
 const wideWidth = 1080;
 
@@ -18,11 +34,6 @@ onUnmounted(() => {
     window.removeEventListener('resize', handleResize);
 });
 
-const display = ref(null)
-function setDisplay(value) {
-    display.value = value;
-}
-
 const transitionName = computed(() => {
   return isWide.value ?  'expand-height' : 'expand-width';
 });
@@ -31,13 +42,15 @@ const transitionName = computed(() => {
 
 <template>
     <div class="wrapper" :class="{'item-display': display !== null, wide: isWide}">
-        <ListeMateriel class="list" @display="setDisplay"/>
+        <ListeMateriel class="list" ref="listRef" @display="setDisplay"/>
         <Transition :name="transitionName" mode="out-in">
             <DisplayMateriel 
                 v-if="display !== null" 
+                :key="componentKey"
                 class="detail" 
                 :item="display" 
                 :setItem="setDisplay"
+                @data-change="onDataChange"
             />
         </Transition>
     </div>

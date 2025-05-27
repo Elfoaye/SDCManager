@@ -1,10 +1,9 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
-import { computed, nextTick, ref, watch } from 'vue';
-// import { Chart, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
-// Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+import { computed, ref } from 'vue';
 
 const props = defineProps(['item','setItem']);
+const emit = defineEmits(['data-change'])
 
 const formulas = ref(null);
 invoke('get_loc_formulas').then((data) => {
@@ -27,73 +26,107 @@ const usageColor = computed(() => {
     return "#f44336";
 });
 
-// const nbDays = ref(7);
-// const contribLabels = computed(() =>{
-//     return Array.from({ length: nbDays.value }, (_, i) => `Jour ${i + 1}`);
-// });
-// const contribData = computed(() => {
-//     return Array.from({ length: nbDays.value }, (_, i) => (props.item.contrib + (i * following_rate.value)).toFixed(2));
-// });
-// const chartRef  = ref(null);
-// const chartInstance = ref(null);
+const mode = ref(null);
+function setMode(new_mode) {
+    if(mode.value === new_mode) {
+        mode.value = null;
+        return
+    }
+    mode.value = new_mode;
+}
+const quantity = ref(0);
+const duration = ref(1);
+const quantity_error = ref(null);
+const submit_message = ref(null);
+const submit_error = ref(null);
 
-// watch([chartRef, contribData], () => {
-//     if (!chartRef.value || contribData.value.length === 0) return;
+const maxQuantity = computed(() => {
+    return mode.value == "Emprunter" ? props.item.dispo : props.item.total - props.item.dispo;
+});
 
-//     if(chartInstance.value) {
-//         chartInstance.value.data.datasets[0].data = contribData.value;
-//         chartInstance.value.data.labels = contribLabels.value;
-//         chartInstance.value.update();
-//     }
+const priceLoc = computed(() => {
+    if(!duration.value || !quantity.value || !props.item || duration.value === 0) return 0;
 
-//     chartInstance.value = new Chart(chartRef.value, {
-//         type: 'bar',
-//         data: {
-//             labels: contribLabels.value,
-//             datasets: [{
-//                 label: 'Contribution (€)',
-//                 data: contribData.value,
-//             }]
-//         },
-//         options: {
-//             responsive: true,
-//             maintainAspectRatio: false,
-//             scales: {
-//                 y: {
-//                     beginAtZero: true
-//                 }
-//             }
-//         }
-//     });
-// });
+    return quantity.value * (props.item.contrib + (duration.value - 1) * following_rate.value);
+});
+
+function updateDispo() {
+    const new_value = mode.value == "Emprunter" ? props.item.dispo - quantity.value : props.item.dispo + quantity.value;
+    
+    if (new_value < 0) {
+        quantity_error.value = "Pas assez d'objets diponibles";
+        return;
+    }
+    if (new_value > props.item.total) {
+        quantity_error.value = "Trop d'objets retournés";
+        return;
+    }
+
+    quantity_error.value = null;
+
+    invoke('update_dispo', { value: new_value, id: props.item.id })
+    .then((value) => { 
+        submit_message.value = value; 
+        emit('data-change');
+    })
+    .catch((err) => { submit_error.value = err; });
+}
 </script>
 
 <template>
     <div class="itemCard">
-        <div class="general">
+        <section class="general">
             <div class="title">
                 <h1>{{ item.nom }}</h1>
                 <button class="back" @click="setItem(null)">X</button>
             </div>
             <h2>{{ item.item_type }}</h2>
             <div class="availability">
+                <span v-if="item.dispo<=0" class="label">&#9888;</span>
                 <span class="label">Disponible :</span>
                 <div class="bar-wrapper">
                     <div class="bar-fill" :style="{ width: usageFill + '%', backgroundColor: usageColor }"></div>
                 </div>
                 <span class="value">{{ item.dispo }} / {{ item.total }}</span>
             </div>
-        </div>
-        <div class="stats">
+        </section>
+        <section class="stats">
             <p>Valeur de remplacement : {{ item.value }}€</p>
             <p>Nombre de sorties : {{ item.nb_sorties }}</p>
             <p>Estimation des revenus générés : {{ (item.nb_sorties * item.contrib).toFixed(2) }}€</p>
             <p>Taux de rentabilité estimée : {{ ((item.nb_sorties * item.contrib * 100)/item.value).toFixed(2) }}%</p>
-        </div>
-        <div class="price">
+        </section>
+        <section class="price">
             <p>Contribution : <span>{{ item.contrib.toFixed(2) }}€</span> + {{ following_rate.toFixed(2) }}€ par jour supplémentaire</p>
-            <!-- <canvas ref="chartRef" style="width: 100%; height: 100%;"></canvas> -->
-        </div>
+        </section>
+        <section class="dispo">
+            <h2>Gérer cet élement</h2>
+
+            <div class="select">
+                <button class="item-borrow" @click="setMode('Emprunter')">Emprunter</button>
+                <button class="item-return" @click="setMode('Retourner')">Retourner</button>
+            </div>
+            <div class="options" v-if="mode">
+                <h2>{{ mode }}</h2>
+
+                <div class="dispo-input">
+                    <label for="quantity">Quantité</label>
+                    <input v-model="quantity" label="quantity" type="number" min="0" :max="maxQuantity" placeholder="Nombre d'objets"/>
+                    <p class="error" v-show="quantity_error">Erreur : {{ quantity_error }}</p>
+                </div>
+
+                <div class="dispo-input" v-if="mode === 'Emprunter'">
+                    <label for="time">Durée</label>
+                    <input v-model="duration" label="time" type="number" min="0" placeholder="Nombre de jours" value="1"/>
+                </div>
+
+                <p v-if="mode === 'Emprunter' && priceLoc > 0">Contribution totale : {{ priceLoc.toFixed(2) }}€</p>
+
+                <button @click="updateDispo">Appliquer</button>
+                <p v-show="submit_message">{{ submit_message }}</p>
+                <p v-show="submit_error" class="error">{{ submit_error }}</p>
+            </div>
+        </section>
     </div>
 </template>
 
@@ -119,9 +152,10 @@ const usageColor = computed(() => {
     font-weight: 500;
 }
 
-.general {
+section {
     display: flex;
     flex-direction: column;
+    padding-top: 0.5rem;
     padding-bottom: 0.5rem;
     border-bottom: 1px solid var(--border);
 }
@@ -135,7 +169,7 @@ const usageColor = computed(() => {
     font-size: 1.5rem;
 }
 
-.general h2 {
+.general h2, .dispo h2 {
     margin: 0;
     margin-bottom: 1rem;
     font-size: 1.2rem;
@@ -182,22 +216,34 @@ const usageColor = computed(() => {
 }
 
 .stats {
-    display: flex;
-    flex-direction: column;
     flex-wrap: wrap;
     gap: 0 2rem;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--border);
 }
 
-.price {
+.dispo {
     display: flex;
     flex-direction: column;
-    margin-top: 0.5rem;
-    height: 40%;
-    max-height: 20rem;
-    overflow: hidden;
+}
+
+.options {
+    display: flex;
+    flex-direction: column;
+}
+
+.dispo-input { 
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+}
+
+input {
+    width: 100%;
+    max-width: 15rem;
+    padding: 0.5rem;
+}
+
+.error {
+    color: var(--error);
 }
 
 </style>

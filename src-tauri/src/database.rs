@@ -14,14 +14,20 @@ pub struct Item {
     nb_sorties: i32
 }
 
-#[tauri::command]
-pub fn get_materiel_data(handle: tauri::AppHandle) -> Result<Vec<Item>, String> {
+fn get_database_connection(handle: tauri::AppHandle) -> Result<Connection, String> {
     let path = handle.path()
         .resolve("sync_data/database.db", BaseDirectory::Resource)
         .map_err(|e| e.to_string())?;
 
     let conn = Connection::open(path)
         .map_err(|e| e.to_string())?;
+
+    Ok(conn)
+}
+
+#[tauri::command]
+pub fn get_materiel_data(handle: tauri::AppHandle) -> Result<Vec<Item>, String> {
+    let conn = get_database_connection(handle)?;
 
     let mut request = conn.prepare("SELECT * FROM Materiel")
         .map_err(|e| e.to_string())?;
@@ -47,4 +53,31 @@ pub fn get_materiel_data(handle: tauri::AppHandle) -> Result<Vec<Item>, String> 
     }
 
     Ok(items)
+}
+
+#[tauri::command]
+pub fn update_dispo(value: i32, id: i32, handle: tauri::AppHandle) -> Result<String, String> {
+    if value < 0 {
+        return Err("Disponible ne peut pas être négatif".to_string());
+    }
+
+    let conn = get_database_connection(handle)?;
+
+    let mut verif_request = conn.prepare("SELECT total FROM Materiel WHERE id = ?")
+        .map_err(|e| e.to_string())?;
+    let total = verif_request.query_row(&[&id], |row| {
+        row.get(0)
+    }).map_err(|e| e.to_string())?;
+
+    if value > total {
+        return Err("Disponible ne peut pas être superieur au total".to_string());
+    }
+
+    let mut update_request = conn.prepare("UPDATE Materiel SET dispo = ? WHERE id = ?")
+        .map_err(|e| e.to_string())?;
+
+    update_request.execute(&[&value, &id])
+        .map_err(|e| e.to_string())?;
+
+    Ok("Valeur modifiée".to_string())
 }

@@ -11,7 +11,12 @@ setBreadcrumb([
 ])
 
 const list_content = ref([]);
-invoke('get_materiel_data').then((data) => list_content.value = data);
+async function updateData() {
+    list_content.value = await invoke('get_materiel_data');
+}
+updateData();
+
+defineExpose({ updateData, list_content });
 
 const types = ref([]);
 invoke('get_materiel_types').then((data) => types.value = data);
@@ -27,14 +32,14 @@ const columns = [
 
 const show_filters = ref(false);
 
-function toggle_filters() {
+function toggleFilters() {
     show_filters.value = !show_filters.value;
 }
 
 const sort_property = ref(null);
 const sort_asc = ref(true);
 
-function set_sort(key) {
+function setSort(key) {
     if(sort_property.value == key) {
         sort_asc.value = !sort_asc.value;
         return;
@@ -50,7 +55,7 @@ const filter_min_disp = ref('');
 const filter_min_total = ref('');
 const filter_max_price = ref('');
 
-const filtered_content = computed(() => {
+const filteredContent = computed(() => {
     const query = String(filter_search.value).trim().toLowerCase();
 
     return list_content.value.filter(item =>  {
@@ -73,10 +78,10 @@ const filtered_content = computed(() => {
     });
 });
 
-const sorted_content = computed(() => {
-    if(!sort_property.value) return filtered_content.value;
+const sortedContent = computed(() => {
+    if(!sort_property.value) return filteredContent.value;
 
-    return [...filtered_content.value].sort((a, b) => {
+    return [...filteredContent.value].sort((a, b) => {
         console.log(sort_property.value);
         const valA = a[sort_property.value] ;
         const valB = b[sort_property.value];
@@ -95,7 +100,7 @@ const sorted_content = computed(() => {
     <div class="content">
         <div class="search">
             <input v-model="filter_search" name="searchbar" type="text" placeholder="Chercher par nom, catégorie..."/>
-            <button @click="toggle_filters">Filtrer</button>
+            <button @click="toggleFilters">Filtrer</button>
         </div>
         
         <div class="filters" v-if="show_filters">
@@ -132,13 +137,13 @@ const sorted_content = computed(() => {
             <button 
                 v-for="col in columns"
                 :key="col.key"
-                @click="set_sort(col.key)"
+                @click="setSort(col.key)"
             >
                 {{ col.label }} <span v-if="sort_property === col.key">{{ sort_asc ? '▲' : '▼' }}</span>
             </button>
         </li>
         <ul>
-            <li v-for="item in sorted_content" @click="$emit('display', item)">
+            <li v-for="item in sortedContent" @click="$emit('display', item)">
                 <p>{{ item.nom }}</p>
                 <p>{{ item.item_type }}</p>
                 <p>{{ item.dispo }}</p>
