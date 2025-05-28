@@ -40,9 +40,26 @@ function isSelected(check_mode) {
 
 const quantity = ref(0);
 const duration = ref(1);
-const quantity_error = ref(null);
-const submit_message = ref(null);
 const submit_error = ref(null);
+
+const update_value = computed(() => {
+    submit_error.value = null;
+    return mode.value == "Emprunter" ? props.item.dispo - quantity.value : props.item.dispo + quantity.value;
+});
+
+const quantity_error = computed(() => {
+    if(quantity.value < 0) {
+        return "La quantité ne peux pas être négative";
+    }
+    if (update_value.value < 0) {
+        return "Pas assez d'objets diponibles";
+    }
+    if (update_value.value > props.item.total) {
+        return "Trop d'objets retournés";
+    }
+
+    return null;
+});
 
 const maxQuantity = computed(() => {
     return mode.value == "Emprunter" ? props.item.dispo : props.item.total - props.item.dispo;
@@ -55,22 +72,13 @@ const priceLoc = computed(() => {
 });
 
 function updateDispo() {
-    const new_value = mode.value == "Emprunter" ? props.item.dispo - quantity.value : props.item.dispo + quantity.value;
-    
-    if (new_value < 0) {
-        quantity_error.value = "Pas assez d'objets diponibles";
+    if(quantity_error !== null) {
+        submit_error.value = "Quantité non valide";
         return;
     }
-    if (new_value > props.item.total) {
-        quantity_error.value = "Trop d'objets retournés";
-        return;
-    }
-
-    quantity_error.value = null;
 
     invoke('update_dispo', { value: new_value, id: props.item.id })
-    .then((value) => { 
-        submit_message.value = value; 
+    .then(() => { 
         emit('item-change');
     })
     .catch((err) => { submit_error.value = err; });
@@ -118,14 +126,13 @@ function updateDispo() {
                 </div>
 
                 <div class="dispo-input" v-if="isSelected('Emprunter')">
-                    <label for="time">Durée</label>
-                    <input v-model="duration" label="time" type="number" min="0" placeholder="Nombre de jours" value="1"/>
+                    <label for="time">Durée (Jours)</label>
+                    <input v-model="duration" label="time" type="number" min="1" placeholder="Nombre de jours" value="1"/>
                 </div>
 
                 <p v-if="isSelected('Emprunter') && priceLoc > 0">Contribution totale : {{ priceLoc.toFixed(2) }}€</p>
 
-                <button @click="updateDispo">Appliquer</button>
-                <p v-show="submit_message">{{ submit_message }}</p>
+                <button class="apply" @click="updateDispo">Appliquer</button>
                 <p v-show="submit_error" class="error">{{ submit_error }}</p>
             </div>
         </section>
@@ -142,6 +149,7 @@ function updateDispo() {
     max-width: 50rem;
     margin: 0.5rem;
     padding: 1em;
+    overflow: hidden;
     border: 1px solid var(--border-accent);
     border-radius: 0.5rem;
 }
@@ -178,7 +186,10 @@ section {
     font-weight: 500;
 }
 
-.title button {
+.back {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     background: var(--accent);
     border: 1px solid var(--border);
     border-radius: 0.5rem;
@@ -186,7 +197,7 @@ section {
     height: 2rem;
 }
 
-.title button:hover {
+.back:hover {
     cursor: pointer;
     background: var(--accent-hover);
 }
@@ -230,6 +241,7 @@ section {
 .options {
     display: flex;
     flex-direction: column;
+    width: 100%;
 }
 
 .dispo-input { 
@@ -239,9 +251,12 @@ section {
 }
 
 input {
-    width: 100%;
-    max-width: 15rem;
+    max-width: 16rem;
     padding: 0.5rem;
+    color: var(--text);
+    background-color: var(--background-alt);
+    border: 1px solid var(--border);
+    border-radius: 0.3rem;
 }
 
 .error {
@@ -253,7 +268,7 @@ input {
     max-width: 18rem;
 }
 
-.select button {
+button {
     height: 100%;
     padding: 1rem;
     margin-right: 1rem;
@@ -266,14 +281,19 @@ input {
     transition: all 0.2s;
 }
 
-.select button:hover {
-    background-color: var(--accent-hover);
+button:hover {
+    background-color: var(--surface-selected);
     cursor: pointer;
     
     transition: all 0.2s;
 }
 
-.select button.selected {
+button.selected {
     background-color: var(--accent-hover);
 }
+
+button.apply {
+    width: 17rem;
+}
+
 </style>

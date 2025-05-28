@@ -184,7 +184,6 @@ const sortedContent = computed(() => {
 }
 
 input {
-    padding: 0.5rem;
     background-color: var(--background-alt);
     color: var(--text);
     border: 1px solid var(--border);
@@ -213,6 +212,8 @@ input {
     border-left: 0;
     border-top-right-radius: 0.3rem;
     border-bottom-right-radius: 0.3rem;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
 
     transition: all 0.2s;
 }
