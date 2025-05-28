@@ -10,18 +10,28 @@ setBreadcrumb([
     { label: 'Matériel', page: 'mat' },
 ])
 
+const props = defineProps(['item','setItem']);
+
 const list_content = ref([]);
 async function updateData() {
     list_content.value = await invoke('get_materiel_data');
 }
 updateData();
 async function updateItem(id) {
-    const index = list_content.value.findIndex((item) => {item.id === id});
+    const index = list_content.value.findIndex((item) => item.id === id);
     list_content.value[index] = await invoke('get_item_data', {id: id});
     return list_content.value[index];
 }
 
 defineExpose({ updateData, updateItem, list_content });
+
+function setDiplay(item) {
+    props.setItem(item);
+}
+
+function isSelected(itemToCheck) {
+    return props.item && props.item.id === itemToCheck.id;
+}
 
 const types = ref([]);
 invoke('get_materiel_types').then((data) => types.value = data);
@@ -104,7 +114,7 @@ const sortedContent = computed(() => {
 <template>
     <div class="content">
         <div class="search">
-            <input v-model="filter_search" name="searchbar" type="text" placeholder="Chercher par nom, catégorie..."/>
+            <input v-model="filter_search" class="searchbar" name="searchbar" type="text" placeholder="Chercher par nom, catégorie..."/>
             <button @click="toggleFilters">Filtrer</button>
         </div>
         
@@ -148,7 +158,7 @@ const sortedContent = computed(() => {
             </button>
         </li>
         <ul>
-            <li v-for="item in sortedContent" @click="$emit('display', item)">
+            <li v-for="item in sortedContent" @click="setDiplay(item)" :class="{ selected : isSelected(item)}">
                 <p>{{ item.nom }}</p>
                 <p>{{ item.item_type }}</p>
                 <p>{{ item.dispo }}</p>
@@ -182,11 +192,13 @@ input {
 }
 
 .search {
+    width: 100%;
     margin-bottom: 2rem;
 }
 
-.search input {
-    width: 40%;
+.searchbar {
+    width: 100%;
+    padding: 1rem;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
 }
@@ -312,7 +324,12 @@ li:not(.head):nth-child(even) {
 
 li:not(.head):hover {
     cursor: pointer;
-    background-color: var(--accent);
+    background-color: var(--surface-hover);
+}
+
+li:not(.head).selected,
+li:not(.head).selected:hover {
+    background-color: var(--surface-selected);
 }
 
 li p {

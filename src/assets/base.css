@@ -8,9 +8,9 @@
   --border-focus: #999999;
   --border-accent: #1A1A1A;
   --accent: #C9EDEA;
-  --accent-hover: #119194;
+  --accent-hover: #149fa1;
   --surface-hover: #E0F0EF;
-  --surface-selected: #C9EDEA;
+  --surface-selected: #abe9e4;
   --neutral: #EDEDED;
   --success: #1FB87E;
   --warning: #F7BC00;
@@ -31,7 +31,7 @@
     --accent: #1d5a54;
     --accent-hover: #119194;
     --surface-hover: #2A3F3F;
-    --surface-selected: #2C4E4D;
+    --surface-selected: #256664;
     --neutral: #3A3A3A;
     --success: #24CC8F;
     --warning: #F7BC00;

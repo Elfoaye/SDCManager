@@ -34,6 +34,10 @@ function setMode(new_mode) {
     }
     mode.value = new_mode;
 }
+function isSelected(check_mode) {
+    return mode.value === check_mode;
+}
+
 const quantity = ref(0);
 const duration = ref(1);
 const quantity_error = ref(null);
@@ -103,24 +107,22 @@ function updateDispo() {
             <h2>Gérer cet élement</h2>
 
             <div class="select">
-                <button class="item-borrow" @click="setMode('Emprunter')">Emprunter</button>
-                <button class="item-return" @click="setMode('Retourner')">Retourner</button>
+                <button :class="{selected : isSelected('Emprunter')}" @click="setMode('Emprunter')">Emprunter</button>
+                <button :class="{selected : isSelected('Retourner')}" @click="setMode('Retourner')">Retourner</button>
             </div>
             <div class="options" v-if="mode">
-                <h2>{{ mode }}</h2>
-
                 <div class="dispo-input">
                     <label for="quantity">Quantité</label>
                     <input v-model="quantity" label="quantity" type="number" min="0" :max="maxQuantity" placeholder="Nombre d'objets"/>
                     <p class="error" v-show="quantity_error">{{ quantity_error }}</p>
                 </div>
 
-                <div class="dispo-input" v-if="mode === 'Emprunter'">
+                <div class="dispo-input" v-if="isSelected('Emprunter')">
                     <label for="time">Durée</label>
                     <input v-model="duration" label="time" type="number" min="0" placeholder="Nombre de jours" value="1"/>
                 </div>
 
-                <p v-if="mode === 'Emprunter' && priceLoc > 0">Contribution totale : {{ priceLoc.toFixed(2) }}€</p>
+                <p v-if="isSelected('Emprunter') && priceLoc > 0">Contribution totale : {{ priceLoc.toFixed(2) }}€</p>
 
                 <button @click="updateDispo">Appliquer</button>
                 <p v-show="submit_message">{{ submit_message }}</p>
@@ -246,4 +248,32 @@ input {
     color: var(--error);
 }
 
+.select {
+    margin-bottom: 1rem;
+    max-width: 18rem;
+}
+
+.select button {
+    height: 100%;
+    padding: 1rem;
+    margin-right: 1rem;
+    width: 8rem;
+    color: var(--text);
+    background-color: var(--accent);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+
+    transition: all 0.2s;
+}
+
+.select button:hover {
+    background-color: var(--accent-hover);
+    cursor: pointer;
+    
+    transition: all 0.2s;
+}
+
+.select button.selected {
+    background-color: var(--accent-hover);
+}
 </style>

@@ -42,7 +42,12 @@ const transitionName = computed(() => {
 
 <template>
     <div class="wrapper" :class="{'item-display': display !== null, wide: isWide}">
-        <ListeMateriel class="list" ref="listRef" @display="setDisplay"/>
+        <ListeMateriel 
+            class="list" 
+            ref="listRef" 
+            :item="display" 
+            :setItem="setDisplay"
+        />
         <Transition :name="transitionName" mode="out-in">
             <DisplayMateriel 
                 v-if="display !== null" 
