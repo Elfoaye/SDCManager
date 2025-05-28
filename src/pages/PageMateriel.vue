@@ -12,11 +12,11 @@ function setDisplay(value) {
 }
 
 const listRef = ref(null);
-async function onDataChange() {
+async function onItemChange() {
     if(!listRef.value) return;
 
-    await listRef.value.updateData();
-    setDisplay(listRef.value.list_content.find(item => item.id === display.value.id))
+    const newItem = await listRef.value.updateItem(display.value.id);
+    setDisplay(newItem);
 }
 
 const wideWidth = 1080;
@@ -50,7 +50,7 @@ const transitionName = computed(() => {
                 class="detail" 
                 :item="display" 
                 :setItem="setDisplay"
-                @data-change="onDataChange"
+                @item-change="onItemChange"
             />
         </Transition>
     </div>

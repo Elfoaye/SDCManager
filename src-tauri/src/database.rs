@@ -1,6 +1,8 @@
 use serde::Serialize;
 use tauri::{Manager, path::BaseDirectory};
 use rusqlite::{Connection, Result};
+use once_cell::sync::OnceCell;
+use std::sync::{Mutex, MutexGuard};
 
 #[derive(Serialize)]
 pub struct Item {
@@ -14,15 +16,18 @@ pub struct Item {
     nb_sorties: i32
 }
 
-fn get_database_connection(handle: tauri::AppHandle) -> Result<Connection, String> {
-    let path = handle.path()
-        .resolve("sync_data/database.db", BaseDirectory::Resource)
-        .map_err(|e| e.to_string())?;
+static DB_CONN: OnceCell<Mutex<Connection>> = OnceCell::new();
 
-    let conn = Connection::open(path)
-        .map_err(|e| e.to_string())?;
+fn get_database_connection(handle: tauri::AppHandle) -> Result<MutexGuard<'static, Connection>, String> {
+    DB_CONN.get_or_try_init(|| {
+        let path = handle.path()
+            .resolve("sync_data/database.db", BaseDirectory::Resource)
+            .map_err(|e| e.to_string())?;
 
-    Ok(conn)
+        Connection::open(path)
+            .map(Mutex::new)
+            .map_err(|e| e.to_string())
+    })?.lock().map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -54,6 +59,32 @@ pub fn get_materiel_data(handle: tauri::AppHandle) -> Result<Vec<Item>, String> 
 
     Ok(items)
 }
+
+#[tauri::command]
+pub fn get_item_data(id: i32, handle: tauri::AppHandle) -> Result<Item, String> {
+    let conn = get_database_connection(handle)?;
+
+    let mut request = conn.prepare("SELECT * FROM Materiel where id = ?")
+        .map_err(|e| e.to_string())?;
+
+    let item = request
+        .query_row([id], |row| {
+            Ok(Item {
+                id: row.get(0)?,
+                nom: row.get(1)?,
+                item_type: row.get(2)?,
+                total: row.get(3)?,
+                dispo: row.get(4)?,
+                value: row.get(5)?,
+                contrib: row.get(6)?,
+                nb_sorties: row.get(7)?
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+    Ok(item)
+}
+
 
 #[tauri::command]
 pub fn update_dispo(value: i32, id: i32, handle: tauri::AppHandle) -> Result<String, String> {

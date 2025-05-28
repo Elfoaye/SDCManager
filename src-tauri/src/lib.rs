@@ -1,6 +1,6 @@
 mod database;
 mod settings;
-use database::{get_materiel_data, update_dispo};
+use database::{get_materiel_data, get_item_data, update_dispo};
 use settings::{get_materiel_types, get_loc_formulas};
 
 
@@ -10,6 +10,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler!
             [get_materiel_data, 
+            get_item_data,
             update_dispo,
             get_materiel_types,
             get_loc_formulas])

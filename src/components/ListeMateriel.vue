@@ -15,8 +15,13 @@ async function updateData() {
     list_content.value = await invoke('get_materiel_data');
 }
 updateData();
+async function updateItem(id) {
+    const index = list_content.value.findIndex((item) => {item.id === id});
+    list_content.value[index] = await invoke('get_item_data', {id: id});
+    return list_content.value[index];
+}
 
-defineExpose({ updateData, list_content });
+defineExpose({ updateData, updateItem, list_content });
 
 const types = ref([]);
 invoke('get_materiel_types').then((data) => types.value = data);
@@ -298,7 +303,6 @@ li {
     padding: 0 0.5rem;
     margin: 0;
     gap: 1rem;
-    align-items: center;
     border-bottom: 1px solid var(--border);
 }
 

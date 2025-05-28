@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { computed, ref } from 'vue';
 
 const props = defineProps(['item','setItem']);
-const emit = defineEmits(['data-change'])
+const emit = defineEmits(['item-change']);
 
 const formulas = ref(null);
 invoke('get_loc_formulas').then((data) => {
@@ -67,7 +67,7 @@ function updateDispo() {
     invoke('update_dispo', { value: new_value, id: props.item.id })
     .then((value) => { 
         submit_message.value = value; 
-        emit('data-change');
+        emit('item-change');
     })
     .catch((err) => { submit_error.value = err; });
 }
@@ -112,7 +112,7 @@ function updateDispo() {
                 <div class="dispo-input">
                     <label for="quantity">Quantité</label>
                     <input v-model="quantity" label="quantity" type="number" min="0" :max="maxQuantity" placeholder="Nombre d'objets"/>
-                    <p class="error" v-show="quantity_error">Erreur : {{ quantity_error }}</p>
+                    <p class="error" v-show="quantity_error">{{ quantity_error }}</p>
                 </div>
 
                 <div class="dispo-input" v-if="mode === 'Emprunter'">
