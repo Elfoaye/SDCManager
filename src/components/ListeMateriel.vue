@@ -154,7 +154,8 @@ const sortedContent = computed(() => {
                 :key="col.key"
                 @click="setSort(col.key)"
             >
-                {{ col.label }} <span v-if="sort_property === col.key">{{ sort_asc ? '▲' : '▼' }}</span>
+                <span v-if="sort_property === col.key">{{ sort_asc ? '▲' : '▼' }}</span>
+                {{ col.label }} 
             </button>
         </li>
         <ul>
@@ -310,7 +311,7 @@ ul {
     overflow-y: auto;
 }
 
-li {
+li, li.head {
     display: grid;
     grid-template-columns: 3fr 1fr 1fr 1fr 1fr 1fr;
     padding: 0 0.5rem;
@@ -344,10 +345,16 @@ li.head {
 }
 
 .head button {
-    display: inline-flex;
-    border: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    width: 100%;
+    border: 0;
+    border-radius: 0;
     cursor: pointer;
-    padding-left: 0;
+    padding: 0;
+    margin: 0;
     padding-bottom: 0.5rem;
     color: var(--text);
     background-color: var(--background);

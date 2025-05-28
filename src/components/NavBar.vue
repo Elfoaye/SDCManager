@@ -7,12 +7,12 @@ const props = defineProps(['setPage']);
         <section>
             <h2>Matériel</h2>
             <button @click="setPage('mat')">Consulter</button>
-            <button class="disabled">Utiliser</button>
+            <button class="disabled">Modifier</button>
         </section>
         <section>
             <h2>Devis</h2>
-            <button class="disabled">Créer</button>
             <button class="disabled">Consulter</button>
+            <button class="disabled">Créer</button>
         </section>
         <section>
             <h2>Admin</h2>
@@ -60,6 +60,7 @@ button {
     padding: 0.5rem;
     font-size: 1rem;
     height: 2rem;
+    width: 100%;
     border-radius: 0.5rem;
     background-color: var(--accent);
     color: var(--text);

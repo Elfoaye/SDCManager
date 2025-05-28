@@ -40,7 +40,11 @@ function isSelected(check_mode) {
 
 const quantity = ref(0);
 const duration = ref(1);
-const submit_error = ref(null);
+const submit_error = ref(null); // TODO Feedback dans le champ de quantité
+
+function setQuantityToMax() {
+    quantity.value = mode.value == "Emprunter" ? props.item.dispo : props.item.total - props.item.dispo;
+}
 
 const update_value = computed(() => {
     submit_error.value = null;
@@ -48,8 +52,11 @@ const update_value = computed(() => {
 });
 
 const quantity_error = computed(() => {
-    if(quantity.value < 0) {
-        return "La quantité ne peux pas être négative";
+    if(quantity.value == "") {
+        return " ";
+    }
+    if(!/^\d+$/.test(quantity.value)) {
+        return "La quantité doit être un nombre positif";
     }
     if (update_value.value < 0) {
         return "Pas assez d'objets diponibles";
@@ -71,17 +78,23 @@ const priceLoc = computed(() => {
     return quantity.value * (props.item.contrib + (duration.value - 1) * following_rate.value);
 });
 
+
+
 function updateDispo() {
-    if(quantity_error !== null) {
+    console.log(quantity_error.value);
+    if(quantity_error.value) {
         submit_error.value = "Quantité non valide";
         return;
     }
 
-    invoke('update_dispo', { value: new_value, id: props.item.id })
+    console.log("updating stonk");
+    invoke('update_dispo', { value: update_value.value, id: props.item.id })
     .then(() => { 
         emit('item-change');
     })
-    .catch((err) => { submit_error.value = err; });
+    .catch((err) => { 
+        submit_error.value = err; 
+    });
 }
 </script>
 
@@ -121,7 +134,10 @@ function updateDispo() {
             <div class="options" v-if="mode">
                 <div class="dispo-input">
                     <label for="quantity">Quantité</label>
-                    <input v-model="quantity" label="quantity" type="number" min="0" :max="maxQuantity" placeholder="Nombre d'objets"/>
+                    <div class="quantity-field">
+                        <input v-model="quantity" label="quantity" class="quantity-bar" type="number" min="0" :max="maxQuantity" placeholder="Nombre d'objets"/>
+                        <button class="quantity-button" @click="setQuantityToMax">Tout</button>
+                    </div>
                     <p class="error" v-show="quantity_error">{{ quantity_error }}</p>
                 </div>
 
@@ -130,9 +146,9 @@ function updateDispo() {
                     <input v-model="duration" label="time" type="number" min="1" placeholder="Nombre de jours" value="1"/>
                 </div>
 
-                <p v-if="isSelected('Emprunter') && priceLoc > 0">Contribution totale : {{ priceLoc.toFixed(2) }}€</p>
+                <p v-if="isSelected('Emprunter') && priceLoc > 0" class="contrib-total">Contribution totale : <span>{{ priceLoc.toFixed(2) }}€</span></p>
 
-                <button class="apply" @click="updateDispo">Appliquer</button>
+                <button class="apply" :class="{disabled: quantity_error}" @click="updateDispo">Appliquer</button>
                 <p v-show="submit_error" class="error">{{ submit_error }}</p>
             </div>
         </section>
@@ -144,12 +160,14 @@ function updateDispo() {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    height: auto;
+    height: fit-content;
+    min-height: 20rem;
+    max-height: 90%;
     min-width: 18rem;
     max-width: 50rem;
     margin: 0.5rem;
     padding: 1em;
-    overflow: hidden;
+    overflow: auto;
     border: 1px solid var(--border-accent);
     border-radius: 0.5rem;
 }
@@ -236,18 +254,13 @@ section {
 .dispo {
     display: flex;
     flex-direction: column;
+    border: 0;
 }
 
 .options {
     display: flex;
     flex-direction: column;
     width: 100%;
-}
-
-.dispo-input { 
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 1rem;
 }
 
 input {
@@ -257,6 +270,47 @@ input {
     background-color: var(--background-alt);
     border: 1px solid var(--border);
     border-radius: 0.3rem;
+}
+
+.dispo-input { 
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+}
+
+.quantity-field {
+    display: flex;
+    width: 100%;
+    max-width: 18rem;
+}
+
+.quantity-bar {
+    flex-grow: 1;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.quantity-button{
+    height: 100%;
+    padding: 0.5rem;
+    width: 4rem;
+    background-color: var(--accent);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-left: 0;
+    border-top-right-radius: 0.3rem;
+    border-bottom-right-radius: 0.3rem;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+
+    transition: all 0.2s;
+}
+
+.quantity-button:hover {
+    background-color: var(--accent-hover);
+    cursor: pointer;
+    
+    transition: all 0.2s;
 }
 
 .error {
@@ -292,8 +346,17 @@ button.selected {
     background-color: var(--accent-hover);
 }
 
+.contrib-total {
+    padding-bottom: 1rem;
+}
+
 button.apply {
     width: 17rem;
+}
+
+button.apply.disabled {
+    background-color: var(--disabled);
+    cursor: default;
 }
 
 </style>
