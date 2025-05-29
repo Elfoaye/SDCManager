@@ -12,9 +12,9 @@
   "app": {
     "windows": [
       {
-        "title": "sdcmanager",
-        "width": 1000,
-        "height": 720,
+        "title": "SDC Manager",
+        "width": 960,
+        "height": 640,
         "minWidth": 640,
         "minHeight": 480
       }

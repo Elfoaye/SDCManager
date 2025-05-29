@@ -38,7 +38,12 @@ function isSelected(check_mode) {
     return mode.value === check_mode;
 }
 
-const quantity = ref(0);
+const renta = computed(() => {
+    if(!props.item) return 0;
+    return (props.item.benef*100)/props.item.value;
+});
+
+const quantity = ref(1);
 const duration = ref(1);
 
 function setQuantityToMax() {
@@ -70,6 +75,7 @@ const maxQuantity = computed(() => {
     return mode.value == "Emprunter" ? props.item.dispo : props.item.total - props.item.dispo;
 });
 
+const isFree = ref(false);
 const priceLoc = computed(() => {
     if(!duration.value || !quantity.value || !props.item || duration.value === 0) return 0;
 
@@ -84,9 +90,11 @@ async function updateDispo() {
     }
 
     isLoading.value = true
+    const profit = isFree.value || mode !== 'Emprunter' ? 0 : priceLoc.value;
+    console.log("isFree : " + isFree + " Profit : " + profit + " Price loc :" + priceLoc.value);
 
     try {
-        await invoke('update_dispo', { value: update_value.value, id: props.item.id });
+        await invoke('update_dispo', { value: update_value.value, old: props.item.dispo, benef: profit, id: props.item.id });
         emit('item-change');
     } catch (err) {
         console.error(err);
@@ -115,10 +123,10 @@ async function updateDispo() {
             </div>
         </section>
         <section class="stats">
-            <p>Valeur de remplacement : {{ item.value }}€</p>
-            <p>Nombre de sorties : {{ item.nb_sorties }}</p>
-            <p>Estimation des revenus générés : {{ (item.nb_sorties * item.contrib).toFixed(2) }}€</p>
-            <p>Taux de rentabilité estimée : {{ ((item.nb_sorties * item.contrib * 100)/item.value).toFixed(2) }}%</p>
+            <p>Valeur de remplacement : <span>{{ item.value }}€</span>/Objet (Total : {{ item.value * item.total }}€)</p>
+            <p>Nombre de sorties : <span>{{ item.nb_sorties }}</span></p>
+            <p>Revenus générés : <span>{{ (item.benef).toFixed(2) }}€</span></p>
+            <p>Taux de rentabilité : <span>{{ (renta/item.total).toFixed(2) }}%</span> ({{ renta.toFixed(2) }}% d'un objet)</p>
         </section>
         <section class="price">
             <p>Contribution : <span>{{ item.contrib.toFixed(2) }}€</span> + {{ following_rate.toFixed(2) }}€ par jour supplémentaire</p>
@@ -140,7 +148,7 @@ async function updateDispo() {
                 <div class="dispo-input">
                     <label for="quantity">Quantité</label>
                     <div class="quantity-field">
-                        <input v-model="quantity" label="quantity" class="quantity-bar" type="number" min="0" :max="maxQuantity" placeholder="Nombre d'objets"/>
+                        <input v-model="quantity" label="quantity" class="quantity-bar" type="number" min="0" :max="maxQuantity" value="1" placeholder="Nombre d'objets"/>
                         <button class="quantity-button" @click="setQuantityToMax">Tout</button>
                     </div>
                     <p class="error" v-show="quantity_error">{{ quantity_error }}</p>
@@ -148,10 +156,14 @@ async function updateDispo() {
 
                 <div class="dispo-input" v-if="isSelected('Emprunter')">
                     <label for="time">Durée (Jours)</label>
-                    <input v-model="duration" label="time" type="number" min="1" placeholder="Nombre de jours" value="1"/>
+                    <input v-model="duration" label="time" type="number" min="1" value="1" placeholder="Nombre de jours" />
                 </div>
 
-                <p v-if="isSelected('Emprunter') && priceLoc > 0" class="contrib-total">Contribution totale : <span>{{ priceLoc.toFixed(2) }}€</span></p>
+                <div v-if="isSelected('Emprunter')">
+                    <label class="check"><input v-model="isFree" type="checkbox"/>Prêt (la contribution ne s'applique pas)</label>
+
+                    <p v-if="!isFree && priceLoc > 0" class="contrib-total">Contribution totale : <span>{{ priceLoc.toFixed(2) }}€</span></p>
+                </div>
 
                 <button 
                     class="apply" 
@@ -162,7 +174,7 @@ async function updateDispo() {
                         <span class="spinner"></span>
                     </template>
                     <template v-else>
-                        Appliquer
+                        &#10003; Appliquer
                     </template>
                 </button>
             </div>
@@ -178,7 +190,7 @@ async function updateDispo() {
     height: fit-content;
     min-height: 20rem;
     max-height: 90%;
-    min-width: 18rem;
+    min-width: 20rem;
     max-width: 50rem;
     margin: 0.5rem;
     padding: 1em;
@@ -368,13 +380,27 @@ button.selected {
     padding-bottom: 1rem;
 }
 
+.check {
+    margin-bottom: 1rem;
+    cursor: pointer;
+    max-width: fit-content;
+    align-items: baseline;
+}
+
+.check input {
+    margin-right: 0.5rem;
+    cursor: pointer;
+}
+
 button.apply {
     width: 17rem;
+    font-weight: 600;
 }
 
 button.apply.disabled {
     background-color: var(--disabled);
     cursor: default;
+    font-weight: 400;
 }
 
 .spinner {

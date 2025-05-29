@@ -11,7 +11,7 @@ const props = defineProps(['current_page','last_page','setPage']);
             <img src="../assets/LOGO_SDC.png">
         </div>
         <nav class="path">
-            <button class="back_page" @click="setPage(last_page)">&#8617;</button>
+            <button @click="setPage(last_page)">&#8617;</button>
             <div
                 v-for="(step, index) in breadcrumb"
                 :key="index"

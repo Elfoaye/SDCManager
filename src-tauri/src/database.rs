@@ -1,6 +1,6 @@
 use serde::Serialize;
 use tauri::{Manager, path::BaseDirectory};
-use rusqlite::{Connection, Result};
+use rusqlite::{Connection, Result, params};
 use once_cell::sync::OnceCell;
 use std::sync::{Mutex, MutexGuard};
 
@@ -13,7 +13,8 @@ pub struct Item {
     dispo: i32,
     value: f32,
     contrib: f32,
-    nb_sorties: i32
+    nb_sorties: i32,
+    benef: f32
 }
 
 static DB_CONN: OnceCell<Mutex<Connection>> = OnceCell::new();
@@ -47,7 +48,8 @@ pub fn get_materiel_data(handle: tauri::AppHandle) -> Result<Vec<Item>, String> 
                 dispo: row.get(4)?,
                 value: row.get(5)?,
                 contrib: row.get(6)?,
-                nb_sorties: row.get(7)?
+                nb_sorties: row.get(7)?,
+                benef: row.get(8)?
             })
         })
         .map_err(|e| e.to_string())?;
@@ -77,7 +79,8 @@ pub fn get_item_data(id: i32, handle: tauri::AppHandle) -> Result<Item, String> 
                 dispo: row.get(4)?,
                 value: row.get(5)?,
                 contrib: row.get(6)?,
-                nb_sorties: row.get(7)?
+                nb_sorties: row.get(7)?,
+                benef: row.get(8)?
             })
         })
         .map_err(|e| e.to_string())?;
@@ -87,7 +90,7 @@ pub fn get_item_data(id: i32, handle: tauri::AppHandle) -> Result<Item, String> 
 
 
 #[tauri::command]
-pub fn update_dispo(value: i32, id: i32, handle: tauri::AppHandle) -> Result<String, String> {
+pub fn update_dispo(value: i32, old: i32, benef: f32, id: i32, handle: tauri::AppHandle) -> Result<String, String> {
     if value < 0 {
         return Err("Disponible ne peut pas être négatif".to_string());
     }
@@ -104,11 +107,26 @@ pub fn update_dispo(value: i32, id: i32, handle: tauri::AppHandle) -> Result<Str
         return Err("Disponible ne peut pas être superieur au total".to_string());
     }
 
-    let mut update_request = conn.prepare("UPDATE Materiel SET dispo = ? WHERE id = ?")
+    let mut dispo_request = conn.prepare("UPDATE Materiel SET dispo = ?1 WHERE id = ?2")
+        .map_err(|e| e.to_string())?;
+    dispo_request.execute(params![value, id])
         .map_err(|e| e.to_string())?;
 
-    update_request.execute(&[&value, &id])
-        .map_err(|e| e.to_string())?;
+    let diff = old - value;
+    if diff > 0 {
+        let mut sorties_request = conn.prepare("UPDATE Materiel SET nb_sorties = nb_sorties + ?1 WHERE id = ?2")
+            .map_err(|e| e.to_string())?;
+        sorties_request.execute(params![diff, id])
+            .map_err(|e| e.to_string())?;
+    }
+
+    if benef > 0.0 {
+        let mut sorties_request = conn.prepare("UPDATE Materiel SET benef = benef + ?1 WHERE id = ?2")
+            .map_err(|e| e.to_string())?;
+        sorties_request.execute(params![benef, id])
+            .map_err(|e| e.to_string())?;
+    }
+
 
     Ok("Valeur modifiée".to_string())
 }

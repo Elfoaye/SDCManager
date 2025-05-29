@@ -57,7 +57,7 @@ const columns = [
   { label: 'Catégorie', key: 'item_type' },
   { label: 'Disponible', key: 'dispo' },
   { label: 'Total', key: 'total' },
-  { label: 'Prix/Journée', key: 'contrib' },
+  { label: 'Contrib/Jour', key: 'contrib' },
   { label: 'Valeur', key: 'value' }
 ]
 
@@ -82,27 +82,39 @@ function setSort(key) {
 
 const filter_search = ref('');
 const filter_type = ref([]);
+
 const filter_min_disp = ref('');
 const filter_min_total = ref('');
 const filter_max_price = ref('');
+
+const filter_borrow = ref('');
+function setFilterBorrow(value) {
+    if(filter_borrow.value === value) {
+        filter_borrow.value = null;
+    } else {
+        filter_borrow.value = value;
+    }
+}
+const filter_dispo = ref('');
+function setFilterDispo(value) {
+    if(filter_dispo.value === value) {
+        filter_dispo.value = null;
+    } else {
+        filter_dispo.value = value;
+    }
+}
 
 const filteredContent = computed(() => {
     const query = String(filter_search.value).trim().toLowerCase();
 
     return list_content.value.filter(item =>  {
-        if (query && !(String(item.nom).toLowerCase().includes(query) || String(item.item_type).toLowerCase().includes(query)))
-            return false;
-
-        if (filter_type.value.length > 0 && !filter_type.value.includes(item.item_type))
-            return false;
-
-        if (filter_min_disp.value && filter_min_disp.value > item.dispo)
-            return false;
-
-        if (filter_min_total.value && filter_min_total.value > item.total)
-            return false;
-
-        if (filter_max_price.value && filter_max_price.value < item.contrib)
+        if ((filter_type.value.length > 0 && !filter_type.value.includes(item.item_type)) || // Filters
+            (filter_min_disp.value && filter_min_disp.value > item.dispo) || // Min dispo
+            (filter_min_total.value && filter_min_total.value > item.total) || // Min total
+            (filter_max_price.value && filter_max_price.value < item.contrib) || // Max contrib
+            (filter_borrow.value === 'borrowed' && item.dispo === item.total || filter_borrow.value === 'available' && item.dispo < item.total) || // Borrowed
+            (filter_dispo.value === 'notdispo' && item.dispo > 0 || filter_dispo.value === 'dispo' && item.dispo === 0) || // Dispo
+            (query && !(String(item.nom).toLowerCase().includes(query) || String(item.item_type).toLowerCase().includes(query)))) // Search bar
             return false;
 
         return true;
@@ -149,18 +161,36 @@ const sortedContent = computed(() => {
                     deselectLabel="Retirer">
                 </Multiselect>
             </section>
+
             <section class="mindispo">
-                <label for="mindispo">Minimum disponible</label>
-                <input v-model="filter_min_disp" label="mindispo" type="number" min="0"/>
+                <label>Minimum disponible</label>
+                <input v-model="filter_min_disp" type="number" min="0" placeholder="Au moins ... disponibles"/>
             </section>
             <section class="mintotal">
-                <label for="mintotal">Minimum total</label>
-                <input v-model="filter_min_total" label="mintotal" type="number" min="0"/>
-            </section class="number">
-            <section class="prixmax">
-                <label for="prixmax">Prix journalier maximum</label>
-                <input v-model="filter_max_price" label="prixmax" type="number" min="0"/>
+                <label>Minimum total</label>
+                <input v-model="filter_min_total" type="number" min="0" placeholder="Au moins ... au total"/>
             </section>
+            <section class="prixmax">
+                <label>Contribution maximum</label>
+                <input v-model="filter_max_price" type="number" min="0" placeholder="Coûtant moins de ... par jour"/>
+            </section>
+            
+            <div class="filter-borrow">
+                <button :class="{ selected: filter_borrow === 'borrowed' }" @click="setFilterBorrow('borrowed')">
+                    Emprunté
+                </button>
+                <button :class="{ selected: filter_borrow === 'available' }" @click="setFilterBorrow('available')">
+                    Non emprunté
+                </button>
+            </div>
+            <div class="filter-dispo">
+                <button :class="{ selected: filter_dispo === 'dispo' }" @click="setFilterDispo('dispo')">
+                    Disponible
+                </button>
+                <button :class="{ selected: filter_dispo === 'notdispo' }" @click="setFilterDispo('notdispo')">
+                    Non disponible
+                </button>
+            </div>
         </div>
 
         <li class="head">
@@ -243,35 +273,44 @@ input {
 }
 
 .filters h2 {
-    grid-area: title;
+    grid-column: span 6;
     margin: 0;
     padding-left: 0.5rem;
 }
 
 .type {
-    grid-area: type;
+    grid-column: span 6;
 }
-
-.mindispo {
-    grid-area: dispo;
-}
-
-.mintotal {
-    grid-area: total;
-}
-
+.mindispo,
+.mintotal,
 .prixmax {
-    grid-area: prix;
+    grid-column: span 2;
+}
+.filter-borrow,
+.filter-dispo {
+    grid-column: span 3;
+    max-width: 90%;
+    justify-self: center;
+    display: flex;
+    margin: 0.5rem;
+    padding: 0.5rem;
+    gap: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+}
+
+.filter-borrow button,
+.filter-dispo button {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
 }
 
 .filters {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
-    grid-template-rows: auto;
-    grid-template-areas: 
-        "title title title" 
-        "type type type"
-        "dispo total prix";
+    grid-template-columns: repeat(6, 1fr);
     margin-bottom: 1rem;
     padding: 0.5rem;
     border: 1px solid var(--border);
@@ -283,9 +322,8 @@ input {
 }
 
 .filters section {
-    display: flex;
-    flex-direction: column;
     padding: 0.5rem;
+    border: 0;
 }
 
 .filters section label {
