@@ -20,10 +20,26 @@ updateData();
 async function updateItem(id) {
     const index = list_content.value.findIndex((item) => item.id === id);
     list_content.value[index] = await invoke('get_item_data', {id: id});
+    notifyChange(index);
     return list_content.value[index];
 }
 
 defineExpose({ updateData, updateItem, list_content });
+
+function notifyChange(id) {
+    const li = document.querySelector(`li[data-id="${id + 1}"]`);
+    console.log(li);
+    if (li) {
+        li.classList.add('flash');
+        void li.offsetWidth;
+        li.classList.remove('flash');
+        li.classList.add('transitioning');
+
+        setTimeout(() => {
+            li.classList.remove('transitioning');
+        }, 1000); 
+    }
+}
 
 function setDiplay(item) {
     props.setItem(item);
@@ -60,7 +76,7 @@ function setSort(key) {
         return;
     }
 
-    sort_asc.value = true;
+    sort_asc.value = false;
     sort_property.value = key;
 }
 
@@ -97,15 +113,14 @@ const sortedContent = computed(() => {
     if(!sort_property.value) return filteredContent.value;
 
     return [...filteredContent.value].sort((a, b) => {
-        console.log(sort_property.value);
         const valA = a[sort_property.value] ;
         const valB = b[sort_property.value];
     
         if(typeof valA === 'number' && typeof valB === 'number') {
             return sort_asc.value ? valA - valB : valB - valA;
         } else {
-            return sort_asc.value ? String(valA).localeCompare(String(valB)) :
-                                    String(valB).localeCompare(String(valA));
+            return sort_asc.value ? String(valB).localeCompare(String(valA)) :
+                                    String(valA).localeCompare(String(valB));
         }
     });
 });
@@ -154,18 +169,19 @@ const sortedContent = computed(() => {
                 :key="col.key"
                 @click="setSort(col.key)"
             >
-                <span v-if="sort_property === col.key">{{ sort_asc ? '▲' : '▼' }}</span>
                 {{ col.label }} 
+                <span v-if="sort_property === col.key">{{ sort_asc ? '▲' : '▼' }}</span>
+                
             </button>
         </li>
         <ul>
-            <li v-for="item in sortedContent" @click="setDiplay(item)" :class="{ selected : isSelected(item)}">
+            <li v-for="item in sortedContent" @click="setDiplay(item)" :class="{ selected : isSelected(item) }" :data-id="item.id">
                 <p>{{ item.nom }}</p>
                 <p>{{ item.item_type }}</p>
                 <p>{{ item.dispo }}</p>
                 <p>{{ item.total }}</p>
-                <p>{{ item.contrib }} €</p>
-                <p>{{ item.value }} €</p>
+                <p>{{ item.contrib.toFixed(2) }} €</p>
+                <p>{{ item.value.toFixed(2) }} €</p>
             </li>
         </ul>
     </div>
@@ -320,6 +336,14 @@ li, li.head {
     border-bottom: 1px solid var(--border);
 }
 
+li.flash {
+    background-color: var(--success) !important;
+}
+
+li.transitioning {
+    transition: background-color 1s ease;
+}
+
 li:not(.head):nth-child(even) {
     background-color: var(--background-alt);
 }
@@ -338,6 +362,18 @@ li p {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    padding-left: 0
+}
+li p:nth-child(2) {
+    padding-left: 0.4rem;
+}
+li p:nth-child(3),
+li p:nth-child(4) {
+    padding-left: 0.6rem;
+}
+li p:nth-child(5),
+li p:nth-child(6) {
+    padding-left: 0.8rem;
 }
 
 li.head {

@@ -40,14 +40,12 @@ function isSelected(check_mode) {
 
 const quantity = ref(0);
 const duration = ref(1);
-const submit_error = ref(null); // TODO Feedback dans le champ de quantité
 
 function setQuantityToMax() {
     quantity.value = mode.value == "Emprunter" ? props.item.dispo : props.item.total - props.item.dispo;
 }
 
 const update_value = computed(() => {
-    submit_error.value = null;
     return mode.value == "Emprunter" ? props.item.dispo - quantity.value : props.item.dispo + quantity.value;
 });
 
@@ -78,23 +76,24 @@ const priceLoc = computed(() => {
     return quantity.value * (props.item.contrib + (duration.value - 1) * following_rate.value);
 });
 
+const isLoading = ref(false);
 
-
-function updateDispo() {
-    console.log(quantity_error.value);
+async function updateDispo() {
     if(quantity_error.value) {
-        submit_error.value = "Quantité non valide";
         return;
     }
 
-    console.log("updating stonk");
-    invoke('update_dispo', { value: update_value.value, id: props.item.id })
-    .then(() => { 
+    isLoading.value = true
+
+    try {
+        await invoke('update_dispo', { value: update_value.value, id: props.item.id });
         emit('item-change');
-    })
-    .catch((err) => { 
-        submit_error.value = err; 
-    });
+    } catch (err) {
+        console.error(err);
+    } finally {
+        isLoading.value = false;
+    }
+    
 }
 </script>
 
@@ -128,8 +127,14 @@ function updateDispo() {
             <h2>Gérer cet élement</h2>
 
             <div class="select">
-                <button :class="{selected : isSelected('Emprunter')}" @click="setMode('Emprunter')">Emprunter</button>
-                <button :class="{selected : isSelected('Retourner')}" @click="setMode('Retourner')">Retourner</button>
+                <button :class="{selected : isSelected('Emprunter')}" @click="setMode('Emprunter')">
+                    <img src="../assets/icons/Export.png"/>
+                    Emprunter
+                </button>
+                <button :class="{selected : isSelected('Retourner')}" @click="setMode('Retourner')">
+                    <img src="../assets/icons/Import.png"/>
+                    Retourner
+                </button>
             </div>
             <div class="options" v-if="mode">
                 <div class="dispo-input">
@@ -148,8 +153,18 @@ function updateDispo() {
 
                 <p v-if="isSelected('Emprunter') && priceLoc > 0" class="contrib-total">Contribution totale : <span>{{ priceLoc.toFixed(2) }}€</span></p>
 
-                <button class="apply" :class="{disabled: quantity_error}" @click="updateDispo">Appliquer</button>
-                <p v-show="submit_error" class="error">{{ submit_error }}</p>
+                <button 
+                    class="apply" 
+                    :class="{disabled: quantity_error || isLoading}" 
+                    @click="updateDispo"
+                >
+                    <template v-if="isLoading">
+                        <span class="spinner"></span>
+                    </template>
+                    <template v-else>
+                        Appliquer
+                    </template>
+                </button>
             </div>
         </section>
     </div>
@@ -318,6 +333,8 @@ input {
 }
 
 .select {
+    display: flex;
+    flex-wrap: nowrap;
     margin-bottom: 1rem;
     max-width: 18rem;
 }
@@ -344,6 +361,7 @@ button:hover {
 
 button.selected {
     background-color: var(--accent-hover);
+    font-weight: 600;
 }
 
 .contrib-total {
@@ -359,4 +377,20 @@ button.apply.disabled {
     cursor: default;
 }
 
+.spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border: 2px solid var(--text);
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-right: 0.5em;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 </style>

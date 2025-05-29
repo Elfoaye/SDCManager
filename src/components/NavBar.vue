@@ -18,7 +18,7 @@ const props = defineProps(['setPage']);
             <h2>Admin</h2>
             <button class="disabled">Page Admin</button>
         </section>
-        <button class="settings">Paramètres</button>
+        <button class="settings disabled">Paramètres</button>
     </nav>
 </template>
 
