@@ -72,6 +72,16 @@ const sortedContent = computed(() => {
     });
 });
 
+function resetFilters() {
+    filter_search.value = '';
+    filter_type.value = [];
+    filter_min_disp.value = '';
+    filter_min_total.value = '';
+    filter_max_price.value = '';
+    filter_borrow.value = '';
+    filter_dispo.value = '';
+}
+
 async function updateData() {
     list_content.value = await invoke('get_materiel_data');
 }
@@ -144,6 +154,8 @@ defineExpose({ updateData, updateItem, list_content });
         
         <div class="filters" v-if="show_filters">
             <h2>Filtres</h2>
+            <button class="reset-filters" @click="resetFilters">Réinitialiser</button>
+
             <section class="type">
                 <label for="type">Types</label>
                 <Multiselect 
@@ -270,9 +282,18 @@ input {
 }
 
 .filters h2 {
-    grid-column: span 6;
+    grid-column: span 3;
     margin: 0;
     padding-left: 0.5rem;
+}
+
+.reset-filters {
+    grid-column: span 3;
+    width: fit-content;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    margin-left: auto;
+    margin-right: 0.5rem;
 }
 
 .type {
