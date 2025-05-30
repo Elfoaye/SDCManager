@@ -4,14 +4,21 @@ import ListeMateriel from '../components/ListeMateriel.vue';
 import DisplayMateriel from '../components/DisplayMateriel.vue'
 
 const componentKey = ref(0);
-
 const display = ref(null)
+const listRef = ref(null);
+
+const wideWidth = 1080;
+const isWide = ref(window.innerWidth > wideWidth);
+
+const transitionName = computed(() => {
+  return isWide.value ?  'expand-height' : 'expand-width';
+});
+
 function setDisplay(value) {
     display.value = value;
     componentKey.value++;
 }
 
-const listRef = ref(null);
 async function onItemChange() {
     if(!listRef.value) return;
 
@@ -19,9 +26,6 @@ async function onItemChange() {
     setDisplay(newItem);
 }
 
-const wideWidth = 1080;
-
-const isWide = ref(window.innerWidth > wideWidth);
 function handleResize() {
     isWide.value = window.innerWidth > wideWidth;
 }
@@ -33,11 +37,6 @@ onMounted(() => {
 onUnmounted(() => {
     window.removeEventListener('resize', handleResize);
 });
-
-const transitionName = computed(() => {
-  return isWide.value ?  'expand-height' : 'expand-width';
-});
-
 </script>
 
 <template>

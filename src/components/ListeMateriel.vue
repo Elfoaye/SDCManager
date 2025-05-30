@@ -4,52 +4,13 @@ import { useBreadcrumb } from '../composables/breadcrumb';
 import { ref, computed } from 'vue';
 import Multiselect from 'vue-multiselect';
 
+const props = defineProps(['item','setItem']);
+
 const { setBreadcrumb } = useBreadcrumb();
 setBreadcrumb([
     { label: 'Accueil', page: null },
     { label: 'Matériel', page: 'mat' },
 ])
-
-const props = defineProps(['item','setItem']);
-
-const list_content = ref([]);
-async function updateData() {
-    list_content.value = await invoke('get_materiel_data');
-}
-updateData();
-async function updateItem(id) {
-    const index = list_content.value.findIndex((item) => item.id === id);
-    list_content.value[index] = await invoke('get_item_data', {id: id});
-    notifyChange(index);
-    return list_content.value[index];
-}
-
-defineExpose({ updateData, updateItem, list_content });
-
-function notifyChange(id) {
-    const li = document.querySelector(`li[data-id="${id + 1}"]`);
-    if (li) {
-        li.classList.add('flash');
-        void li.offsetWidth;
-        li.classList.remove('flash');
-        li.classList.add('transitioning');
-
-        setTimeout(() => {
-            li.classList.remove('transitioning');
-        }, 1000); 
-    }
-}
-
-function setDiplay(item) {
-    props.setItem(item);
-}
-
-function isSelected(itemToCheck) {
-    return props.item && props.item.id === itemToCheck.id;
-}
-
-const types = ref([]);
-invoke('get_materiel_types').then((data) => types.value = data);
 
 const columns = [
   { label: 'Nom', key: 'nom' },
@@ -60,48 +21,23 @@ const columns = [
   { label: 'Valeur', key: 'value' }
 ]
 
+const types = ref([]);
+invoke('get_materiel_types').then((data) => types.value = data);
+
+const list_content = ref([]);
 const show_filters = ref(false);
 
-function toggleFilters() {
-    show_filters.value = !show_filters.value;
-}
-
+// List sorting
 const sort_property = ref(null);
 const sort_asc = ref(true);
-
-function setSort(key) {
-    if(sort_property.value == key) {
-        sort_asc.value = !sort_asc.value;
-        return;
-    }
-
-    sort_asc.value = false;
-    sort_property.value = key;
-}
-
+//List filters
 const filter_search = ref('');
 const filter_type = ref([]);
-
 const filter_min_disp = ref('');
 const filter_min_total = ref('');
 const filter_max_price = ref('');
-
 const filter_borrow = ref('');
-function setFilterBorrow(value) {
-    if(filter_borrow.value === value) {
-        filter_borrow.value = null;
-    } else {
-        filter_borrow.value = value;
-    }
-}
 const filter_dispo = ref('');
-function setFilterDispo(value) {
-    if(filter_dispo.value === value) {
-        filter_dispo.value = null;
-    } else {
-        filter_dispo.value = value;
-    }
-}
 
 const filteredContent = computed(() => {
     const query = String(filter_search.value).trim().toLowerCase();
@@ -135,6 +71,68 @@ const sortedContent = computed(() => {
         }
     });
 });
+
+async function updateData() {
+    list_content.value = await invoke('get_materiel_data');
+}
+updateData();
+
+async function updateItem(id) {
+    const index = list_content.value.findIndex((item) => item.id === id);
+    list_content.value[index] = await invoke('get_item_data', {id: id});
+    notifyChange(index);
+    return list_content.value[index];
+}
+
+function notifyChange(id) {
+    const li = document.querySelector(`li[data-id="${id + 1}"]`);
+    if (li) {
+        li.classList.add('flash');
+        void li.offsetWidth;
+        li.classList.remove('flash');
+        li.classList.add('transitioning');
+
+        setTimeout(() => {
+            li.classList.remove('transitioning');
+        }, 1000); 
+    }
+}
+
+function isSelected(itemToCheck) {
+    return props.item && props.item.id === itemToCheck.id;
+}
+
+function toggleFilters() {
+    show_filters.value = !show_filters.value;
+}
+
+function setSort(key) {
+    if(sort_property.value == key) {
+        sort_asc.value = !sort_asc.value;
+        return;
+    }
+
+    sort_asc.value = false;
+    sort_property.value = key;
+}
+
+function setFilterBorrow(value) {
+    if(filter_borrow.value === value) {
+        filter_borrow.value = null;
+    } else {
+        filter_borrow.value = value;
+    }
+}
+
+function setFilterDispo(value) {
+    if(filter_dispo.value === value) {
+        filter_dispo.value = null;
+    } else {
+        filter_dispo.value = value;
+    }
+}
+
+defineExpose({ updateData, updateItem, list_content });
 </script>
 
 <template>
@@ -204,7 +202,7 @@ const sortedContent = computed(() => {
             </button>
         </li>
         <ul>
-            <li v-for="item in sortedContent" @click="setDiplay(item)" :class="{ selected : isSelected(item) }" :data-id="item.id">
+            <li v-for="item in sortedContent" @click="setItem(item)" :class="{ selected : isSelected(item) }" :data-id="item.id">
                 <p>{{ item.nom }}</p>
                 <p>{{ item.item_type }}</p>
                 <p>{{ item.dispo }}</p>

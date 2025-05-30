@@ -6,9 +6,13 @@ const props = defineProps(['item','setItem']);
 const emit = defineEmits(['item-change']);
 
 const formulas = ref(null);
-invoke('get_loc_formulas').then((data) => {
-    formulas.value = data
-});
+invoke('get_loc_formulas').then((data) => formulas.value = data);
+
+const mode = ref(null);
+const quantity = ref(1);
+const duration = ref(1);
+const isFree = ref(false);
+const isLoading = ref(false);
 
 const following_rate = computed(() => {
     if(!props.item || !formulas.value) return 0;
@@ -26,32 +30,17 @@ const usageColor = computed(() => {
     return "#f44336";
 });
 
-const mode = ref(null);
-function setMode(new_mode) {
-    if(mode.value === new_mode) {
-        mode.value = null;
-        return
-    }
-    mode.value = new_mode;
-}
-function isSelected(check_mode) {
-    return mode.value === check_mode;
-}
-
 const renta = computed(() => {
     if(!props.item) return 0;
     return (props.item.benef*100)/props.item.value;
 });
 
-const quantity = ref(1);
-const duration = ref(1);
-
-function setQuantityToMax() {
-    quantity.value = mode.value == "Emprunter" ? props.item.dispo : props.item.total - props.item.dispo;
-}
-
 const update_value = computed(() => {
     return mode.value == "Emprunter" ? props.item.dispo - quantity.value : props.item.dispo + quantity.value;
+});
+
+const maxQuantity = computed(() => {
+    return mode.value == "Emprunter" ? props.item.dispo : props.item.total - props.item.dispo;
 });
 
 const quantity_error = computed(() => {
@@ -71,18 +60,27 @@ const quantity_error = computed(() => {
     return null;
 });
 
-const maxQuantity = computed(() => {
-    return mode.value == "Emprunter" ? props.item.dispo : props.item.total - props.item.dispo;
-});
-
-const isFree = ref(false);
 const priceLoc = computed(() => {
     if(!duration.value || !quantity.value || !props.item || duration.value === 0) return 0;
 
     return quantity.value * (props.item.contrib + (duration.value - 1) * following_rate.value);
 });
 
-const isLoading = ref(false);
+function setMode(new_mode) {
+    if(mode.value === new_mode) {
+        mode.value = null;
+        return
+    }
+    mode.value = new_mode;
+}
+
+function isSelected(check_mode) {
+    return mode.value === check_mode;
+}
+
+function setQuantityToMax() {
+    quantity.value = mode.value == "Emprunter" ? props.item.dispo : props.item.total - props.item.dispo;
+}
 
 async function updateDispo() {
     if(quantity_error.value) {
@@ -101,7 +99,6 @@ async function updateDispo() {
     } finally {
         isLoading.value = false;
     }
-    
 }
 </script>
 
