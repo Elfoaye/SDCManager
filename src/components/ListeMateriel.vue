@@ -24,31 +24,31 @@ const columns = [
 const types = ref([]);
 invoke('get_materiel_types').then((data) => types.value = data);
 
-const list_content = ref([]);
-const show_filters = ref(false);
+const listContent = ref([]);
+const showFilters = ref(false);
 
 // List sorting
-const sort_property = ref(null);
-const sort_asc = ref(true);
+const sortProperty = ref(null);
+const sortAsc = ref(true);
 //List filters
-const filter_search = ref('');
-const filter_type = ref([]);
-const filter_min_disp = ref('');
-const filter_min_total = ref('');
-const filter_max_price = ref('');
-const filter_borrow = ref('');
-const filter_dispo = ref('');
+const filterSearch = ref('');
+const filterType = ref([]);
+const filterMinDisp = ref('');
+const filterMinTotal = ref('');
+const filterMaxPrice = ref('');
+const filterBorrow = ref('');
+const filterDispo = ref('');
 
 const filteredContent = computed(() => {
-    const query = String(filter_search.value).trim().toLowerCase();
+    const query = String(filterSearch.value).trim().toLowerCase();
 
-    return list_content.value.filter(item =>  {
-        if ((filter_type.value.length > 0 && !filter_type.value.includes(item.item_type)) || // Filters
-            (filter_min_disp.value && filter_min_disp.value > item.dispo) || // Min dispo
-            (filter_min_total.value && filter_min_total.value > item.total) || // Min total
-            (filter_max_price.value && filter_max_price.value < item.contrib) || // Max contrib
-            (filter_borrow.value === 'borrowed' && item.dispo === item.total || filter_borrow.value === 'available' && item.dispo < item.total) || // Borrowed
-            (filter_dispo.value === 'notdispo' && item.dispo > 0 || filter_dispo.value === 'dispo' && item.dispo === 0) || // Dispo
+    return listContent.value.filter(item =>  {
+        if ((filterType.value.length > 0 && !filterType.value.includes(item.item_type)) || // Filters
+            (filterMinDisp.value && filterMinDisp.value > item.dispo) || // Min dispo
+            (filterMinTotal.value && filterMinTotal.value > item.total) || // Min total
+            (filterMaxPrice.value && filterMaxPrice.value < item.contrib) || // Max contrib
+            (filterBorrow.value === 'borrowed' && item.dispo === item.total || filterBorrow.value === 'available' && item.dispo < item.total) || // Borrowed
+            (filterDispo.value === 'notdispo' && item.dispo > 0 || filterDispo.value === 'dispo' && item.dispo === 0) || // Dispo
             (query && !(String(item.nom).toLowerCase().includes(query) || String(item.item_type).toLowerCase().includes(query)))) // Search bar
             return false;
 
@@ -57,41 +57,41 @@ const filteredContent = computed(() => {
 });
 
 const sortedContent = computed(() => {
-    if(!sort_property.value) return filteredContent.value;
+    if(!sortProperty.value) return filteredContent.value;
 
     return [...filteredContent.value].sort((a, b) => {
-        const valA = a[sort_property.value] ;
-        const valB = b[sort_property.value];
+        const valA = a[sortProperty.value] ;
+        const valB = b[sortProperty.value];
     
         if(typeof valA === 'number' && typeof valB === 'number') {
-            return sort_asc.value ? valA - valB : valB - valA;
+            return sortAsc.value ? valA - valB : valB - valA;
         } else {
-            return sort_asc.value ? String(valB).localeCompare(String(valA)) :
+            return sortAsc.value ? String(valB).localeCompare(String(valA)) :
                                     String(valA).localeCompare(String(valB));
         }
     });
 });
 
 function resetFilters() {
-    filter_search.value = '';
-    filter_type.value = [];
-    filter_min_disp.value = '';
-    filter_min_total.value = '';
-    filter_max_price.value = '';
-    filter_borrow.value = '';
-    filter_dispo.value = '';
+    filterSearch.value = '';
+    filterType.value = [];
+    filterMinDisp.value = '';
+    filterMinTotal.value = '';
+    filterMaxPrice.value = '';
+    filterBorrow.value = '';
+    filterDispo.value = '';
 }
 
 async function updateData() {
-    list_content.value = await invoke('get_materiel_data');
+    listContent.value = await invoke('get_materiel_data');
 }
 updateData();
 
 async function updateItem(id) {
-    const index = list_content.value.findIndex((item) => item.id === id);
-    list_content.value[index] = await invoke('get_item_data', {id: id});
+    const index = listContent.value.findIndex((item) => item.id === id);
+    listContent.value[index] = await invoke('get_item_data', {id: id});
     notifyChange(index);
-    return list_content.value[index];
+    return listContent.value[index];
 }
 
 function notifyChange(id) {
@@ -113,46 +113,46 @@ function isSelected(itemToCheck) {
 }
 
 function toggleFilters() {
-    show_filters.value = !show_filters.value;
+    showFilters.value = !showFilters.value;
 }
 
 function setSort(key) {
-    if(sort_property.value == key) {
-        sort_asc.value = !sort_asc.value;
+    if(sortProperty.value == key) {
+        sortAsc.value = !sortAsc.value;
         return;
     }
 
-    sort_asc.value = false;
-    sort_property.value = key;
+    sortAsc.value = false;
+    sortProperty.value = key;
 }
 
 function setFilterBorrow(value) {
-    if(filter_borrow.value === value) {
-        filter_borrow.value = null;
+    if(filterBorrow.value === value) {
+        filterBorrow.value = null;
     } else {
-        filter_borrow.value = value;
+        filterBorrow.value = value;
     }
 }
 
 function setFilterDispo(value) {
-    if(filter_dispo.value === value) {
-        filter_dispo.value = null;
+    if(filterDispo.value === value) {
+        filterDispo.value = null;
     } else {
-        filter_dispo.value = value;
+        filterDispo.value = value;
     }
 }
 
-defineExpose({ updateData, updateItem, list_content });
+defineExpose({ updateData, updateItem, listContent });
 </script>
 
 <template>
     <div class="content">
         <div class="search">
-            <input v-model="filter_search" class="searchbar" name="searchbar" type="text" placeholder="Chercher par nom, catégorie..."/>
+            <input v-model="filterSearch" class="searchbar" name="searchbar" type="text" placeholder="Chercher par nom, catégorie..."/>
             <button @click="toggleFilters">Filtrer</button>
         </div>
         
-        <div class="filters" v-if="show_filters">
+        <div class="filters" v-if="showFilters">
             <h2>Filtres</h2>
             <button class="reset-filters" @click="resetFilters">Réinitialiser</button>
 
@@ -160,7 +160,7 @@ defineExpose({ updateData, updateItem, list_content });
                 <label for="type">Types</label>
                 <Multiselect 
                     name="type" 
-                    v-model="filter_type" 
+                    v-model="filterType" 
                     :options="types" 
                     :multiple="true" 
                     :close-on-select="false" 
@@ -173,30 +173,30 @@ defineExpose({ updateData, updateItem, list_content });
 
             <section class="mindispo">
                 <label>Minimum disponible</label>
-                <input v-model="filter_min_disp" type="number" min="0" placeholder="Au moins ... disponibles"/>
+                <input v-model="filterMinDisp" type="number" min="0" placeholder="Au moins ... disponibles"/>
             </section>
             <section class="mintotal">
                 <label>Minimum total</label>
-                <input v-model="filter_min_total" type="number" min="0" placeholder="Au moins ... au total"/>
+                <input v-model="filterMinTotal" type="number" min="0" placeholder="Au moins ... au total"/>
             </section>
             <section class="prixmax">
                 <label>Contribution maximum</label>
-                <input v-model="filter_max_price" type="number" min="0" placeholder="Coûtant moins de ... par jour"/>
+                <input v-model="filterMaxPrice" type="number" min="0" placeholder="Coûtant moins de ... par jour"/>
             </section>
             
             <div class="filter-borrow">
-                <button :class="{ selected: filter_borrow === 'borrowed' }" @click="setFilterBorrow('borrowed')">
+                <button :class="{ selected: filterBorrow === 'borrowed' }" @click="setFilterBorrow('borrowed')">
                     Emprunté
                 </button>
-                <button :class="{ selected: filter_borrow === 'available' }" @click="setFilterBorrow('available')">
+                <button :class="{ selected: filterBorrow === 'available' }" @click="setFilterBorrow('available')">
                     Non emprunté
                 </button>
             </div>
             <div class="filter-dispo">
-                <button :class="{ selected: filter_dispo === 'dispo' }" @click="setFilterDispo('dispo')">
+                <button :class="{ selected: filterDispo === 'dispo' }" @click="setFilterDispo('dispo')">
                     Disponible
                 </button>
-                <button :class="{ selected: filter_dispo === 'notdispo' }" @click="setFilterDispo('notdispo')">
+                <button :class="{ selected: filterDispo === 'notdispo' }" @click="setFilterDispo('notdispo')">
                     Non disponible
                 </button>
             </div>
@@ -209,7 +209,7 @@ defineExpose({ updateData, updateItem, list_content });
                 @click="setSort(col.key)"
             >
                 {{ col.label }} 
-                <span v-if="sort_property === col.key">{{ sort_asc ? '▲' : '▼' }}</span>
+                <span v-if="sortProperty === col.key">{{ sortAsc ? '▲' : '▼' }}</span>
                 
             </button>
         </li>

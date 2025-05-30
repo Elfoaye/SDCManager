@@ -14,7 +14,7 @@ const duration = ref(1);
 const isFree = ref(false);
 const isLoading = ref(false);
 
-const following_rate = computed(() => {
+const followingRate = computed(() => {
     if(!props.item || !formulas.value) return 0;
     return props.item.contrib * formulas.value.contrib_following;
 });
@@ -35,7 +35,7 @@ const renta = computed(() => {
     return (props.item.benef*100)/props.item.value;
 });
 
-const update_value = computed(() => {
+const updateValue = computed(() => {
     return mode.value == "Emprunter" ? props.item.dispo - quantity.value : props.item.dispo + quantity.value;
 });
 
@@ -43,17 +43,17 @@ const maxQuantity = computed(() => {
     return mode.value == "Emprunter" ? props.item.dispo : props.item.total - props.item.dispo;
 });
 
-const quantity_error = computed(() => {
+const quantityError = computed(() => {
     if(quantity.value == "") {
         return " ";
     }
     if(!/^\d+$/.test(quantity.value)) {
         return "La quantité doit être un nombre positif";
     }
-    if (update_value.value < 0) {
+    if (updateValue.value < 0) {
         return "Pas assez d'objets diponibles";
     }
-    if (update_value.value > props.item.total) {
+    if (updateValue.value > props.item.total) {
         return "Trop d'objets retournés";
     }
 
@@ -63,7 +63,7 @@ const quantity_error = computed(() => {
 const priceLoc = computed(() => {
     if(!duration.value || !quantity.value || !props.item || duration.value === 0) return 0;
 
-    return quantity.value * (props.item.contrib + (duration.value - 1) * following_rate.value);
+    return quantity.value * (props.item.contrib + (duration.value - 1) * followingRate.value);
 });
 
 function setMode(new_mode) {
@@ -83,7 +83,7 @@ function setQuantityToMax() {
 }
 
 async function updateDispo() {
-    if(quantity_error.value) {
+    if(quantityError.value) {
         return;
     }
 
@@ -92,7 +92,7 @@ async function updateDispo() {
     console.log("isFree : " + isFree.value + " Profit : " + profit + " Price loc :" + priceLoc.value);
 
     try {
-        await invoke('update_dispo', { value: update_value.value, old: props.item.dispo, benef: profit, id: props.item.id });
+        await invoke('update_dispo', { value: updateValue.value, old: props.item.dispo, benef: profit, id: props.item.id });
         emit('item-change');
     } catch (err) {
         console.error(err);
@@ -126,7 +126,7 @@ async function updateDispo() {
             <p>Taux de rentabilité : <span>{{ (renta/item.total).toFixed(2) }}%</span> ({{ renta.toFixed(2) }}% d'un objet)</p>
         </section>
         <section class="price">
-            <p>Contribution : <span>{{ item.contrib.toFixed(2) }}€</span> + {{ following_rate.toFixed(2) }}€ par jour supplémentaire</p>
+            <p>Contribution : <span>{{ item.contrib.toFixed(2) }}€</span> + {{ followingRate.toFixed(2) }}€ par jour supplémentaire</p>
         </section>
         <section class="dispo">
             <h2>Gérer cet élement</h2>
@@ -148,7 +148,7 @@ async function updateDispo() {
                         <input v-model="quantity" label="quantity" class="quantity-bar" type="number" min="0" :max="maxQuantity" value="1" placeholder="Nombre d'objets"/>
                         <button class="quantity-button" @click="setQuantityToMax">Tout</button>
                     </div>
-                    <p class="error" v-show="quantity_error">{{ quantity_error }}</p>
+                    <p class="error" v-show="quantityError">{{ quantityError }}</p>
                 </div>
 
                 <div class="dispo-input" v-if="isSelected('Emprunter')">
@@ -164,7 +164,7 @@ async function updateDispo() {
 
                 <button 
                     class="apply" 
-                    :class="{disabled: quantity_error || isLoading}" 
+                    :class="{disabled: quantityError || isLoading}" 
                     @click="updateDispo"
                 >
                     <template v-if="isLoading">
