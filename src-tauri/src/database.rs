@@ -97,36 +97,35 @@ pub fn update_dispo(value: i32, old: i32, benef: f32, id: i32, handle: tauri::Ap
 
     let conn = get_database_connection(handle)?;
 
-    let mut verif_request = conn.prepare("SELECT total FROM Materiel WHERE id = ?")
-        .map_err(|e| e.to_string())?;
-    let total = verif_request.query_row(&[&id], |row| {
-        row.get(0)
-    }).map_err(|e| e.to_string())?;
+    let total = conn.query_row(
+        "SELECT total FROM Materiel WHERE id = ?",
+        params![id], 
+        |row|  row.get(0)
+    ).map_err(|e| e.to_string())?;
 
     if value > total {
         return Err("Disponible ne peut pas être superieur au total".to_string());
     }
 
-    let mut dispo_request = conn.prepare("UPDATE Materiel SET dispo = ?1 WHERE id = ?2")
-        .map_err(|e| e.to_string())?;
-    dispo_request.execute(params![value, id])
-        .map_err(|e| e.to_string())?;
-
     let diff = old - value;
+    let mut sql = String::from("UPDATE Materiel SET dispo = ?");
+    let mut params: Vec<&dyn rusqlite::ToSql> = vec![&value];
+    
     if diff > 0 {
-        let mut sorties_request = conn.prepare("UPDATE Materiel SET nb_sorties = nb_sorties + ?1 WHERE id = ?2")
-            .map_err(|e| e.to_string())?;
-        sorties_request.execute(params![diff, id])
-            .map_err(|e| e.to_string())?;
+        sql.push_str(", nb_sorties = nb_sorties + ?");
+        params.push(&diff);
     }
 
     if benef > 0.0 {
-        let mut sorties_request = conn.prepare("UPDATE Materiel SET benef = benef + ?1 WHERE id = ?2")
-            .map_err(|e| e.to_string())?;
-        sorties_request.execute(params![benef, id])
-            .map_err(|e| e.to_string())?;
+        sql.push_str(", benef = benef + ?");
+        params.push(&benef);
     }
 
+    sql.push_str(" WHERE id = ?");
+    params.push(&id);
+    
+    conn.execute(&sql, params.as_slice())
+        .map_err(|e| e.to_string())?;
 
     Ok("Valeur modifiée".to_string())
 }

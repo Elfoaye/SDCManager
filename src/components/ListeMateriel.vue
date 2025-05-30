@@ -28,7 +28,6 @@ defineExpose({ updateData, updateItem, list_content });
 
 function notifyChange(id) {
     const li = document.querySelector(`li[data-id="${id + 1}"]`);
-    console.log(li);
     if (li) {
         li.classList.add('flash');
         void li.offsetWidth;

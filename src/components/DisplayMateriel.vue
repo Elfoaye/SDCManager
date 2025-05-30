@@ -90,8 +90,8 @@ async function updateDispo() {
     }
 
     isLoading.value = true
-    const profit = isFree.value || mode !== 'Emprunter' ? 0 : priceLoc.value;
-    console.log("isFree : " + isFree + " Profit : " + profit + " Price loc :" + priceLoc.value);
+    const profit = isFree.value || mode.value !== 'Emprunter' ? 0 : priceLoc.value;
+    console.log("isFree : " + isFree.value + " Profit : " + profit + " Price loc :" + priceLoc.value);
 
     try {
         await invoke('update_dispo', { value: update_value.value, old: props.item.dispo, benef: profit, id: props.item.id });
