@@ -32,10 +32,23 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Install Rust targets
+        run: |
+          if [[ "${{ matrix.platform }}" == "macos-latest" && "${{ matrix.arch }}" == "x86_64" ]]; then
+            rustup target add x86_64-apple-darwin
+          elif [[ "${{ matrix.platform }}" == "macos-latest" && "${{ matrix.arch }}" == "aarch64" ]]; then
+            rustup target add aarch64-apple-darwin
+          elif [[ "${{ matrix.platform }}" == "windows-latest" && "${{ matrix.arch }}" == "x86_64" ]]; then
+            rustup target add x86_64-pc-windows-msvc
+          elif [[ "${{ matrix.platform }}" == "windows-latest" && "${{ matrix.arch }}" == "aarch64" ]]; then
+            rustup target add aarch64-pc-windows-msvc
+          fi
+
       - uses: tauri-apps/tauri-action@v0
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "Release ${{ github.ref_name }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-          CARGO_BUILD_TARGET: ${{ matrix.arch }}-apple-darwin
+          CARGO_BUILD_TARGET: ${{ matrix.arch }}-${
+            { matrix.platform == 'windows-latest' && 'pc-windows-msvc' || matrix.platform == 'macos-latest' && 'apple-darwin' }
