@@ -9,6 +9,7 @@ jobs:
     strategy:
       matrix:
         platform: [macos-latest, windows-latest]
+        arch: [x86_64, aarch64]
     runs-on: ${{ matrix.platform }}
 
     steps:
@@ -37,3 +38,4 @@ jobs:
           releaseName: "Release ${{ github.ref_name }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          CARGO_BUILD_TARGET: ${{ matrix.arch }}-apple-darwin
