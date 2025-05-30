@@ -38,7 +38,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "Release ${{ github.ref_name }}"
-          tauriScript: "npm run tauri build"
+          tauriScript: "npm run tauri-build"
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
