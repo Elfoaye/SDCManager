@@ -2,32 +2,30 @@ name: Build Tauri App
 
 on:
   push:
-    tags:
-      - 'v*.*.*'  # Déclenche sur une release taggée type v0.1.0
-  workflow_dispatch:
+    branches: [main]
 
 jobs:
   build:
     strategy:
       matrix:
         platform: [ubuntu-latest, windows-latest, macos-latest]
-
     runs-on: ${{ matrix.platform }}
 
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/setup-node@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: 20
 
-      - uses: tauri-apps/tauri-action@v0
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Build Tauri App
+        uses: tauri-apps/tauri-action@v0
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "Release ${{ github.ref_name }}"
-          args: "--target ${{ matrix.platform == 'windows-latest' && 'x86_64-pc-windows-msvc' || matrix.platform == 'ubuntu-latest' && 'x86_64-unknown-linux-gnu' || 'x86_64-apple-darwin' }}"
-
-        env:
-          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tauriScript: "npm run tauri build"
