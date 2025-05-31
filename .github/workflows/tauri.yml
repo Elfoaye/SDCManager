@@ -48,6 +48,9 @@ jobs:
       - name: install frontend dependencies
         run: npm install
 
+      - name: Fix permissions
+        run: chmod +x node_modules/.bin/vite node_modules/.bin/tauri
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
