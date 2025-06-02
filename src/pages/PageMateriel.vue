@@ -10,7 +10,8 @@ const displayKey = ref(0);
 const modifKey = ref(0);
 const listKey = ref(0);
 
-const display = ref(null)
+const display = ref(null);
+const create = ref(false);
 const listRef = ref(null);
 
 const wideWidth = 1080;
@@ -22,8 +23,15 @@ const transitionName = computed(() => {
 
 function setDisplay(value) {
     display.value = value;
+    create.value = false;
+
     displayKey.value++;
     modifKey.value++;
+}
+
+function setCreate() {
+    setDisplay(null);
+    create.value = true;
 }
 
 async function onItemChange() {
@@ -58,21 +66,23 @@ watch(props.modif, () => {
             :key="listKey"
             :item="display" 
             :setItem="setDisplay"
+            :setCreate="setCreate"
             :modif="modif"
         />
         <Transition :name="transitionName" mode="out-in">
-            <DisplayMateriel 
-                v-if="display !== null && modif === false" 
-                class="detail" 
-                :key="displayKey"
-                :item="display" 
-                :setItem="setDisplay"
-                @item-change="onItemChange"
-            />
             <ModifMateriel 
-                v-else-if="display !== null"
+                v-if="(display !== null || create) && modif === true"
                 class="detail" 
                 :key="modifKey"
+                :item="display" 
+                :setItem="setDisplay"
+                :create="create"
+                @item-change="onItemChange"
+            />
+            <DisplayMateriel 
+                v-else-if="display !== null" 
+                class="detail" 
+                :key="displayKey"
                 :item="display" 
                 :setItem="setDisplay"
                 @item-change="onItemChange"

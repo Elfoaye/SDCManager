@@ -4,7 +4,7 @@ import { useBreadcrumb } from '../composables/breadcrumb';
 import { ref, computed, watch } from 'vue';
 import Multiselect from 'vue-multiselect';
 
-const props = defineProps(['item','setItem','modif']);
+const props = defineProps(['item', 'setItem', 'setCreate', 'modif']);
 
 const { setBreadcrumb } = useBreadcrumb();
 
@@ -200,6 +200,7 @@ watch(() => props.modif, () => {
             </button>
         </li>
         <ul>
+            <li v-if="modif" class="new-item" @click="setCreate">+ Ajouter un objet</li>
             <li v-for="item in sortedContent" @click="setItem(item)" :class="{ selected : isSelected(item) }" :data-id="item.id">
                 <p>{{ item.nom }}</p>
                 <p>{{ item.item_type }}</p>
@@ -398,6 +399,7 @@ ul {
     padding: 0;
     padding-bottom: 2rem;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 li, li.head {
@@ -475,5 +477,15 @@ li.head {
 .head button span {
   display: inline;
   margin-left: 0.25rem;
+}
+
+.new-item {
+    width: 100%;
+    padding: 1rem;
+    font-weight: 600;
+}
+
+li.new-item:hover {
+    background-color: var(--success);
 }
 </style>

@@ -1,34 +1,74 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
-const props = defineProps(['item','setItem']);
+const props = defineProps(['item','setItem','create']);
 const emit = defineEmits(['item-change']);
 
+const types = ref([]);
+invoke('get_materiel_types').then((data) => types.value = data);
 const formulas = ref(null);
 invoke('get_loc_formulas').then((data) => formulas.value = data);
 
+const tempItem = ref({
+    nom: '',
+    item_type: '',
+    total: '',
+    dispo: '',
+    value: '',
+    contrib: '',
+    nb_sorties: '',
+    benef: ''
+});
+
 const isLoading = ref(false);
+
+watch(
+    () => props.item, (newItem) => {
+        if(newItem && !props.create) {
+            tempItem.value = { ...newItem };
+        }
+    }, 
+    { immediate: true }
+);
 </script>
 
 <template>
-    <div class="itemCard">
+    <div class="itemCard" :class="{ new: create }">
+        <div class="title">
+            <h1 v-if="create">Nouvel objet</h1>
+            <div v-else class="title-text">
+                <h1>Modifier l'objet</h1>
+                <button class="delete">Supprimer l'objet</button>
+            </div>
+            
+            <button class="back" @click="setItem(null)">X</button>
+        </div>
+        
         <section class="general">
             <div class="title">
-                <h1>{{ item.nom }}</h1>
-                <button class="back" @click="setItem(null)">X</button>
+                <label>Nom : 
+                    <input v-model="tempItem.nom" placeholder="Nom de l'objet..."/>
+                </label>
             </div>
-            <h2>{{ item.type }}</h2>
-            <div class="availability">
-                <p>Nombre total</p>
-            </div>
+            <label>Catégorie : 
+                <select v-model="tempItem.item_type" placeholder="Catégorie de l'objet...">
+                    <option v-for="type in types">{{ type }}</option>
+                </select>
+            </label>
         </section>
         <section class="stats">
-            <p>Valeur de remplacement</p>
-            <p>Contribution</p>
+            <label>Disponible : <input v-model="tempItem.dispo" placeholder="Quantitée d'objets disponibles..."/></label>
+            <label>Total : <input v-model="tempItem.total" placeholder="Quantitée totale d'objets..."/></label>
+            <label>Valeur : <input v-model="tempItem.value" placeholder="Valeur de remplacement..."/> €</label>
+            <label>Contribution : <input v-model="tempItem.contrib" placeholder="Contribution par jour..."/> €</label>
+        </section>
+        <section class="advanced">
+            <label>Nobre de sorties : <input v-model="tempItem.nb_sorties" placeholder="Nombre total de sorties..."/></label>
+            <label>Bénéfices : <input v-model="tempItem.benef" placeholder="Bénéfices totaux..."/></label>
         </section>
 
-        <button>Supprimer</button>
+        <button>Appercu des modifications</button>
 
         <button 
             class="apply" 
@@ -62,6 +102,10 @@ const isLoading = ref(false);
     border-radius: 0.5rem;
 }
 
+.itemCard.new {
+    border: 2px solid var(--success);
+}
+
 .itemCard p {
     margin: 0;
 }
@@ -80,6 +124,16 @@ section {
 
 .title {
     display: flex;
+}
+
+.title-text {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.title h1 {
+    margin: 0;
 }
 
 .general h1 {
@@ -145,6 +199,15 @@ button:hover {
     cursor: pointer;
     
     transition: all 0.2s;
+}
+
+button.delete {
+    background-color: var(--background-error);
+    color: var(--background-alt);
+}
+
+button.delete:hover {
+    background-color: var(--error);
 }
 
 button.apply {

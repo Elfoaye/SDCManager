@@ -14,6 +14,7 @@
   --neutral: #EDEDED;
   --success: #1FB87E;
   --warning: #F7BC00;
+  --background-error: #ec3f3f;
   --error: #C62828;
   --disabled: #B0B0B0;
 }
@@ -35,6 +36,7 @@
     --neutral: #3A3A3A;
     --success: #24CC8F;
     --warning: #F7BC00;
+    --background-error: #ec3f3f;
     --error: #EF5350;
     --disabled: #555555;
   }
