@@ -1,16 +1,12 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
 import { useBreadcrumb } from '../composables/breadcrumb';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import Multiselect from 'vue-multiselect';
 
 const props = defineProps(['item','setItem','modif']);
 
 const { setBreadcrumb } = useBreadcrumb();
-setBreadcrumb([
-    { label: 'Accueil', page: null },
-    { label: 'Matériel', page: 'mat' },
-])
 
 const columns = [
   { label: 'Nom', key: 'nom' },
@@ -134,6 +130,14 @@ function setFilterDispo(value) {
 }
 
 defineExpose({ updateData, updateItem, listContent });
+
+watch(() => props.modif, () => {
+  setBreadcrumb([
+    { label: 'Accueil', page: null },
+    { label: 'Matériel', page: 'consult' },
+    { label: props.modif ? 'Modifier' : 'Consulter', page: props.modif ? 'modif' : 'consult' }
+  ]);
+}, { immediate: true });
 </script>
 
 <template>
@@ -144,7 +148,7 @@ defineExpose({ updateData, updateItem, listContent });
         </div>
         <div class="search">
             <input v-model="filterSearch" class="searchbar" name="searchbar" type="text" placeholder="Chercher par nom, catégorie..."/>
-            <button @click="toggleFilters">Filtrer</button>
+            <button @click="toggleFilters" :class="{ selected: showFilters }">Filtrer</button>
         </div>
         
         <div class="filters" v-if="showFilters">
@@ -222,10 +226,17 @@ defineExpose({ updateData, updateItem, listContent });
 }
 
 .title {
-    width: 100%;
-    margin: 0;
-    padding: 1rem;
-    padding-top: 0;
+    display: flex;
+    justify-content: center;
+    width: auto;
+
+    margin-left: 0;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    padding-left: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-accent);
+
 }
 
 .title.modify {
@@ -234,6 +245,7 @@ defineExpose({ updateData, updateItem, listContent });
 
 .title h1 {
     margin: 0;
+    padding: 0;
     font-size: 1.5rem;
 }
 
@@ -250,32 +262,45 @@ input {
 }
 
 .searchbar {
-    width: 100%;
+    width: 50%;
     padding: 1rem;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
 }
 
-.search button {
+button {
     height: 100%;
+    padding: 1rem;
+    margin-right: 1rem;
+    width: 8rem;
+    color: var(--text);
+    background-color: var(--accent);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+
+    transition: all 0.2s;
+}
+
+button:hover {
+    background-color: var(--surface-selected);
+    cursor: pointer;
+    
+    transition: all 0.2s;
+}
+
+button.selected {
+    background-color: var(--accent-hover);
+}
+
+.search button {
     padding: 0.5rem;
     width: 4rem;
-    background-color: var(--accent);
-    color: var(--text);
-    border: 1px solid var(--border);
     border-left: 0;
     border-top-right-radius: 0.3rem;
     border-bottom-right-radius: 0.3rem;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
 
-    transition: all 0.2s;
-}
-
-.search button:hover {
-    background-color: var(--accent-hover);
-    cursor: pointer;
-    
     transition: all 0.2s;
 }
 

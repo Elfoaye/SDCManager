@@ -6,8 +6,8 @@ const props = defineProps(['setPage']);
     <nav>
         <section>
             <h2>Matériel</h2>
-            <button @click="setPage('mat')">Consulter</button>
-            <button class="disabled">Modifier</button>
+            <button @click="setPage('consult')">Consulter</button>
+            <button @click="setPage('modif')">Modifier</button>
         </section>
         <section>
             <h2>Devis</h2>

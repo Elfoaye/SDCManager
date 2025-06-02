@@ -6,16 +6,14 @@ import HeaderBar from './components/HeaderBar.vue';
 import PageAccueil from './pages/PageAccueil.vue'
 import PageMateriel from './pages/PageMateriel.vue';
 
-const currentPage = ref('mat');
+const currentPage = ref(null);
 const lastPage = ref(null);
-const modifMode = ref(false);
 
 function setPage(value) {
     if (currentPage.value == value) return;
 
     lastPage.value = currentPage.value;
     currentPage.value = value;
-    console.log("last page : " + lastPage.value + ", current page : " + currentPage.value);
 }
 </script>
 
@@ -32,8 +30,8 @@ function setPage(value) {
 
             <div class="content">
                 <PageMateriel 
-                    v-if="currentPage === 'mat'" 
-                    :modif="modifMode"
+                    v-if="currentPage === 'consult' || currentPage === 'modif'" 
+                    :modif="currentPage === 'modif'"
                 />
                 <PageAccueil v-else/>
             </div>

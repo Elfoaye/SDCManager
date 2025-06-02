@@ -45,7 +45,7 @@ const isLoading = ref(false);
     </div>
 </template>
 
-<style scopped>
+<style scoped>
 .itemCard {
     flex-grow: 1;
     display: flex;
@@ -58,7 +58,7 @@ const isLoading = ref(false);
     margin: 0.5rem;
     padding: 1em;
     overflow: auto;
-    border: 1px solid var(--border-accent);
+    border: 2px solid var(--warning);
     border-radius: 0.5rem;
 }
 

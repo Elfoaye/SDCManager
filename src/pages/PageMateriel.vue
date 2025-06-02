@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import ListeMateriel from '../components/ListeMateriel.vue';
 import DisplayMateriel from '../components/DisplayMateriel.vue'
 import ModifMateriel from '../components/ModifMateriel.vue'
@@ -8,6 +8,8 @@ const props = defineProps(['modif']);
 
 const displayKey = ref(0);
 const modifKey = ref(0);
+const listKey = ref(0);
+
 const display = ref(null)
 const listRef = ref(null);
 
@@ -42,6 +44,10 @@ onMounted(() => {
 onUnmounted(() => {
     window.removeEventListener('resize', handleResize);
 });
+
+watch(props.modif, () => {
+    listKey.value++;
+});
 </script>
 
 <template>
@@ -49,6 +55,7 @@ onUnmounted(() => {
         <ListeMateriel 
             class="list" 
             ref="listRef" 
+            :key="listKey"
             :item="display" 
             :setItem="setDisplay"
             :modif="modif"
@@ -56,16 +63,16 @@ onUnmounted(() => {
         <Transition :name="transitionName" mode="out-in">
             <DisplayMateriel 
                 v-if="display !== null && modif === false" 
-                :key="displayKey"
                 class="detail" 
+                :key="displayKey"
                 :item="display" 
                 :setItem="setDisplay"
                 @item-change="onItemChange"
             />
             <ModifMateriel 
                 v-else-if="display !== null"
-                :key="modifKey"
                 class="detail" 
+                :key="modifKey"
                 :item="display" 
                 :setItem="setDisplay"
                 @item-change="onItemChange"

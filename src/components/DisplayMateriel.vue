@@ -179,7 +179,7 @@ async function updateDispo() {
     </div>
 </template>
 
-<style scopped>
+<style scoped>
 .itemCard {
     flex-grow: 1;
     display: flex;
