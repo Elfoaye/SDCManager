@@ -1,10 +1,10 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tauri::{Manager, path::BaseDirectory};
 use rusqlite::{Connection, Result, params};
 use once_cell::sync::OnceCell;
 use std::sync::{Mutex, MutexGuard};
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Item {
     id: i32,
     nom: String,
@@ -39,19 +39,21 @@ pub fn get_materiel_data(handle: tauri::AppHandle) -> Result<Vec<Item>, String> 
         .map_err(|e| e.to_string())?;
 
     let requested_items = request
-        .query_map([], |row| {
-            Ok(Item {
-                id: row.get(0)?,
-                nom: row.get(1)?,
-                item_type: row.get(2)?,
-                total: row.get(3)?,
-                dispo: row.get(4)?,
-                value: row.get(5)?,
-                contrib: row.get(6)?,
-                nb_sorties: row.get(7)?,
-                benef: row.get(8)?
+        .query_map(
+            [], 
+            |row| {
+                Ok(Item {
+                    id: row.get(0)?,
+                    nom: row.get(1)?,
+                    item_type: row.get(2)?,
+                    total: row.get(3)?,
+                    dispo: row.get(4)?,
+                    value: row.get(5)?,
+                    contrib: row.get(6)?,
+                    nb_sorties: row.get(7)?,
+                    benef: row.get(8)?
+                })
             })
-        })
         .map_err(|e| e.to_string())?;
 
     let mut items = Vec::new();
@@ -66,26 +68,57 @@ pub fn get_materiel_data(handle: tauri::AppHandle) -> Result<Vec<Item>, String> 
 pub fn get_item_data(id: i32, handle: tauri::AppHandle) -> Result<Item, String> {
     let conn = get_database_connection(handle)?;
 
-    let mut request = conn.prepare("SELECT * FROM Materiel where id = ?")
-        .map_err(|e| e.to_string())?;
-
-    let item = request
-        .query_row([id], |row| {
-            Ok(Item {
-                id: row.get(0)?,
-                nom: row.get(1)?,
-                item_type: row.get(2)?,
-                total: row.get(3)?,
-                dispo: row.get(4)?,
-                value: row.get(5)?,
-                contrib: row.get(6)?,
-                nb_sorties: row.get(7)?,
-                benef: row.get(8)?
+    let item = conn
+        .query_row("SELECT * FROM Materiel where id = ?",
+            [id], 
+            |row| {
+                Ok(Item {
+                    id: row.get(0)?,
+                    nom: row.get(1)?,
+                    item_type: row.get(2)?,
+                    total: row.get(3)?,
+                    dispo: row.get(4)?,
+                    value: row.get(5)?,
+                    contrib: row.get(6)?,
+                    nb_sorties: row.get(7)?,
+                    benef: row.get(8)?
+                })
             })
-        })
         .map_err(|e| e.to_string())?;
 
     Ok(item)
+}
+
+#[tauri::command]
+pub fn update_item(item: Item, handle: tauri::AppHandle) -> Result<String, String> {
+    let conn = get_database_connection(handle)?;
+
+    conn.execute(
+        "UPDATE items SET
+            nom = ?1,
+            item_type = ?2,
+            total = ?3,
+            dispo = ?4,
+            value = ?5,
+            contrib = ?6,
+            nb_sorties = ?7,
+            benef = ?8
+        WHERE id = ?9",
+        rusqlite::params![
+            item.nom,
+            item.item_type,
+            item.total,
+            item.dispo,
+            item.value,
+            item.contrib,
+            item.nb_sorties,
+            item.benef,
+            item.id
+        ],
+    )
+    .map_err(|e| e.to_string())?;
+
+    Ok("Objet modifié".to_string())
 }
 
 
@@ -128,4 +161,43 @@ pub fn update_dispo(value: i32, old: i32, benef: f32, id: i32, handle: tauri::Ap
         .map_err(|e| e.to_string())?;
 
     Ok("Valeur modifiée".to_string())
+}
+
+#[tauri::command]
+pub fn add_item(item: Item, handle: tauri::AppHandle) -> Result<String, String> {
+    let conn = get_database_connection(handle)?;
+
+    conn.execute(
+        "INSERT INTO items (
+            nom,
+            item_type,
+            total,
+            dispo,
+            value,
+            contrib )
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        params![
+            item.nom,
+            item.item_type,
+            item.total,
+            item.total,
+            item.value,
+            item.contrib
+        ],
+    )
+    .map_err(|e| e.to_string())?;
+
+    Ok("Objet ajouté".to_string())
+}
+
+#[tauri::command]
+pub fn delete_item(id: i32, handle: tauri::AppHandle) -> Result<String, String> {
+    let conn = get_database_connection(handle)?;
+
+    conn.execute(
+        "DELETE FROM items WHERE id = ?",
+        params![id])
+    .map_err(|e| e.to_string())?;
+
+    Ok("Objet supprimé".to_string())
 }
