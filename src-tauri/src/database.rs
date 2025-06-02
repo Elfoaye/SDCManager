@@ -94,12 +94,12 @@ pub fn update_item(item: Item, handle: tauri::AppHandle) -> Result<String, Strin
     let conn = get_database_connection(handle)?;
 
     conn.execute(
-        "UPDATE items SET
+        "UPDATE Materiel SET
             nom = ?1,
             item_type = ?2,
             total = ?3,
             dispo = ?4,
-            value = ?5,
+            valeur = ?5,
             contrib = ?6,
             nb_sorties = ?7,
             benef = ?8
@@ -168,12 +168,12 @@ pub fn add_item(item: Item, handle: tauri::AppHandle) -> Result<String, String> 
     let conn = get_database_connection(handle)?;
 
     conn.execute(
-        "INSERT INTO items (
+        "INSERT INTO Materiel (
             nom,
             item_type,
             total,
             dispo,
-            value,
+            valeur,
             contrib )
         VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
         params![
@@ -195,7 +195,7 @@ pub fn delete_item(id: i32, handle: tauri::AppHandle) -> Result<String, String> 
     let conn = get_database_connection(handle)?;
 
     conn.execute(
-        "DELETE FROM items WHERE id = ?",
+        "DELETE FROM Materiel WHERE id = ?",
         params![id])
     .map_err(|e| e.to_string())?;
 

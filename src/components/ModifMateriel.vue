@@ -1,6 +1,6 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
-import { computed, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 
 const props = defineProps(['item','setItem','create']);
 const emit = defineEmits(['item-change']);
@@ -11,6 +11,7 @@ const formulas = ref(null);
 invoke('get_loc_formulas').then((data) => formulas.value = data);
 
 const tempItem = ref({
+    id: '',
     nom: '',
     item_type: '',
     total: '',
@@ -21,12 +22,66 @@ const tempItem = ref({
     benef: ''
 });
 
+const confirm = ref(null);
 const isLoading = ref(false);
+
+function confirmDelete() {
+    if(!props.item) return;
+
+    confirm.value = 'delete';
+}
+
+function confirmApplyChanges() {
+    // Test tempItem.propreties != ''
+    
+    confirm.value = 'change';
+}
+
+function confirmCancel() {
+    confirm.value = null;
+}
+
+async function deleteItem() {
+    confirmCancel();
+    isLoading.value = true
+
+    try {
+        await invoke('delete_item', { id: props.item.id }).then(); // Catch errors
+        emit('item-change');
+    } catch (err) {
+        console.error(err);
+    } finally {
+        isLoading.value = false;
+    }
+}
+
+function applyItemChanges() {
+    confirmCancel();
+    isLoading.value = true
+
+    try {
+        invoke('update_item', { item: tempItem.value }).then(); // Catch errors
+        emit('item-change');
+    } catch (err) {
+        console.error(err);
+    } finally {
+        isLoading.value = false;
+    }
+}
+
+function addItem() {
+    // test tempItem valide
+
+    invoke('add_item', { item: tempItem.value }).then(); // Catch errors
+}
 
 watch(
     () => props.item, (newItem) => {
         if(newItem && !props.create) {
             tempItem.value = { ...newItem };
+        }
+        else if(!props.create) {
+            tempItem.id = newItem.id;
         }
     }, 
     { immediate: true }
@@ -35,11 +90,24 @@ watch(
 
 <template>
     <div class="itemCard" :class="{ new: create }">
+        <div v-if="confirm" class="confirm">
+            <div class="pop-up">
+                <p v-if="confirm === 'delete'">Êtes-vous sûr de vouloir supprimer {{ item.name }} ?</p>
+                <p v-else>Appliquer les modifications sur {{ item.name }} ?</p>
+
+                <div class="confirm buttons">
+                    <button v-if="confirm === 'delete'" @click="deleteItem" class="delete" >Supprimer</button>
+                    <button v-else @click="applyItemChanges" class="change">Modifier</button>
+                    <button @click="confirmCancel" class="Cancel">Annuler</button>
+                </div>
+            </div>
+        </div>
+
         <div class="title">
             <h1 v-if="create">Nouvel objet</h1>
             <div v-else class="title-text">
                 <h1>Modifier l'objet</h1>
-                <button class="delete">Supprimer l'objet</button>
+                <button @click="confirmDelete" class="delete">Supprimer l'objet</button>
             </div>
             
             <button class="back" @click="setItem(null)">X</button>
@@ -58,22 +126,36 @@ watch(
             </label>
         </section>
         <section class="stats">
-            <label>Disponible : <input v-model="tempItem.dispo" placeholder="Quantitée d'objets disponibles..."/></label>
-            <label>Total : <input v-model="tempItem.total" placeholder="Quantitée totale d'objets..."/></label>
-            <label>Valeur : <input v-model="tempItem.value" placeholder="Valeur de remplacement..."/> €</label>
-            <label>Contribution : <input v-model="tempItem.contrib" placeholder="Contribution par jour..."/> €</label>
+            <label>Disponible : <input v-model="tempItem.dispo" type="number" min="0" placeholder="Quantitée d'objets disponibles..."/></label>
+            <label>Total : <input v-model="tempItem.total" type="number" min="0" placeholder="Quantitée totale d'objets..."/></label>
+            <label>Valeur : <input v-model="tempItem.value" type="number" step="0.01" min="0" placeholder="Valeur de remplacement..."/> €</label>
+            <label>Contribution : <input v-model="tempItem.contrib" type="number" step="0.01" min="0" placeholder="Contribution par jour..."/> €</label>
         </section>
         <section class="advanced">
-            <label>Nobre de sorties : <input v-model="tempItem.nb_sorties" placeholder="Nombre total de sorties..."/></label>
-            <label>Bénéfices : <input v-model="tempItem.benef" placeholder="Bénéfices totaux..."/></label>
+            <label>Nombre de sorties : <input v-model="tempItem.nb_sorties" type="number" min="0" placeholder="Nombre total de sorties..."/></label>
+            <label>Bénéfices : <input v-model="tempItem.benef" type="number" step="0.01" min="0" placeholder="Bénéfices totaux..."/></label>
         </section>
 
-        <button>Appercu des modifications</button>
+        <!-- <button>Appercu des modifications</button> -->
 
         <button 
+            v-if="create"
+            class="apply add-item" 
+            :class="{ 'disabled': quantityError || isLoading}" 
+            @click="addItem"
+        >
+            <template v-if="isLoading">
+                <span class="spinner"></span>
+            </template>
+            <template v-else>
+                + Ajouter l'objet
+            </template>
+        </button>
+        <button 
+            v-else
             class="apply" 
-            :class="{disabled: quantityError || isLoading}" 
-            @click="updateDispo"
+            :class="{ 'disabled': quantityError || isLoading}" 
+            @click="confirmApplyChanges"
         >
             <template v-if="isLoading">
                 <span class="spinner"></span>
@@ -211,8 +293,13 @@ button.delete:hover {
 }
 
 button.apply {
+    background-color: var(--warning);
     width: 17rem;
     font-weight: 600;
+}
+
+button.apply.add-item {
+    background-color: var(--success);
 }
 
 button.apply.disabled {
