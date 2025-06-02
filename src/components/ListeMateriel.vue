@@ -4,7 +4,7 @@ import { useBreadcrumb } from '../composables/breadcrumb';
 import { ref, computed } from 'vue';
 import Multiselect from 'vue-multiselect';
 
-const props = defineProps(['item','setItem']);
+const props = defineProps(['item','setItem','modif']);
 
 const { setBreadcrumb } = useBreadcrumb();
 setBreadcrumb([
@@ -138,6 +138,10 @@ defineExpose({ updateData, updateItem, listContent });
 
 <template>
     <div class="content">
+        <div class="title" :class="{modify: modif}">
+            <h1 v-if="modif">Modifier le materiel</h1>
+            <h1 v-else>Consulter le materiel</h1>
+        </div>
         <div class="search">
             <input v-model="filterSearch" class="searchbar" name="searchbar" type="text" placeholder="Chercher par nom, catégorie..."/>
             <button @click="toggleFilters">Filtrer</button>
@@ -215,6 +219,22 @@ defineExpose({ updateData, updateItem, listContent });
     max-height: 100%;
     margin: 0.5rem;
     overflow: hidden;
+}
+
+.title {
+    width: 100%;
+    margin: 0;
+    padding: 1rem;
+    padding-top: 0;
+}
+
+.title.modify {
+    background-color: var(--warning);
+}
+
+.title h1 {
+    margin: 0;
+    font-size: 1.5rem;
 }
 
 input {

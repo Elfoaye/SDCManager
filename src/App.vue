@@ -6,23 +6,24 @@ import HeaderBar from './components/HeaderBar.vue';
 import PageAccueil from './pages/PageAccueil.vue'
 import PageMateriel from './pages/PageMateriel.vue';
 
-const current_page = ref('mat');
-const last_page = ref(null);
+const currentPage = ref('mat');
+const lastPage = ref(null);
+const modifMode = ref(false);
 
 function setPage(value) {
-    if (current_page.value == value) return;
+    if (currentPage.value == value) return;
 
-    last_page.value = current_page.value;
-    current_page.value = value;
-    console.log("last page : " + last_page.value + ", current page : " + current_page.value);
+    lastPage.value = currentPage.value;
+    currentPage.value = value;
+    console.log("last page : " + lastPage.value + ", current page : " + currentPage.value);
 }
 </script>
 
 <template>
     <div class="app">
         <HeaderBar 
-            :current_page="current_page"
-            :last_page="last_page"
+            :currentPage="currentPage"
+            :lastPage="lastPage"
             :setPage="setPage"
         />
         
@@ -30,7 +31,10 @@ function setPage(value) {
             <NavBar :setPage="setPage"/>
 
             <div class="content">
-                <PageMateriel v-if="current_page === 'mat'" />
+                <PageMateriel 
+                    v-if="currentPage === 'mat'" 
+                    :modif="modifMode"
+                />
                 <PageAccueil v-else/>
             </div>
         </div>

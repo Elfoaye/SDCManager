@@ -1,9 +1,13 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import ListeMateriel from '../components/ListeMateriel.vue';
 import DisplayMateriel from '../components/DisplayMateriel.vue'
+import ModifMateriel from '../components/ModifMateriel.vue'
 
-const componentKey = ref(0);
+const props = defineProps(['modif']);
+
+const displayKey = ref(0);
+const modifKey = ref(0);
 const display = ref(null)
 const listRef = ref(null);
 
@@ -16,7 +20,8 @@ const transitionName = computed(() => {
 
 function setDisplay(value) {
     display.value = value;
-    componentKey.value++;
+    displayKey.value++;
+    modifKey.value++;
 }
 
 async function onItemChange() {
@@ -46,11 +51,20 @@ onUnmounted(() => {
             ref="listRef" 
             :item="display" 
             :setItem="setDisplay"
+            :modif="modif"
         />
         <Transition :name="transitionName" mode="out-in">
             <DisplayMateriel 
-                v-if="display !== null" 
-                :key="componentKey"
+                v-if="display !== null && modif === false" 
+                :key="displayKey"
+                class="detail" 
+                :item="display" 
+                :setItem="setDisplay"
+                @item-change="onItemChange"
+            />
+            <ModifMateriel 
+                v-else-if="display !== null"
+                :key="modifKey"
                 class="detail" 
                 :item="display" 
                 :setItem="setDisplay"
