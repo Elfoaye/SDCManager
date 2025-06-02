@@ -25,9 +25,9 @@ const usageFill = computed(() => {
 });
 
 const usageColor = computed(() => {
-    if (usageFill.value >= 70) return "#4caf50";
-    if (usageFill.value >= 30) return "#ff9800";
-    return "#f44336";
+    if (usageFill.value == 100) return "#4caf50";
+    if (usageFill.value > 50) return "#F9DD00";
+    return "#ff9800";
 });
 
 const renta = computed(() => {
@@ -113,7 +113,7 @@ async function updateDispo() {
             <div class="availability">
                 <span v-if="item.dispo<=0" class="label">&#9888;</span>
                 <span class="label">Disponible :</span>
-                <div class="bar-wrapper">
+                <div class="bar-wrapper" :class="{ empty: usageFill == 0}">
                     <div class="bar-fill" :style="{ width: usageFill + '%', backgroundColor: usageColor }"></div>
                 </div>
                 <span class="value">{{ item.dispo }} / {{ item.total }}</span>
@@ -263,6 +263,11 @@ section {
     border-radius: 0.5rem;
     overflow: hidden;
     position: relative;
+    outline: 1px solid var(--border);
+}
+
+.bar-wrapper.empty {
+    outline-color: var(--error);
 }
 
 .bar-fill {

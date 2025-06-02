@@ -33,9 +33,6 @@ const sortAsc = ref(true);
 //List filters
 const filterSearch = ref('');
 const filterType = ref([]);
-const filterMinDisp = ref('');
-const filterMinTotal = ref('');
-const filterMaxPrice = ref('');
 const filterBorrow = ref('');
 const filterDispo = ref('');
 
@@ -44,9 +41,6 @@ const filteredContent = computed(() => {
 
     return listContent.value.filter(item =>  {
         if ((filterType.value.length > 0 && !filterType.value.includes(item.item_type)) || // Filters
-            (filterMinDisp.value && filterMinDisp.value > item.dispo) || // Min dispo
-            (filterMinTotal.value && filterMinTotal.value > item.total) || // Min total
-            (filterMaxPrice.value && filterMaxPrice.value < item.contrib) || // Max contrib
             (filterBorrow.value === 'borrowed' && item.dispo === item.total || filterBorrow.value === 'available' && item.dispo < item.total) || // Borrowed
             (filterDispo.value === 'notdispo' && item.dispo > 0 || filterDispo.value === 'dispo' && item.dispo === 0) || // Dispo
             (query && !(String(item.nom).toLowerCase().includes(query) || String(item.item_type).toLowerCase().includes(query)))) // Search bar
@@ -75,9 +69,6 @@ const sortedContent = computed(() => {
 function resetFilters() {
     filterSearch.value = '';
     filterType.value = [];
-    filterMinDisp.value = '';
-    filterMinTotal.value = '';
-    filterMaxPrice.value = '';
     filterBorrow.value = '';
     filterDispo.value = '';
 }
@@ -170,19 +161,6 @@ defineExpose({ updateData, updateItem, listContent });
                     deselectLabel="Retirer">
                 </Multiselect>
             </section>
-
-            <section class="mindispo">
-                <label>Minimum disponible</label>
-                <input v-model="filterMinDisp" type="number" min="0" placeholder="Au moins ... disponibles"/>
-            </section>
-            <section class="mintotal">
-                <label>Minimum total</label>
-                <input v-model="filterMinTotal" type="number" min="0" placeholder="Au moins ... au total"/>
-            </section>
-            <section class="prixmax">
-                <label>Contribution maximum</label>
-                <input v-model="filterMaxPrice" type="number" min="0" placeholder="Coûtant moins de ... par jour"/>
-            </section>
             
             <div class="filter-borrow">
                 <button :class="{ selected: filterBorrow === 'borrowed' }" @click="setFilterBorrow('borrowed')">
@@ -248,7 +226,7 @@ input {
 
 .search {
     width: 100%;
-    margin-bottom: 2rem;
+    margin-bottom: 0.5rem;
 }
 
 .searchbar {
@@ -299,11 +277,6 @@ input {
 .type {
     grid-column: span 6;
 }
-.mindispo,
-.mintotal,
-.prixmax {
-    grid-column: span 2;
-}
 .filter-borrow,
 .filter-dispo {
     grid-column: span 3;
@@ -329,7 +302,6 @@ input {
 .filters {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    margin-bottom: 1rem;
     padding: 0.5rem;
     border: 1px solid var(--border);
     border-radius: 0.5rem;
@@ -433,6 +405,7 @@ li p:nth-child(6) {
 }
 
 li.head {
+    margin-top: 2rem;
     border-bottom: 1px solid var(--border-accent);
 }
 
