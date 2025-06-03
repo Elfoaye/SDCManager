@@ -103,11 +103,12 @@ async function deleteItem() {
 
     try {
         await invoke('delete_item', { id: props.item.id }).then();
+        props.setItemRefresh(null);
     } catch (err) {
+        submitError.value = err;
         console.error(err);
     } finally {
         isLoading.value = false;
-        props.setItemRefresh(null);
     }
 }
 
@@ -115,11 +116,12 @@ function applyItemChanges() {
     confirmCancel();
     try {
         invoke('update_item', { item: tempItem.value });
+        emit('item-change');
     } catch (err) {
+        submitError.value = err;
         console.error(err);
     } finally {
         isLoading.value = false;
-        emit('item-change');
     }
 }
 
@@ -134,12 +136,16 @@ async function addItem() {
     let id;
     try {
         id = await invoke('add_item', { item: tempItem.value });
+        props.setItemRefresh(id);
     } catch (err) {
-        submitError.value = err;
+        if(err === 'UNIQUE constraint failed: Materiel.nom') {
+            submitError.value = 'Un objet avec ce nom existe déjà';
+        } else {
+            submitError.value = err;
+        }
         console.error(err);
     } finally {
         isLoading.value = false;
-        props.setItemRefresh(id);
     }
 }
 
@@ -178,39 +184,32 @@ watch(
 
         <div class="title">
             <h1 v-if="create">Nouvel objet</h1>
-            <div v-else class="title-text">
-                <h1>Modifier l'objet</h1>
-                <button @click="confirmDelete" class="delete">Supprimer l'objet</button>
-            </div>
+            <h1 v-else>Modifier l'objet</h1>
             
             <button class="back" @click="setItem(null)">X</button>
         </div>
         
-        <section class="general">
-            <div class="title">
-                <label>Nom : 
-                    <input v-model="tempItem.nom" @input="verifField('nom')" :class="{ error: requiredFields.nom }" placeholder="Nom de l'objet..."/>
-                </label>
-            </div>
-            <label>Catégorie : 
-                <select v-model="tempItem.item_type" @input="verifField('item_type')" :class="{ error: requiredFields.item_type }" placeholder="Catégorie de l'objet...">
-                    <option v-for="type in types">{{ type }}</option>
+        <section class="general form-grid">
+            <label><h2>Nom :</h2> <input v-model="tempItem.nom" @input="verifField('nom')" :class="{ error: requiredFields.nom }" placeholder="Nom de l'objet..."/></label>
+            <label><h3>Catégorie :</h3>
+                <select v-model="tempItem.item_type" @change="verifField('item_type')" :class="{ error: requiredFields.item_type }" placeholder="Catégorie de l'objet...">
+                    <option disabled value="">-- Choisir un type --</option>
+                    <option v-for="type in types" :value="type">{{ type }}</option>
                 </select>
             </label>
         </section>
-        <section class="stats">
+        <section class="stats form-grid">
             <label v-if="!create">Disponible : <input v-model="tempItem.dispo" @input="verifField('dispo')" :class="{ error: requiredFields.dispo }" type="number" min="0" placeholder="Quantitée d'objets disponibles..."/></label>
             <label>Total : <input v-model="tempItem.total" @input="verifField('total')" :class="{ error: requiredFields.total }" type="number" min="0" placeholder="Quantitée totale d'objets..."/></label>
-            <label>Valeur : <input v-model="tempItem.valeur" @input="setContribFromValue()" :class="{ error: requiredFields.valeur }" type="number" step="0.01" min="0" placeholder="Valeur de remplacement..."/> €</label>
-            <label>Contribution : <input v-model="tempItem.contrib" @input="verifField('contrib')" :class="{ error: requiredFields.contrib }" type="number" step="0.01" min="0" placeholder="Contribution par jour..."/> €</label>
+            <label>Valeur (€) : <input v-model="tempItem.valeur" @input="setContribFromValue()" :class="{ error: requiredFields.valeur }" type="number" step="0.01" min="0" placeholder="Valeur de remplacement..."/> </label>
+            <label>Contribution (€) : <input v-model="tempItem.contrib" @input="verifField('contrib')" :class="{ error: requiredFields.contrib }" type="number" step="0.01" min="0" placeholder="Contribution par jour..."/> </label>
         </section>
-        <section class="advanced">
+        <section class="advanced form-grid">
             <label>Nombre de sorties : <input v-model="tempItem.nb_sorties" @input="verifField('nb_sorties')" :class="{ error: requiredFields.nb_sorties }" type="number" min="0" placeholder="0"/></label>
             <label>Bénéfices : <input v-model="tempItem.benef" @input="verifField('benef')" :class="{ error: requiredFields.benef }" type="number" step="0.01" min="0" placeholder="0"/></label>
         </section>
 
-        <!-- <button>Appercu des modifications</button> -->
-
+        
         <button 
             v-if="create"
             class="apply add-item" 
@@ -224,20 +223,22 @@ watch(
                 + Ajouter l'objet
             </template>
         </button>
-        <button 
-            v-else
-            class="apply" 
-            :class="{ 'disabled': badFields || isLoading}" 
-            @click="confirmApplyChanges"
-        >
-            <template v-if="isLoading">
-                <span class="spinner"></span>
-            </template>
-            <template v-else>
-                &#10003; Appliquer les modifications
-            </template>
-        </button>
-        <p v-if="badFields" class="error">{{ submitError }}</p>
+        <div class="submit-buttons" v-else>
+            <button 
+                class="apply" 
+                :class="{ 'disabled': badFields || isLoading}" 
+                @click="confirmApplyChanges"
+            >
+                <template v-if="isLoading">
+                    <span class="spinner"></span>
+                </template>
+                <template v-else>
+                    &#10003; Appliquer les modifications
+                </template>
+            </button>
+            <button @click="confirmDelete" class="delete">Supprimer l'objet</button>
+        </div>
+        <p v-if="submitError" class="error">{{ submitError }}</p>
     </div>
 </template>
 
@@ -324,22 +325,29 @@ section {
 
 .title h1 {
     margin: 0;
-}
-
-.general h1 {
-    margin: 0;
-    font-size: 1.5rem;
-}
-
-.general h2, .dispo h2 {
-    margin: 0;
     margin-bottom: 1rem;
-    font-size: 1.2rem;
-    font-weight: 500;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 10rem 1fr;
+    gap: 0.5rem 1rem;
+    align-items: center;
+}
+
+.form-grid label {
+    display: contents;
+}
+
+.form-grid input,
+.form-grid select {
+    width: 100%;
+    max-width: 10rem;
+    padding: 0.5rem;
+    box-sizing: border-box;
 }
 
 .general select {
-    max-width: 16rem;
     padding: 0.5rem;
     color: var(--text);
     background-color: var(--background-alt);
@@ -347,7 +355,15 @@ section {
     border-radius: 0.3rem;
 }
 
-
+.general h2 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+.general h3 {
+    margin: 0;
+    font-size: 1.rem;
+    font-weight: 500;
+}
 
 .back {
     display: flex;
@@ -408,17 +424,13 @@ button:hover {
     transition: all 0.2s;
 }
 
-button.delete {
-    max-height: 4rem;
-    background-color: var(--background-error);
-    color: var(--background-alt);
-}
-
-button.delete:hover {
-    background-color: var(--error);
+.submit-buttons {
+    display: flex;
+    margin-bottom: 0.5rem;
 }
 
 button.apply {
+    margin-top: 1rem;
     background-color: var(--warning);
     width: 17rem;
     font-weight: 600;
@@ -432,6 +444,18 @@ button.apply.disabled {
     background-color: var(--disabled);
     cursor: default;
     font-weight: 400;
+}
+
+button.delete {
+    margin-top: 1rem;
+    width: 17rem;
+    font-weight: 600;
+    background-color: var(--background-error);
+    color: var(--background-alt);
+}
+
+button.delete:hover {
+    background-color: var(--error);
 }
 
 .spinner {
