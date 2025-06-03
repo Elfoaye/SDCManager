@@ -29,6 +29,17 @@ function setDisplay(value) {
     modifKey.value++;
 }
 
+async function refreshDisplay(value) {
+    await listRef.value.updateData();
+
+    if(!value) {
+        setDisplay(null);
+        return;
+    }
+    const newItem = await listRef.value.updateItem(value);
+    setDisplay(newItem);
+}
+
 function setCreate() {
     setDisplay(null);
     create.value = true;
@@ -39,11 +50,6 @@ async function onItemChange() {
 
     const newItem = await listRef.value.updateItem(display.value.id);
     setDisplay(newItem);
-}
-
-function onListChange() {
-    listRef.value.updateData();
-    onItemChange()
 }
 
 function handleResize() {
@@ -81,8 +87,9 @@ watch(() => props.modif, () => {
                 :key="modifKey"
                 :item="display" 
                 :setItem="setDisplay"
+                :setItemRefresh="refreshDisplay"
                 :create="create"
-                @item-change="onListChange"
+                @item-change="onItemChange"
             />
             <DisplayMateriel 
                 v-else-if="display !== null" 

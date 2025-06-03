@@ -2,7 +2,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { ref, reactive, computed, watch } from 'vue';
 
-const props = defineProps(['item','setItem','create']);
+const props = defineProps(['item','setItem', 'setItemRefresh', 'create']);
 const emit = defineEmits(['item-change']);
 
 const types = ref([]);
@@ -107,8 +107,7 @@ async function deleteItem() {
         console.error(err);
     } finally {
         isLoading.value = false;
-        props.setItem(null);
-        emit('item-change');
+        props.setItemRefresh(null);
     }
 }
 
@@ -124,7 +123,7 @@ function applyItemChanges() {
     }
 }
 
-function addItem() {
+async function addItem() {
     isLoading.value = true;
     if(!verifFields()) {
         submitError.value = "Certains champs sont invalides";
@@ -132,14 +131,15 @@ function addItem() {
         return;
     }
 
+    let id;
     try {
-        invoke('add_item', { item: tempItem.value });
+        id = await invoke('add_item', { item: tempItem.value });
     } catch (err) {
+        submitError.value = err;
         console.error(err);
     } finally {
         isLoading.value = false;
-        props.setItem(null);
-        emit('item-change');
+        props.setItemRefresh(id);
     }
 }
 
@@ -155,9 +155,6 @@ watch(
     () => props.item, (newItem) => {
         if(newItem && !props.create) {
             tempItem.value = { ...newItem };
-        }
-        else if(!props.create) {
-            tempItem.value.id = newItem.id;
         }
     }, 
     { immediate: true }

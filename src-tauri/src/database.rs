@@ -164,7 +164,7 @@ pub fn update_dispo(valeur: i32, old: i32, benef: f32, id: i32, handle: tauri::A
 }
 
 #[tauri::command]
-pub fn add_item(item: Item, handle: tauri::AppHandle) -> Result<String, String> {
+pub fn add_item(item: Item, handle: tauri::AppHandle) -> Result<i64, String> {
     let conn = get_database_connection(handle)?;
 
     conn.execute(
@@ -187,7 +187,9 @@ pub fn add_item(item: Item, handle: tauri::AppHandle) -> Result<String, String> 
     )
     .map_err(|e| e.to_string())?;
 
-    Ok("Objet ajouté".to_string())
+    let id = conn.last_insert_rowid();
+
+    Ok(id)
 }
 
 #[tauri::command]
