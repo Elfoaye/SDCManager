@@ -25,6 +25,47 @@ const tempItem = ref({
 const confirm = ref(null);
 const isLoading = ref(false);
 
+const submitError = ref(null);
+const requiredFields = {
+  nom: false,
+  item_type: false,
+  total: false,
+  dispo: false,
+  value: false,
+  contrib: false,
+  nb_sorties: false,
+  benef: false
+};
+
+function verifField(field) {
+    const value = tempItem.value[field];
+
+    const isNegativeNumber = !isNaN(numberValue) && numberValue < 0;
+    const isEmptyString = typeof value === 'string' && value.trim() === '';
+
+    if ((['nb_sorties', 'benef'].includes(field) && isNegativeNumber) ||
+        (field === 'item_type' && !types.includes(value)) ||
+        isEmptyString ||
+        (isNegativeNumber && field !== 'item_type') ||
+        (field === 'total' && value <= 0)) {
+
+        requiredFields[field] = true;
+        return false;
+    }
+    requiredFields[field] = false;
+    return true;
+}
+
+function verifFields() {
+    let ok = true;
+    for(field in requiredFields) {
+        if(!verifField(field)) {
+            ok = false;
+        }
+    }
+    return ok;
+}
+
 function confirmDelete() {
     if(!props.item) return;
 
@@ -32,47 +73,65 @@ function confirmDelete() {
 }
 
 function confirmApplyChanges() {
-    // Test tempItem.propreties != ''
+    isLoading.value = true;
+
+    if(!verifFields) {
+        submitError.value = "Certains champs sont invalides";
+        isLoading = false;
+        return;
+    }
     
     confirm.value = 'change';
 }
 
 function confirmCancel() {
     confirm.value = null;
+    isLoading.value = false;
 }
 
 async function deleteItem() {
     confirmCancel();
-    isLoading.value = true
 
     try {
-        await invoke('delete_item', { id: props.item.id }).then(); // Catch errors
-        emit('item-change');
+        await invoke('delete_item', { id: props.item.id }).then();
     } catch (err) {
         console.error(err);
     } finally {
         isLoading.value = false;
+        props.setItem(null);
+        emit('item-change');
     }
 }
 
 function applyItemChanges() {
     confirmCancel();
-    isLoading.value = true
-
     try {
-        invoke('update_item', { item: tempItem.value }).then(); // Catch errors
-        emit('item-change');
+        invoke('update_item', { item: tempItem.value });
     } catch (err) {
         console.error(err);
     } finally {
         isLoading.value = false;
+        emit('item-change');
     }
 }
 
 function addItem() {
-    // test tempItem valide
+    isLoading.value = true;
+    if(!verifFields) {
+        submitError.value = "Certains champs sont invalides";
+        isLoading.value = false;
+        return;
+    }
 
-    invoke('add_item', { item: tempItem.value }).then(); // Catch errors
+    try {
+        invoke('add_item', { item: tempItem.value });
+    } catch (err) {
+        console.error(err);
+    } finally {
+        isLoading.value = false;
+        setItem(tempItem);
+        emit('item-change');
+    }
 }
 
 watch(
@@ -81,7 +140,7 @@ watch(
             tempItem.value = { ...newItem };
         }
         else if(!props.create) {
-            tempItem.id = newItem.id;
+            tempItem.value.id = newItem.id;
         }
     }, 
     { immediate: true }
@@ -92,13 +151,13 @@ watch(
     <div class="itemCard" :class="{ new: create }">
         <div v-if="confirm" class="confirm">
             <div class="pop-up">
-                <p v-if="confirm === 'delete'">Êtes-vous sûr de vouloir supprimer {{ item.name }} ?</p>
-                <p v-else>Appliquer les modifications sur {{ item.name }} ?</p>
+                <p v-if="confirm === 'delete'">Êtes-vous sûr de vouloir supprimer <span>{{ item.nom }}</span> ?</p>
+                <p v-else>Appliquer les modifications sur <span>{{ item.nom }}</span> ?</p>
 
-                <div class="confirm buttons">
+                <div class="confirm-buttons">
                     <button v-if="confirm === 'delete'" @click="deleteItem" class="delete" >Supprimer</button>
                     <button v-else @click="applyItemChanges" class="change">Modifier</button>
-                    <button @click="confirmCancel" class="Cancel">Annuler</button>
+                    <button @click="confirmCancel" class="cancel">Annuler</button>
                 </div>
             </div>
         </div>
@@ -116,24 +175,24 @@ watch(
         <section class="general">
             <div class="title">
                 <label>Nom : 
-                    <input v-model="tempItem.nom" placeholder="Nom de l'objet..."/>
+                    <input v-model="tempItem.nom" @blur="verifField('nom')" :class="{ error: requiredFields['nom'] }" placeholder="Nom de l'objet..."/>
                 </label>
             </div>
             <label>Catégorie : 
-                <select v-model="tempItem.item_type" placeholder="Catégorie de l'objet...">
+                <select v-model="tempItem.item_type" @blur="verifField('item_type')" :class="{ error: requiredFields['item_type'] }" placeholder="Catégorie de l'objet...">
                     <option v-for="type in types">{{ type }}</option>
                 </select>
             </label>
         </section>
         <section class="stats">
-            <label>Disponible : <input v-model="tempItem.dispo" type="number" min="0" placeholder="Quantitée d'objets disponibles..."/></label>
-            <label>Total : <input v-model="tempItem.total" type="number" min="0" placeholder="Quantitée totale d'objets..."/></label>
-            <label>Valeur : <input v-model="tempItem.value" type="number" step="0.01" min="0" placeholder="Valeur de remplacement..."/> €</label>
-            <label>Contribution : <input v-model="tempItem.contrib" type="number" step="0.01" min="0" placeholder="Contribution par jour..."/> €</label>
+            <label>Disponible : <input v-model="tempItem.dispo" @blur="verifField('dispo')" :class="{ error: requiredFields['dispo'] }" type="number" min="0" placeholder="Quantitée d'objets disponibles..."/></label>
+            <label>Total : <input v-model="tempItem.total" @blur="verifField('total')" :class="{ error: requiredFields['total'] }" type="number" min="0" placeholder="Quantitée totale d'objets..."/></label>
+            <label>Valeur : <input v-model="tempItem.value" @blur="verifField('value')" :class="{ error: requiredFields['value'] }" type="number" step="0.01" min="0" placeholder="Valeur de remplacement..."/> €</label>
+            <label>Contribution : <input v-model="tempItem.contrib" @blur="verifField('contrib')" :class="{ error: requiredFields['contrib'] }" type="number" step="0.01" min="0" placeholder="Contribution par jour..."/> €</label>
         </section>
         <section class="advanced">
-            <label>Nombre de sorties : <input v-model="tempItem.nb_sorties" type="number" min="0" placeholder="Nombre total de sorties..."/></label>
-            <label>Bénéfices : <input v-model="tempItem.benef" type="number" step="0.01" min="0" placeholder="Bénéfices totaux..."/></label>
+            <label>Nombre de sorties : <input v-model="tempItem.nb_sorties" @blur="verifField('nb_sorties')" :class="{ error: requiredFields['nb_sorties'] }" type="number" min="0" placeholder="Nombre total de sorties..."/></label>
+            <label>Bénéfices : <input v-model="tempItem.benef" @blur="verifField('benef')" :class="{ error: requiredFields['benef'] }" type="number" step="0.01" min="0" placeholder="Bénéfices totaux..."/></label>
         </section>
 
         <!-- <button>Appercu des modifications</button> -->
@@ -141,7 +200,7 @@ watch(
         <button 
             v-if="create"
             class="apply add-item" 
-            :class="{ 'disabled': quantityError || isLoading}" 
+            :class="{ 'disabled': submitError || isLoading}" 
             @click="addItem"
         >
             <template v-if="isLoading">
@@ -154,7 +213,7 @@ watch(
         <button 
             v-else
             class="apply" 
-            :class="{ 'disabled': quantityError || isLoading}" 
+            :class="{ 'disabled': submitError || isLoading}" 
             @click="confirmApplyChanges"
         >
             <template v-if="isLoading">
@@ -172,6 +231,7 @@ watch(
     flex-grow: 1;
     display: flex;
     flex-direction: column;
+    position: relative;
     height: fit-content;
     min-height: 20rem;
     max-height: 90%;
@@ -194,6 +254,43 @@ watch(
 
 .itemCard span {
     font-weight: 500;
+}
+
+.confirm {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.pop-up {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    max-height: 5rem;
+    background-color: var(--background-alt);
+    border: 1px solid var(--border-accent);
+    border-radius: 0.5rem;
+    padding: 1em;
+}
+
+.delete {
+
+}
+
+.change {
+    background-color: var(--warning);
+}
+
+.cancel {
+    background-color: var(--disabled);
 }
 
 section {
@@ -259,6 +356,10 @@ input {
     border-radius: 0.3rem;
 }
 
+input.error {
+    box-shadow: inset 0 0 5px var(--error);
+}
+
 .error {
     color: var(--error);
 }
@@ -284,6 +385,7 @@ button:hover {
 }
 
 button.delete {
+    max-height: 4rem;
     background-color: var(--background-error);
     color: var(--background-alt);
 }

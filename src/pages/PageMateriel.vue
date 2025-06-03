@@ -53,7 +53,7 @@ onUnmounted(() => {
     window.removeEventListener('resize', handleResize);
 });
 
-watch(props.modif, () => {
+watch(() => props.modif, () => {
     listKey.value++;
 });
 </script>
