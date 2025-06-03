@@ -1,6 +1,6 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
-import { ref, reactive, watch } from 'vue';
+import { ref, reactive, computed, watch } from 'vue';
 
 const props = defineProps(['item','setItem','create']);
 const emit = defineEmits(['item-change']);
@@ -11,15 +11,15 @@ const formulas = ref(null);
 invoke('get_loc_formulas').then((data) => formulas.value = data);
 
 const tempItem = ref({
-    id: '',
+    id: 0,
     nom: '',
     item_type: '',
     total: '',
-    dispo: '',
+    dispo: 0,
     valeur: '',
     contrib: '',
-    nb_sorties: '',
-    benef: ''
+    nb_sorties: 0,
+    benef: 0
 });
 
 const confirm = ref(null);
@@ -37,6 +37,10 @@ const requiredFields = reactive({
   benef: false
 });
 
+const badFields = computed(() => {
+    return Object.values(requiredFields).some(val => val);
+});
+
 function verifField(field) {
     const value = tempItem.value[field];
 
@@ -47,7 +51,7 @@ function verifField(field) {
         }
     } else if (!value ||
         (typeof value === 'string' && value.trim() === '' )||
-        (!['nom', 'item_type'].includes(field) && !isNaN(value) && value < 0) ||
+        (!['nom', 'item_type'].includes(field) && (typeof value !== 'number' || value < 0)) ||
         (field === 'item_type' && !types.value.includes(value)) ||
         (field === 'total' && value <= 0)) {
         
@@ -129,12 +133,12 @@ function addItem() {
     }
 
     try {
-        invoke('add_item', { item: tempItem.valeur });
+        invoke('add_item', { item: tempItem.value });
     } catch (err) {
         console.error(err);
     } finally {
         isLoading.value = false;
-        props.setItem(tempItem);
+        props.setItem(null);
         emit('item-change');
     }
 }
@@ -143,7 +147,8 @@ function setContribFromValue() {
     const value = tempItem.value.valeur;
     if(!verifField('valeur') || formulas.value === null) return;
 
-    tempItem.value.contrib = value * formulas.value.contrib_first_day;
+    tempItem.value.contrib = Number((value * formulas.value.contrib_first_day).toFixed(2));
+    verifField('contrib');
 }
 
 watch(
@@ -212,7 +217,7 @@ watch(
         <button 
             v-if="create"
             class="apply add-item" 
-            :class="{ 'disabled': submitError || isLoading}" 
+            :class="{ 'disabled': badFields || isLoading}" 
             @click="addItem"
         >
             <template v-if="isLoading">
@@ -225,7 +230,7 @@ watch(
         <button 
             v-else
             class="apply" 
-            :class="{ 'disabled': submitError || isLoading}" 
+            :class="{ 'disabled': badFields || isLoading}" 
             @click="confirmApplyChanges"
         >
             <template v-if="isLoading">
@@ -235,7 +240,7 @@ watch(
                 &#10003; Appliquer les modifications
             </template>
         </button>
-        <p v-if="submitError" class="error">{{ submitError }}</p>
+        <p v-if="badFields" class="error">{{ submitError }}</p>
     </div>
 </template>
 

@@ -35,10 +35,15 @@ function setCreate() {
 }
 
 async function onItemChange() {
-    if(!listRef.value) return;
+    if(!listRef.value || !display.value) return;
 
     const newItem = await listRef.value.updateItem(display.value.id);
     setDisplay(newItem);
+}
+
+function onListChange() {
+    listRef.value.updateData();
+    onItemChange()
 }
 
 function handleResize() {
@@ -77,7 +82,7 @@ watch(() => props.modif, () => {
                 :item="display" 
                 :setItem="setDisplay"
                 :create="create"
-                @item-change="onItemChange"
+                @item-change="onListChange"
             />
             <DisplayMateriel 
                 v-else-if="display !== null" 
