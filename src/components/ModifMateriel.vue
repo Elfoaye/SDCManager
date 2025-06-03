@@ -1,6 +1,6 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
-import { ref, watch } from 'vue';
+import { ref, reactive, watch } from 'vue';
 
 const props = defineProps(['item','setItem','create']);
 const emit = defineEmits(['item-change']);
@@ -16,7 +16,7 @@ const tempItem = ref({
     item_type: '',
     total: '',
     dispo: '',
-    value: '',
+    valeur: '',
     contrib: '',
     nb_sorties: '',
     benef: ''
@@ -26,43 +26,48 @@ const confirm = ref(null);
 const isLoading = ref(false);
 
 const submitError = ref(null);
-const requiredFields = {
+const requiredFields = reactive({
   nom: false,
   item_type: false,
   total: false,
   dispo: false,
-  value: false,
+  valeur: false,
   contrib: false,
   nb_sorties: false,
   benef: false
-};
+});
 
 function verifField(field) {
     const value = tempItem.value[field];
 
-    const isNegativeNumber = !isNaN(numberValue) && numberValue < 0;
-    const isEmptyString = typeof value === 'string' && value.trim() === '';
-
-    if ((['nb_sorties', 'benef'].includes(field) && isNegativeNumber) ||
-        (field === 'item_type' && !types.includes(value)) ||
-        isEmptyString ||
-        (isNegativeNumber && field !== 'item_type') ||
+    if(['nb_sorties', 'benef', 'dispo'].includes(field)) {
+        if(value && value < 0) {
+            requiredFields[field] = true;
+            return false;
+        }
+    } else if (!value ||
+        (typeof value === 'string' && value.trim() === '' )||
+        (!['nom', 'item_type'].includes(field) && !isNaN(value) && value < 0) ||
+        (field === 'item_type' && !types.value.includes(value)) ||
         (field === 'total' && value <= 0)) {
-
+        
         requiredFields[field] = true;
         return false;
     }
+    
     requiredFields[field] = false;
     return true;
 }
 
 function verifFields() {
     let ok = true;
-    for(field in requiredFields) {
-        if(!verifField(field)) {
+
+    Object.keys(requiredFields).forEach(field => {
+        if (!verifField(field)) {
             ok = false;
         }
-    }
+    });
+
     return ok;
 }
 
@@ -75,7 +80,7 @@ function confirmDelete() {
 function confirmApplyChanges() {
     isLoading.value = true;
 
-    if(!verifFields) {
+    if(!verifFields()) {
         submitError.value = "Certains champs sont invalides";
         isLoading = false;
         return;
@@ -117,21 +122,28 @@ function applyItemChanges() {
 
 function addItem() {
     isLoading.value = true;
-    if(!verifFields) {
+    if(!verifFields()) {
         submitError.value = "Certains champs sont invalides";
         isLoading.value = false;
         return;
     }
 
     try {
-        invoke('add_item', { item: tempItem.value });
+        invoke('add_item', { item: tempItem.valeur });
     } catch (err) {
         console.error(err);
     } finally {
         isLoading.value = false;
-        setItem(tempItem);
+        props.setItem(tempItem);
         emit('item-change');
     }
+}
+
+function setContribFromValue() {
+    const value = tempItem.value.valeur;
+    if(!verifField('valeur') || formulas.value === null) return;
+
+    tempItem.value.contrib = value * formulas.value.contrib_first_day;
 }
 
 watch(
@@ -175,24 +187,24 @@ watch(
         <section class="general">
             <div class="title">
                 <label>Nom : 
-                    <input v-model="tempItem.nom" @blur="verifField('nom')" :class="{ error: requiredFields['nom'] }" placeholder="Nom de l'objet..."/>
+                    <input v-model="tempItem.nom" @input="verifField('nom')" :class="{ error: requiredFields.nom }" placeholder="Nom de l'objet..."/>
                 </label>
             </div>
             <label>Catégorie : 
-                <select v-model="tempItem.item_type" @blur="verifField('item_type')" :class="{ error: requiredFields['item_type'] }" placeholder="Catégorie de l'objet...">
+                <select v-model="tempItem.item_type" @input="verifField('item_type')" :class="{ error: requiredFields.item_type }" placeholder="Catégorie de l'objet...">
                     <option v-for="type in types">{{ type }}</option>
                 </select>
             </label>
         </section>
         <section class="stats">
-            <label>Disponible : <input v-model="tempItem.dispo" @blur="verifField('dispo')" :class="{ error: requiredFields['dispo'] }" type="number" min="0" placeholder="Quantitée d'objets disponibles..."/></label>
-            <label>Total : <input v-model="tempItem.total" @blur="verifField('total')" :class="{ error: requiredFields['total'] }" type="number" min="0" placeholder="Quantitée totale d'objets..."/></label>
-            <label>Valeur : <input v-model="tempItem.value" @blur="verifField('value')" :class="{ error: requiredFields['value'] }" type="number" step="0.01" min="0" placeholder="Valeur de remplacement..."/> €</label>
-            <label>Contribution : <input v-model="tempItem.contrib" @blur="verifField('contrib')" :class="{ error: requiredFields['contrib'] }" type="number" step="0.01" min="0" placeholder="Contribution par jour..."/> €</label>
+            <label v-if="!create">Disponible : <input v-model="tempItem.dispo" @input="verifField('dispo')" :class="{ error: requiredFields.dispo }" type="number" min="0" placeholder="Quantitée d'objets disponibles..."/></label>
+            <label>Total : <input v-model="tempItem.total" @input="verifField('total')" :class="{ error: requiredFields.total }" type="number" min="0" placeholder="Quantitée totale d'objets..."/></label>
+            <label>Valeur : <input v-model="tempItem.valeur" @input="setContribFromValue()" :class="{ error: requiredFields.valeur }" type="number" step="0.01" min="0" placeholder="Valeur de remplacement..."/> €</label>
+            <label>Contribution : <input v-model="tempItem.contrib" @input="verifField('contrib')" :class="{ error: requiredFields.contrib }" type="number" step="0.01" min="0" placeholder="Contribution par jour..."/> €</label>
         </section>
         <section class="advanced">
-            <label>Nombre de sorties : <input v-model="tempItem.nb_sorties" @blur="verifField('nb_sorties')" :class="{ error: requiredFields['nb_sorties'] }" type="number" min="0" placeholder="Nombre total de sorties..."/></label>
-            <label>Bénéfices : <input v-model="tempItem.benef" @blur="verifField('benef')" :class="{ error: requiredFields['benef'] }" type="number" step="0.01" min="0" placeholder="Bénéfices totaux..."/></label>
+            <label>Nombre de sorties : <input v-model="tempItem.nb_sorties" @input="verifField('nb_sorties')" :class="{ error: requiredFields.nb_sorties }" type="number" min="0" placeholder="0"/></label>
+            <label>Bénéfices : <input v-model="tempItem.benef" @input="verifField('benef')" :class="{ error: requiredFields.benef }" type="number" step="0.01" min="0" placeholder="0"/></label>
         </section>
 
         <!-- <button>Appercu des modifications</button> -->
@@ -223,6 +235,7 @@ watch(
                 &#10003; Appliquer les modifications
             </template>
         </button>
+        <p v-if="submitError" class="error">{{ submitError }}</p>
     </div>
 </template>
 
@@ -281,10 +294,6 @@ watch(
     padding: 1em;
 }
 
-.delete {
-
-}
-
 .change {
     background-color: var(--warning);
 }
@@ -327,6 +336,17 @@ section {
     font-weight: 500;
 }
 
+.general select {
+    max-width: 16rem;
+    padding: 0.5rem;
+    color: var(--text);
+    background-color: var(--background-alt);
+    border: 1px solid var(--border);
+    border-radius: 0.3rem;
+}
+
+
+
 .back {
     display: flex;
     justify-content: center;
@@ -356,12 +376,14 @@ input {
     border-radius: 0.3rem;
 }
 
-input.error {
-    box-shadow: inset 0 0 5px var(--error);
-}
-
 .error {
     color: var(--error);
+}
+
+input.error,
+.general select.error  {
+    box-shadow: inset 0 0 5px var(--error);
+    color: var(--text);
 }
 
 button {

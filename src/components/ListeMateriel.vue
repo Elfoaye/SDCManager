@@ -14,7 +14,7 @@ const columns = [
   { label: 'Disponible', key: 'dispo' },
   { label: 'Total', key: 'total' },
   { label: 'Contrib/Jour', key: 'contrib' },
-  { label: 'Valeur', key: 'value' }
+  { label: 'Valeur', key: 'valeur' }
 ]
 
 const types = ref([]);
@@ -207,7 +207,7 @@ watch(() => props.modif, () => {
                 <p>{{ item.dispo }}</p>
                 <p>{{ item.total }}</p>
                 <p>{{ item.contrib.toFixed(2) }} €</p>
-                <p>{{ item.value.toFixed(2) }} €</p>
+                <p>{{ item.valeur.toFixed(2) }} €</p>
             </li>
         </ul>
     </div>
@@ -479,10 +479,11 @@ li.head {
   margin-left: 0.25rem;
 }
 
-.new-item {
+li.new-item {
     width: 100%;
     padding: 1rem;
     font-weight: 600;
+    background-color: var(--success-background);
 }
 
 li.new-item:hover {

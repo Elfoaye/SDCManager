@@ -32,7 +32,7 @@ const usageColor = computed(() => {
 
 const renta = computed(() => {
     if(!props.item) return 0;
-    return (props.item.benef*100)/props.item.value;
+    return (props.item.benef*100)/props.item.valeur;
 });
 
 const updateValue = computed(() => {
@@ -119,7 +119,7 @@ async function updateDispo() {
             </div>
         </section>
         <section class="stats">
-            <p>Valeur de remplacement : <span>{{ item.value }}€</span>/Objet (Total : {{ item.value * item.total }}€)</p>
+            <p>Valeur de remplacement : <span>{{ item.valeur }}€</span>/Objet (Total : {{ item.valeur * item.total }}€)</p>
             <p>Nombre de sorties : <span>{{ item.nb_sorties }}</span></p>
             <p>Revenus générés : <span>{{ (item.benef).toFixed(2) }}€</span></p>
             <p>Taux de rentabilité : <span>{{ (renta/item.total).toFixed(2) }}%</span> ({{ renta.toFixed(2) }}% d'un objet)</p>
