@@ -1,6 +1,7 @@
 {
     "data": {
-        "types": ["Accessoires", "BackLine", "Diff", "Electricité", "Light", "Micros", "Mix", "Modules", "Périph", "Pieds", "Projection", "Studio"]
+        "types": ["Accessoires", "BackLine", "Diff", "Electricité", "Light", "Micros", "Mix", "Modules", "Périph", "Pieds", "Projection", "Studio"],
+        "admin_password_hash": null
     },
     "formula": {
         "contrib_first_day": 0.033,

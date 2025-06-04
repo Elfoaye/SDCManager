@@ -1,11 +1,4 @@
-use crate::files_setup::{get_or_create_data_dir};
-
-fn get_settings_json(handle: tauri::AppHandle) -> Result<serde_json::Value, String> {
-    let path = get_or_create_data_dir(handle)?.join("settings.json");
-
-    let file = std::fs::File::open(&path).map_err(|e| e.to_string())?;
-    serde_json::from_reader(file).map_err(|e| e.to_string())
-}
+use crate::files_setup::{get_settings_json};
 
 #[tauri::command]
 pub fn get_materiel_types(handle: tauri::AppHandle) -> Result<Vec<serde_json::Value>, String> {
