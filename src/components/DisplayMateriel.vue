@@ -91,7 +91,7 @@ async function updateDispo() {
     const profit = isFree.value || mode.value !== 'Emprunter' ? 0 : priceLoc.value;
 
     try {
-        await invoke('update_dispo', { value: updateValue.value, old: props.item.dispo, benef: profit, id: props.item.id });
+        await invoke('update_dispo', { valeur: updateValue.value, old: props.item.dispo, benef: profit, id: props.item.id });
         emit('item-change');
     } catch (err) {
         console.error(err);

@@ -2,7 +2,7 @@ use tauri::{Manager, path::BaseDirectory};
 
 fn get_settings_json(handle: tauri::AppHandle) -> Result<serde_json::Value, String> {
     let path = handle.path()
-        .resolve("sync_data/settings.json", BaseDirectory::Resource)
+        .resolve("assets/default_data/settings.json", BaseDirectory::Resource)
         .map_err(|e| e.to_string())?;
 
     let file = std::fs::File::open(&path).map_err(|e| e.to_string())?;
