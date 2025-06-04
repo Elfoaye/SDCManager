@@ -1,9 +1,8 @@
-use tauri::{Manager, path::BaseDirectory};
+use crate::files_setup::{get_or_create_data_dir};
 
 fn get_settings_json(handle: tauri::AppHandle) -> Result<serde_json::Value, String> {
-    let path = handle.path()
-        .resolve("assets/default_data/settings.json", BaseDirectory::Resource)
-        .map_err(|e| e.to_string())?;
+    let data_dir = get_or_create_data_dir(handle)?;
+    let path = data_dir.join("settings.json");
 
     let file = std::fs::File::open(&path).map_err(|e| e.to_string())?;
     serde_json::from_reader(file).map_err(|e| e.to_string())

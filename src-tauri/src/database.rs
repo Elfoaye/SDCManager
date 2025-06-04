@@ -22,7 +22,7 @@ static DB_CONN: OnceCell<Mutex<Connection>> = OnceCell::new();
 fn get_database_connection(handle: tauri::AppHandle) -> Result<MutexGuard<'static, Connection>, String> {
     DB_CONN.get_or_try_init(|| {
         let path = handle.path()
-            .resolve("assets/default_data/database.db", BaseDirectory::Resource)
+            .resolve("default_data/database.db", BaseDirectory::Resource)
             .map_err(|e| e.to_string())?;
 
         Connection::open(path)

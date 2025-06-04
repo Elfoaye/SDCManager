@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "sdcmanager",
+  "productName": "SDCManager",
   "version": "0.2.0",
   "identifier": "com.sdcmanager.app",
   "build": {
@@ -34,7 +34,7 @@
       "icons/icon.ico"
     ],
     "resources": [
-      "assets/default_data/*"
+      "default_data/*"
     ]
   }
 }
