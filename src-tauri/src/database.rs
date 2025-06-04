@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
-use tauri::{Manager, path::BaseDirectory};
 use rusqlite::{Connection, Result, params};
 use once_cell::sync::OnceCell;
 use std::sync::{Mutex, MutexGuard};
+use crate::files_setup::{get_or_create_data_dir};
 
 #[derive(Serialize, Deserialize)]
 pub struct Item {
@@ -21,9 +21,7 @@ static DB_CONN: OnceCell<Mutex<Connection>> = OnceCell::new();
 
 fn get_database_connection(handle: tauri::AppHandle) -> Result<MutexGuard<'static, Connection>, String> {
     DB_CONN.get_or_try_init(|| {
-        let path = handle.path()
-            .resolve("default_data/database.db", BaseDirectory::Resource)
-            .map_err(|e| e.to_string())?;
+        let path = get_or_create_data_dir(handle)?.join("database.db");
 
         Connection::open(path)
             .map(Mutex::new)

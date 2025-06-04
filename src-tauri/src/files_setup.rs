@@ -20,19 +20,13 @@ fn copy_recursively(src: &Path, dst: &Path) -> Result<(), String> {
 }
 
 pub fn get_or_create_data_dir(handle: tauri::AppHandle) -> Result<PathBuf, String> {
-    println!("Getting or creating data dir");
-
     let app_data_dir = handle.path()
         .resolve("SDCManager", BaseDirectory::AppData)
         .map_err(|e| format!("Erreur de chemin AppData: {}", e))?;
 
-    println!("AppData dir resolved to : {}", app_data_dir.display().to_string());
-
     let default_data_dir = handle.path()
         .resolve("default_data", BaseDirectory::Resource)
         .map_err(|e| format!("Erreur de chemin default_data: {}", e))?;
-
-    println!("DefaultData dir resolved to : {}", default_data_dir.display().to_string());
 
     if !app_data_dir.exists() {
         fs::create_dir_all(&app_data_dir)
