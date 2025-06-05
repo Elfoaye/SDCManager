@@ -19,7 +19,7 @@ fn copy_recursively(src: &Path, dst: &Path) -> Result<(), String> {
     Ok(())
 }
 
-pub fn get_or_create_data_dir(handle: tauri::AppHandle) -> Result<PathBuf, String> {
+pub fn get_or_create_data_dir(handle: &tauri::AppHandle) -> Result<PathBuf, String> {
     let app_data_dir = handle.path()
         .resolve("SDCManager", BaseDirectory::AppData)
         .map_err(|e| format!("Erreur de chemin AppData: {}", e))?;
@@ -38,15 +38,15 @@ pub fn get_or_create_data_dir(handle: tauri::AppHandle) -> Result<PathBuf, Strin
     Ok(app_data_dir)
 }
 
-pub fn get_settings_json(handle: tauri::AppHandle) -> Result<serde_json::Value, String> {
-    let path = get_or_create_data_dir(handle)?.join("settings.json");
+pub fn get_settings_json(handle: &tauri::AppHandle) -> Result<serde_json::Value, String> {
+    let path = get_or_create_data_dir(&handle)?.join("settings.json");
 
     let file = std::fs::File::open(&path).map_err(|e| e.to_string())?;
     serde_json::from_reader(file).map_err(|e| e.to_string())
 }
 
-pub fn set_settings_json(value: &serde_json::Value, handle: tauri::AppHandle) -> Result<(), String> {
-    let path = get_or_create_data_dir(handle)?.join("settings.json");
+pub fn set_settings_json(value: &serde_json::Value, handle: &tauri::AppHandle) -> Result<(), String> {
+    let path = get_or_create_data_dir(&handle)?.join("settings.json");
 
     std::fs::write(&path, serde_json::to_vec_pretty(value).unwrap())
         .map_err(|e| e.to_string())
