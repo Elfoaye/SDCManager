@@ -5,6 +5,7 @@ import { ref } from 'vue';
 const props = defineProps(['redirect','setPage']);
 const emit = defineEmits(['cancel'])
 
+const showPassword = ref(false);
 const password = ref('');
 const password_error = ref('');
 
@@ -35,7 +36,10 @@ async function confirmPassword() {
         <h2>Identifiez-vous pour continuer</h2>
         <div class="submit">
             <div class="field">
-                <input v-model="password" type="text"  @input="password_error=''" placeholder="Mot de passe..."/>
+                <div class="search">
+                    <input class="searchbar" v-model="password" :type="showPassword ? 'text' : 'password'"  @input="password_error=''" placeholder="Mot de passe..."/>
+                    <button @click="showPassword = !showPassword" :class="{ selected: showPassword }">&#x1F441;</button>
+                </div>
                 <p v-if="password_error" class="error">{{ password_error }}</p>
             </div>
             <button class="confirm" @click="confirmPassword">Confirmer</button>
@@ -90,6 +94,8 @@ input {
     color: var(--text);
     border: 1px solid var(--border);
     border-radius: 0.3rem;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
     padding: 0.5rem;
 }
 
@@ -118,6 +124,39 @@ button:hover {
 button.cancel {
     justify-self: start;
     background-color: var(--disabled);
+}
+
+.search {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.searchbar {
+    width: 100%;
+    padding: 1rem;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.search button {
+    padding: 0.5rem;
+    height: 100%;
+    width: 4rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    border-left: 0;
+    border-top-right-radius: 0.3rem;
+    border-bottom-right-radius: 0.3rem;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+
+    transition: all 0.2s;
+}
+
+.search button.selected {
+    background-color: var(--accent-hover);
 }
 
 .error {

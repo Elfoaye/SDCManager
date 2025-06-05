@@ -8,12 +8,14 @@ import HeaderBar from './components/HeaderBar.vue';
 import PageAccueil from './pages/PageAccueil.vue'
 import PageMateriel from './pages/PageMateriel.vue';
 import PageAuth from './pages/PageAuth.vue';
+import PageAdmin from './pages/PageAdmin.vue';
+import PageParams from './pages/PageParams.vue';
 
 const currentPage = ref(null);
 const lastPage = ref(null);
 const redirect = ref(null);
 
-const adminPages = ['modif'];
+const adminPages = ['modif','admin'];
 function isAdminProtected(value) {
     return adminPages.includes(value);
 }
@@ -66,11 +68,12 @@ listen('log_in_admin', (event) => {
                     :setPage="setPage"
                     @cancel="setPage(lastPage)"
                 />
-
                 <PageMateriel 
                     v-else-if="currentPage === 'consult' || currentPage === 'modif'" 
                     :modif="currentPage === 'modif'"
                 />
+                <PageParams v-else-if="currentPage === 'params'" />
+                <PageAdmin v-else-if="currentPage === 'admin'" />
                 <PageAccueil v-else/>
             </div>
         </div>

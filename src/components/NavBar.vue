@@ -16,9 +16,9 @@ const props = defineProps(['setPage']);
         </section>
         <section>
             <h2>Admin</h2>
-            <button class="disabled">Page Admin</button>
+            <button @click="setPage('admin')">Page Admin</button>
         </section>
-        <button class="settings disabled">Paramètres</button>
+        <button @click="setPage('params')" class="settings">Paramètres</button>
     </nav>
 </template>
 
