@@ -324,6 +324,8 @@ section {
 }
 
 .title h1 {
+    font: inherit;
+    font-weight: 600;
     margin: 0;
     margin-bottom: 1rem;
 }

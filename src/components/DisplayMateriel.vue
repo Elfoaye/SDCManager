@@ -216,6 +216,8 @@ section {
 }
 
 .general h1 {
+    font: inherit;
+    font-weight: 700;
     margin: 0;
     font-size: 1.5rem;
 }

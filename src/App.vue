@@ -74,6 +74,7 @@ async function setPage(value) {
 
 .content {
     flex: 1;
+    display: flex;
     padding: 1rem;
     overflow: hidden;
 }
