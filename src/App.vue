@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 
 import NavBar from './components/NavBar.vue';
 import HeaderBar from './components/HeaderBar.vue';
@@ -12,10 +13,15 @@ const currentPage = ref(null);
 const lastPage = ref(null);
 const redirect = ref(null);
 
+const adminPages = ['modif'];
+function isAdminProtected(value) {
+    return adminPages.includes(value);
+}
+
 async function setPage(value) {
     if (currentPage.value == value) return;
 
-    if(value === 'modif') {
+    if(isAdminProtected(value)) {
         const admin = await invoke('is_admin');
         if(!admin) {
             lastPage.value = currentPage.value;
@@ -28,6 +34,18 @@ async function setPage(value) {
     lastPage.value = currentPage.value;
     currentPage.value = value;
 }
+
+function onAdminLogOut() {
+    if(isAdminProtected(currentPage.value)) {
+        setPage(null);
+    }
+}
+
+listen('log_in_admin', (event) => {
+    if(!event.payload) {
+        onAdminLogOut();
+    }
+});
 </script>
 
 <template>

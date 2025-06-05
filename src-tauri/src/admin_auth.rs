@@ -3,6 +3,7 @@ use rand::rngs::OsRng;
 use serde_json::json;
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
+use tauri::{Emitter};
 use crate::files_setup::{get_settings_json, set_settings_json};
 
 static IS_ADMIN: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
@@ -63,12 +64,15 @@ pub fn log_in_admin(password: String, handle: tauri::AppHandle) -> Result<(), St
     } 
 
     *IS_ADMIN.lock().unwrap() = true;
+    handle.emit("log_in_admin", true).unwrap();
+    
     Ok(())
 }
 
 #[tauri::command]
-pub fn log_out_admin() {
+pub fn log_out_admin(handle: tauri::AppHandle) {
     *IS_ADMIN.lock().unwrap() = false;
+    handle.emit("log_in_admin", false).unwrap();
 }
 
 #[tauri::command]
