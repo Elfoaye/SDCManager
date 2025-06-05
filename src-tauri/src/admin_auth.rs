@@ -33,7 +33,7 @@ fn check_admin_password(password: &str, handle: &tauri::AppHandle) -> Result<boo
         hash_value.to_string()
     } 
     else {
-        let default_hash = hash_password("admin123")?;
+        let default_hash = hash_password("admin")?;
         json["data"]["admin_password_hash"] = json!(default_hash);
         set_settings_json(&json, &handle.clone())?;
         default_hash

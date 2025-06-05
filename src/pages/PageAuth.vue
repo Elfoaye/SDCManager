@@ -31,7 +31,7 @@ async function confirmPassword() {
 
 <template>
     <div class="content">
-        <h1>Cette section requière des droits admin</h1>
+        <h1>Cette section requiert des droits Admin</h1>
         <h2>Identifiez-vous pour continuer</h2>
         <div class="submit">
             <div class="field">

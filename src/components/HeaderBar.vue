@@ -8,9 +8,11 @@ const { breadcrumb } = useBreadcrumb();
 const props = defineProps(['current_page','last_page','setPage']);
 
 const isAdmin = ref(false);
+const confirm = ref(false);
 
-function logOutAdmin() {
-    invoke('log_out_admin');
+async function logOutAdmin() {
+    await invoke('log_out_admin');
+    confirm.value = false;
 }
 
 listen('log_in_admin', (event) => {
@@ -18,16 +20,26 @@ listen('log_in_admin', (event) => {
 });
 
 onMounted(() => {
-    invoke('isAdmin').then((value) => isAdmin.value = value);
+    invoke('is_admin').then((value) => isAdmin.value = value);
 });
 </script>
 
 <template>
+    <div v-if="confirm" class="confirm">
+        <div class="pop-up">
+            <p>Êtes-vous sûr de vouloir quitter le <span>Mode Admin</span> ?</p>
+
+            <div class="confirm-buttons">
+                <button @click="logOutAdmin" class="submit">Confirmer</button>
+                <button @click="confirm=false" class="cancel">Annuler</button>
+            </div>
+        </div>
+    </div>
     <header>
         <div class="topnav" :class="{ admin: isAdmin }">
             <img src="../assets/LOGO_SDC.png">
 
-            <button v-if="isAdmin" @click="logOutAdmin">Mode Admin</button>
+            <button v-if="isAdmin" @click="confirm=true">Mode Admin</button>
         </div>
         <nav class="path">
             <button @click="setPage(last_page)">&#8617;</button>
@@ -114,5 +126,51 @@ button:hover {
     max-height: 100%;
 }
 
+.confirm {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
 
+.pop-up {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    max-height: 5rem;
+    background-color: var(--background-alt);
+    border: 1px solid var(--border-accent);
+    border-radius: 0.5rem;
+    padding: 1em;
+    padding-bottom: 2rem;
+}
+
+.pop-up button {
+    height: 100%;
+    padding: 1rem;
+    margin-right: 1rem;
+    width: 8rem;
+    border-radius: 0.5rem;
+
+    transition: all 0.2s;
+}
+
+.submit {
+    background-color: var(--accent-hover);
+}
+
+.cancel {
+    background-color: var(--disabled);
+}
+
+span {
+    font-weight: 600;
+}
 </style>
