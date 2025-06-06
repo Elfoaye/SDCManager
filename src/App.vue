@@ -100,7 +100,7 @@ listen('log_in_admin', (event) => {
 .content {
     flex: 1;
     display: flex;
-    padding: 1rem;
+    padding: 0.5rem;
     overflow: hidden;
 }
 </style>

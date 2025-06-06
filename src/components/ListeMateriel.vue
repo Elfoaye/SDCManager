@@ -216,47 +216,8 @@ watch(() => props.modif, () => {
 <style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
 
 <style scoped>
-.content {
-    flex-grow: 2;
-    display: flex;
-    flex-direction: column;
-    max-width: 60rem;
-    max-height: 100%;
-    margin: 0.5rem;
-    overflow: hidden;
-}
-
-.title {
-    display: flex;
-    justify-content: center;
-    width: auto;
-
-    margin-left: 0;
-    margin-bottom: 1rem;
-    padding: 0.5rem;
-    padding-left: 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--border-accent);
-
-}
-
 .title.modify {
     background-color: var(--warning);
-}
-
-.title h1 {
-    font: inherit;
-    font-weight: 600;
-    margin: 0;
-    padding: 0;
-    font-size: 1.5rem;
-}
-
-input {
-    background-color: var(--background-alt);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 0.3rem;
 }
 
 .search {
@@ -272,27 +233,7 @@ input {
 }
 
 button {
-    height: 100%;
-    padding: 1rem;
     margin-right: 1rem;
-    width: 8rem;
-    color: var(--text);
-    background-color: var(--accent);
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-
-    transition: all 0.2s;
-}
-
-button:hover {
-    background-color: var(--surface-selected);
-    cursor: pointer;
-    
-    transition: all 0.2s;
-}
-
-button.selected {
-    background-color: var(--accent-hover);
 }
 
 .search button {

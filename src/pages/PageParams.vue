@@ -25,20 +25,31 @@ function toggleSystem() {
 
 <template>
     <div class="content">
-        <h1>Paramètres</h1>
+        <div class="title">
+            <h1>Paramètres</h1>
+        </div>
         <div class="params">
             <section>
                 <h2>Visuels</h2>
-                <label>Mode sombre : <input :checked="activeTheme === 'dark'" @change="toggleTheme" type="checkbox"></label>
-                <label>Suivre le système : <input :checked="theme === 'system'" @change="toggleSystem" type="checkbox"></label>
+                <label>Thème sombre : <input :checked="activeTheme === 'dark'" @change="toggleTheme" type="checkbox"></label>
+                <label>Thème du système : <input :checked="theme === 'system'" @change="toggleSystem" type="checkbox"></label>
             </section>
         </div>
     </div>
 </template>
 
 <style scoped>
-.content {
+section {
     display: flex;
     flex-direction: column;
+    margin: 1rem;
+}
+
+h2 {
+    margin-bottom: 0.5rem;
+}
+
+label:hover {
+    cursor: pointer;
 }
 </style>

@@ -67,33 +67,28 @@ header {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    width: clamp(5rem, 18vw, 12rem);
+    width: clamp(9rem, 18vw, 14rem);
+    padding-left: 1rem;
     height: 100%;
-    padding: 1rem;
 }
 
 .topnav img {
     max-height: 80%;
 }
 
-.admin {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    background: linear-gradient(-90deg, var(--background), var(--warning));
+.topnav.admin {
+    box-sizing: border-box;
+    background: linear-gradient(to left, var(--background), var(--warning));
 }
 
 button {
     border: 0;
     hyphens: auto;
     white-space: normal;
-    font-size: clamp(0.6rem, 1.5vw, 1rem);
-    padding: 1rem;
+    font-size: clamp(0.6rem, 2vh, 1rem);
     background-color: var(--background);
-    color: var(--text);
-    cursor: pointer;
-    border-radius: 0.5rem;
-    max-height: 100%;
+    max-height: 90%;
+    width: fit-content;
 
     transition: all 0.15s;
 }
@@ -107,11 +102,11 @@ button:hover {
 .admin button {
     display: flex;
     align-items: center;
-    max-height: 60%;
+    max-height: 80%;
+    width: auto;
     padding: 0.5rem;
     border: 2px solid var(--warning);
     border-radius: 2rem;
-    margin-right: 1rem;
     font-weight: 600;
 }
 
@@ -122,7 +117,6 @@ button:hover {
 
 .path {
     display: flex;
-    padding-left: 1rem;
     max-height: 100%;
 }
 

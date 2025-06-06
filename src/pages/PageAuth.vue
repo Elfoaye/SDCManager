@@ -60,25 +60,13 @@ async function confirmPassword() {
     align-items: center;
 }
 
-h1 {
-    font: inherit;
-    font-size: 1.5rem;
-    font-weight: 500;
-    margin: 0;
-}
-
-h2 {
-    font: inherit;
-    font-size: 1.2rem;
-    margin-top: 0;
-}
-
 .submit {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
     width: 100%;
     max-width: 30rem;
+    margin-top: 2rem;
 }
 
 .submit .field {
@@ -93,32 +81,13 @@ input {
     align-self: center;
     width: 100%;
     max-width: 20rem;
-    background-color: var(--background-alt);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 0.3rem;
-    padding: 0.5rem;
 }
 
 button {
     justify-self: end;
     width: 100%;
     height: 100%;
-    padding: 1rem;
     max-width: 8rem;
-    color: var(--text);
-    background-color: var(--accent);
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-
-    transition: all 0.2s;
-}
-
-button:hover {
-    background-color: var(--surface-selected);
-    cursor: pointer;
-    
-    transition: all 0.2s;
 }
 
 button.cancel {

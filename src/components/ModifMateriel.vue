@@ -313,23 +313,6 @@ section {
     border-bottom: 1px solid var(--border);
 }
 
-.title {
-    display: flex;
-}
-
-.title-text {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.title h1 {
-    font: inherit;
-    font-weight: 600;
-    margin: 0;
-    margin-bottom: 1rem;
-}
-
 .form-grid {
     display: grid;
     grid-template-columns: 10rem 1fr;

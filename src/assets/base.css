@@ -1,3 +1,9 @@
+:root {
+  --background: #1A1A1A;
+  --background-alt: #232323;
+  --accent: #1d5a54;
+}
+
 .theme-light {
   --background: #F8F9F9;
   --background-alt: #FFFFFF;
