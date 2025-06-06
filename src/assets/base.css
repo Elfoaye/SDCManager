@@ -1,5 +1,4 @@
-/* Mode clair (par défaut) */
-:root {
+.theme-light {
   --background: #F8F9F9;
   --background-alt: #FFFFFF;
   --text: #1A1A1A;
@@ -20,29 +19,27 @@
   --disabled: #B0B0B0;
 }
 
-/* Mode sombre */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #1A1A1A;
-    --background-alt: #232323;
-    --text: #FFFFFF;
-    --text-muted: #BBBBBB;
-    --border: #919191;
-    --border-focus: #555555;
-    --border-accent: #DADADA;
-    --accent: #1d5a54;
-    --accent-hover: #119194;
-    --surface-hover: #2A3F3F;
-    --surface-selected: #256664;
-    --neutral: #3A3A3A;
-    --success-background: #83e2be;
-    --success: #24CC8F;
-    --warning: #F7BC00;
-    --background-error: #ec3f3f;
-    --error: #EF5350;
-    --disabled: #555555;
-  }
+.theme-dark {
+  --background: #1A1A1A;
+  --background-alt: #232323;
+  --text: #FFFFFF;
+  --text-muted: #BBBBBB;
+  --border: #919191;
+  --border-focus: #555555;
+  --border-accent: #DADADA;
+  --accent: #1d5a54;
+  --accent-hover: #119194;
+  --surface-hover: #2A3F3F;
+  --surface-selected: #256664;
+  --neutral: #3A3A3A;
+  --success-background: rgb(40, 136, 99);
+  --success: #1da774;
+  --warning: #b18700;
+  --background-error: #ec3f3f;
+  --error: #EF5350;
+  --disabled: #555555;
 }
+
  
 body {
   min-height: 100vh;
@@ -66,4 +63,9 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  transition: 
+    background-color 0.5s ease, 
+    color 0.5s ease, 
+    border-color 0.5s ease;
 }

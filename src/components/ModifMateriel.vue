@@ -453,7 +453,7 @@ button.delete {
     width: 17rem;
     font-weight: 600;
     background-color: var(--background-error);
-    color: var(--background-alt);
+    color: var(--text);
 }
 
 button.delete:hover {

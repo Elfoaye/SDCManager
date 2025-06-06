@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
+import { useTheme } from './composables/useTheme'
 
 import NavBar from './components/NavBar.vue';
 import HeaderBar from './components/HeaderBar.vue';
@@ -10,6 +11,9 @@ import PageMateriel from './pages/PageMateriel.vue';
 import PageAuth from './pages/PageAuth.vue';
 import PageAdmin from './pages/PageAdmin.vue';
 import PageParams from './pages/PageParams.vue';
+
+const { loadTheme } = useTheme()
+loadTheme()
 
 const currentPage = ref(null);
 const lastPage = ref(null);
