@@ -23,7 +23,6 @@ function applyTheme(mode) {
 }
 
 function setTheme(mode) {
-    console.log('Setting theme to ' + mode);
     if(mode === 'system') {
         mediaQuery.addEventListener('change', mediaListener);
     } else {

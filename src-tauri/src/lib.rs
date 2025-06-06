@@ -4,7 +4,8 @@ mod settings;
 mod admin_auth;
 use database::{get_materiel_data, get_item_data, update_dispo, 
     update_item, add_item, delete_item};
-use settings::{get_materiel_types, get_loc_formulas};
+use settings::{get_materiel_types, get_loc_formulas, 
+    set_materiel_types, set_loc_formulas};
 use admin_auth::{update_admin_password, log_in_admin, log_out_admin, is_admin};
 
 
@@ -16,6 +17,7 @@ pub fn run() {
             [get_materiel_data, get_item_data,
             update_dispo, update_item, add_item, delete_item,
             get_materiel_types, get_loc_formulas, 
+            set_materiel_types, set_loc_formulas,
             update_admin_password, log_in_admin, log_out_admin, is_admin])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

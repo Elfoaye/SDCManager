@@ -51,6 +51,13 @@ h2 {
     font-weight: 600;
 }
 
+h3 {
+    margin: 0;
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
 input {
     background-color: var(--background-alt);
     color: var(--text);

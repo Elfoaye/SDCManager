@@ -1,6 +1,6 @@
 <script setup>
-import { invoke } from '@tauri-apps/api/core';
 import { useBreadcrumb } from '../composables/breadcrumb';
+import { invoke } from '@tauri-apps/api/core';
 import { ref, computed, watch } from 'vue';
 import Multiselect from 'vue-multiselect';
 
@@ -216,6 +216,10 @@ watch(() => props.modif, () => {
 <style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
 
 <style scoped>
+.content {
+ margin: 0.5rem;
+}
+
 .title.modify {
     background-color: var(--warning);
 }
