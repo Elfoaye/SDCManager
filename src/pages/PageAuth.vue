@@ -1,11 +1,17 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
 import { ref } from 'vue';
+import { useBreadcrumb } from '../composables/breadcrumb';
+
+const { setBreadcrumb } = useBreadcrumb();
+setBreadcrumb([
+    { label: 'Accueil', page: null },
+    { label: 'Authentication', page: 'auth' }
+  ]);
 
 const props = defineProps(['redirect','setPage']);
 const emit = defineEmits(['cancel'])
 
-const showPassword = ref(false);
 const password = ref('');
 const password_error = ref('');
 
@@ -36,10 +42,7 @@ async function confirmPassword() {
         <h2>Identifiez-vous pour continuer</h2>
         <div class="submit">
             <div class="field">
-                <div class="search">
-                    <input class="searchbar" v-model="password" :type="showPassword ? 'text' : 'password'"  @input="password_error=''" placeholder="Mot de passe..."/>
-                    <button @click="showPassword = !showPassword" :class="{ selected: showPassword }">&#x1F441;</button>
-                </div>
+                <input class="searchbar" v-model="password" type="password"  @input="password_error=''" placeholder="Mot de passe..."/>
                 <p v-if="password_error" class="error">{{ password_error }}</p>
             </div>
             <button class="confirm" @click="confirmPassword">Confirmer</button>
@@ -94,8 +97,6 @@ input {
     color: var(--text);
     border: 1px solid var(--border);
     border-radius: 0.3rem;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
     padding: 0.5rem;
 }
 
@@ -104,7 +105,6 @@ button {
     width: 100%;
     height: 100%;
     padding: 1rem;
-    margin-right: 1rem;
     max-width: 8rem;
     color: var(--text);
     background-color: var(--accent);
@@ -135,28 +135,7 @@ button.cancel {
 
 .searchbar {
     width: 100%;
-    padding: 1rem;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-}
-
-.search button {
     padding: 0.5rem;
-    height: 100%;
-    width: 4rem;
-    font-size: 1.5rem;
-    font-weight: 600;
-    border-left: 0;
-    border-top-right-radius: 0.3rem;
-    border-bottom-right-radius: 0.3rem;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-
-    transition: all 0.2s;
-}
-
-.search button.selected {
-    background-color: var(--accent-hover);
 }
 
 .error {

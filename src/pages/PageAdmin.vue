@@ -1,5 +1,11 @@
 <script setup>
+import { useBreadcrumb } from '../composables/breadcrumb';
 
+const { setBreadcrumb } = useBreadcrumb();
+setBreadcrumb([
+    { label: 'Accueil', page: null },
+    { label: 'Admin', page: 'admin' }
+  ]);
 </script>
 
 <template>
