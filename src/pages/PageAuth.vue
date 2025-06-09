@@ -14,6 +14,7 @@ const emit = defineEmits(['cancel'])
 
 const password = ref('');
 const password_error = ref('');
+const passwordInput = ref(null);
 
 async function confirmPassword() {
     if(password.value === '') {
@@ -45,6 +46,7 @@ function handleKey(event) {
 
 onMounted(() => {
     window.addEventListener('keydown', handleKey);
+    passwordInput.value?.focus();
 });
 
 onBeforeUnmount(() => {
@@ -60,7 +62,14 @@ onBeforeUnmount(() => {
         <h2>Identifiez-vous pour continuer</h2>
         <div class="submit">
             <div class="field">
-                <input class="searchbar" v-model="password" type="password"  @input="password_error=''" placeholder="Mot de passe..."/>
+                <input 
+                    ref="passwordInput" 
+                    class="searchbar" 
+                    v-model="password" 
+                    type="password"  
+                    @input="password_error=''" 
+                    placeholder="Mot de passe..."
+                />
                 <p v-if="password_error" class="error">{{ password_error }}</p>
             </div>
             <button class="confirm" @click="confirmPassword">Confirmer</button>

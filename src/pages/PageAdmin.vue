@@ -41,6 +41,7 @@ function removeType(index) {
 async function applyChanges() {
     try {
         await invoke('set_loc_formulas', { formulas: formulas.value });
+        await invoke('set_materiel_types', { newTypes: types.value });
         applyMessage.value = {class: 'success', message: "Changements appliqués"};
     } catch (err) {
         applyMessage.value = {class: 'error', message: err};
