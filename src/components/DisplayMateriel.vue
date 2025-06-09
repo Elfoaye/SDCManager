@@ -132,11 +132,11 @@ async function updateDispo() {
 
             <div class="select">
                 <button :class="{selected : isSelected('Emprunter')}" @click="setMode('Emprunter')">
-                    <img src="../assets/icons/Export.png"/>
+                    <img src="../assets/icons/Export.svg"/>
                     Emprunter
                 </button>
                 <button :class="{selected : isSelected('Retourner')}" @click="setMode('Retourner')">
-                    <img src="../assets/icons/Import.png"/>
+                    <img src="../assets/icons/Import.svg"/>
                     Retourner
                 </button>
             </div>

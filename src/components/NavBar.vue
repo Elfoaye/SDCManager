@@ -6,19 +6,19 @@ const props = defineProps(['setPage']);
     <nav>
         <section>
             <h2>Matériel</h2>
-            <button @click="setPage('consult')">Consulter</button>
-            <button @click="setPage('modif')">Modifier</button>
+            <button @click="setPage('consult')"><img src="../assets/icons/Consult.svg"/>Consulter</button>
+            <button @click="setPage('modif')"><img src="../assets/icons/Edit.svg"/>Modifier</button>
         </section>
         <section>
             <h2>Devis</h2>
-            <button class="disabled">Consulter</button>
-            <button class="disabled">Créer</button>
+            <button class="disabled"><img src="../assets/icons/PdfSee.svg"/>Consulter</button>
+            <button class="disabled"><img src="../assets/icons/PdfNew.svg"/>Créer</button>
         </section>
         <section>
             <h2>Admin</h2>
-            <button @click="setPage('admin')">Page Admin</button>
+            <button @click="setPage('admin')"><img src="../assets/icons/Admin.svg"/>Page Admin</button>
         </section>
-        <button @click="setPage('params')" class="settings">Paramètres</button>
+        <button @click="setPage('params')" class="settings"><img src="../assets/icons/Settings.svg"/>Paramètres</button>
     </nav>
 </template>
 
@@ -56,18 +56,24 @@ h2 {
 }
 
 button {
+    display: flex;
+    align-items: center;
     text-align: start;
     padding: 0.5rem;
-    font-size: 1rem;
+    font-size: clamp(0.75rem, 1.5vw, 1rem);
     height: 2rem;
     width: 100%;
-    border-radius: 0.5rem;
-    background-color: var(--accent);
-    color: var(--text);
     border: none;
-    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 
     transition: all 0.1s;
+}
+
+button img {
+    max-height: 150%;
+    margin-right: 0.5rem;
 }
 
 button:hover {
