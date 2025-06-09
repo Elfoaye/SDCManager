@@ -17,7 +17,25 @@ invoke('get_loc_formulas').then((data) => formulas.value = data);
 const types = ref([]);
 invoke('get_materiel_types').then((data) => types.value = data);
 
+const newTag = ref('')
+const editIndex = ref(null);
 const applyMessage = ref({class: 'success', message: ''});
+
+function addType() {
+    const tag = newTag.value.trim();
+    if (tag && !types.value.includes(tag)) {
+        types.value.push(tag);
+    }
+    newTag.value = '';
+}
+
+function editType(index) {
+    editIndex.value = index;
+}
+
+function removeType(index) {
+    types.value.splice(index, 1);
+}
 
 async function applyChanges() {
     try {
@@ -27,6 +45,11 @@ async function applyChanges() {
         applyMessage.value = {class: 'error', message: err};
         console.error(err);
     }
+}
+
+function cancelChanges() {
+    invoke('get_loc_formulas').then((data) => formulas.value = data);
+    invoke('get_materiel_types').then((data) => types.value = data);
 }
 </script>
 
@@ -49,16 +72,35 @@ async function applyChanges() {
                     </label>
                     <p>({{ Number((formulas.contrib_following*100).toFixed(2)) }}% de la contribution de base par jour supplémentaire)</p>
                 </div>
-                <div class="Types">
-                    <h3>Types</h3>
+                <div class="types">
+                    <h3>Types (Double click pour modifier)</h3>
                     <ul>
-                        <li class="new">Ajouter</li>
-                        <li v-for="type in types">
-                            {{ type }}
+                        <li class="new">
+                            <input
+                                v-model="newTag"
+                                @keyup.enter="addType"
+                                placeholder="Ajouter un tag..."
+                            />
+                            <button @click="addTag">+</button>
+                        </li>
+                        <li v-for="(type, index) in types" :key="index">
+                            <span v-if="editIndex !== index" class="tag" @dblclick="editType(index)">
+                                {{ type }}
+                            </span>
+                            <input v-else
+                                v-model="types[index]"
+                                @blur="editIndex = null"
+                                @keyup.enter="editIndex = null"
+                                class="tagEdit" 
+                            />
+                            <button class="delete" @click="removeType">x</button>
                         </li>
                     </ul>
                 </div>
-                <button @click="applyChanges">Appliquer les changements</button>
+                <div class="submit">
+                    <button @click="applyChanges">Appliquer</button>
+                    <button @click="cancelChanges">Annuler</button>
+                </div>
                 <p v-if="applyMessage.message" :class="applyMessage.class">{{ applyMessage.message }}</p>
             </section>
             <!-- <section>
@@ -96,14 +138,16 @@ section {
     max-width: 100%;
     display: flex;
     flex-direction: column;
+    padding: 1rem;
     border: 1px solid var(--border);
     border-radius: 0.5rem;
-    padding: 1rem;
+    
 }
 
-section div {
+section div:not(.submit) {
     border-bottom: 1px solid var(--border);
     margin-bottom: 1rem;
+    padding-bottom: 1rem;
 }
 
 label {
@@ -112,26 +156,77 @@ label {
 }
 
 ul {
-    display: flex;
-    flex-direction: column;
-    list-style-type: none;
-    width: fit-content;
-    margin: 0;
-    padding: 0;
-    padding-right: 2rem;
-    padding-bottom: 2rem;
-    overflow-y: auto;
-    overflow-x: hidden;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 li {
-    padding: 0 0.5rem;
-    margin: 0;
-    border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  height: fit-content;
+  gap: 0.3rem;
+  background-color: var(--accent);
+  border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  padding: 0.3rem 0.6rem;
+  transition: background-color 0.2s;
+}
+
+li:hover {
+  background-color: var(--accent-hover);
 }
 
 li.new {
-    background-color: var(--success);
+  border-style: dashed;
+  background-color: transparent;
+}
+
+li .tag,
+li input.tagEdit {
+  font-size: 0.9rem;
+  border: none;
+  background: transparent;
+  outline: none;
+}
+
+li .tag {
+  cursor: pointer;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+input.tagEdit {
+  padding: 0.2rem;
+  background-color: white;
+  border-radius: 0.4rem;
+  border: 1px solid var(--border, #ccc);
+}
+
+li button {
+    background-color: var(--accent);
+    width: fit-content;
+    height: fit-content;
+    color: var(--text);
+    border: none;
+    padding: 0.3rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+li button:hover {
+    background-color: var(--accent-hover);
+}
+
+li button.delete {
+    background-color: var(--accent);
+}
+
+li button.delete:hover {
+  background-color: var(--accent-hover);
 }
 
 .formulas p {

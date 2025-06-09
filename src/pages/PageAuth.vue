@@ -45,7 +45,7 @@ async function confirmPassword() {
                 <input class="searchbar" v-model="password" type="password"  @input="password_error=''" placeholder="Mot de passe..."/>
                 <p v-if="password_error" class="error">{{ password_error }}</p>
             </div>
-            <button class="confirm" @click="confirmPassword">Confirmer</button>
+            <button class="confirm" @keyup.enter="confirmPassword" @click="confirmPassword">Confirmer</button>
             <button class="cancel" @click="emit('cancel')">Annuler</button>
         </div>
     </div>
