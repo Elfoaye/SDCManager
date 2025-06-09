@@ -95,13 +95,13 @@ function cancelChanges() {
                                 @keyup.enter="editIndex = null"
                                 class="tagEdit" 
                             />
-                            <button class="delete" @click="removeType">x</button>
+                            <button class="delete" @click="removeType(index)">x</button>
                         </li>
                     </ul>
                 </div>
                 <div class="submit">
-                    <button @click="applyChanges">Appliquer</button>
-                    <button @click="cancelChanges">Annuler</button>
+                    <button class="apply" @click="applyChanges">Appliquer</button>
+                    <button class="cancel" @click="cancelChanges">Annuler</button>
                 </div>
                 <p v-if="applyMessage.message" :class="applyMessage.class">{{ applyMessage.message }}</p>
             </section>
@@ -116,12 +116,6 @@ function cancelChanges() {
 </template>
 
 <style scoped>
-.content {
-    display: flex;
-    flex-direction: column;
-    margin: 0;
-}
-
 .params {
     max-width: 100%;
     display: grid;
@@ -150,6 +144,27 @@ section div:not(.submit) {
     border-bottom: 1px solid var(--border);
     margin-bottom: 1rem;
     padding-bottom: 1rem;
+}
+
+.submit {
+    display: flex;
+    gap: 1rem;
+}
+
+.apply {
+    background-color: var(--success-background);
+}
+
+.apply:hover {
+    background-color: var(--success);
+}
+
+.cancel {
+    background-color: var(--disabled);
+}
+
+.cancel:hover {
+    background-color: var(--border);
 }
 
 label {

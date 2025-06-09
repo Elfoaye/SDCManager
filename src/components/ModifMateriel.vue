@@ -244,32 +244,11 @@ watch(
 
 <style scoped>
 .itemCard {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    height: fit-content;
-    min-height: 20rem;
-    max-height: 90%;
-    min-width: 20rem;
-    max-width: 50rem;
-    margin: 0.5rem;
-    padding: 1em;
-    overflow: auto;
     border: 2px solid var(--warning);
-    border-radius: 0.5rem;
 }
 
 .itemCard.new {
     border: 2px solid var(--success);
-}
-
-.itemCard p {
-    margin: 0;
-}
-
-.itemCard span {
-    font-weight: 500;
 }
 
 .confirm {

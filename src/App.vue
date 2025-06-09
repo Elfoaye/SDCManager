@@ -65,7 +65,7 @@ listen('log_in_admin', (event) => {
         <div class="layout">
             <NavBar :setPage="setPage"/>
 
-            <div class="content">
+            <div class="page">
                 <PageAuth 
                     v-if="currentPage === 'auth'" 
                     :redirect="redirect"
@@ -97,10 +97,11 @@ listen('log_in_admin', (event) => {
     overflow: hidden;
 }
 
-.content {
+.page {
     flex: 1;
     display: flex;
     padding: 0.5rem;
     overflow: hidden;
+    max-width: 100%;
 }
 </style>
