@@ -1,6 +1,6 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
-import { ref } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useBreadcrumb } from '../composables/breadcrumb';
 
 const { setBreadcrumb } = useBreadcrumb();
@@ -34,6 +34,24 @@ async function confirmPassword() {
         password.value='';
     }
 }
+
+function handleKey(event) {
+    if (event.key === 'Enter') {
+        confirmPassword();
+    } else if (event.key === 'Escape') {
+        emit('cancel');
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('keydown', handleKey);
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener('keydown', handleKey);
+});
+
+
 </script>
 
 <template>
@@ -45,7 +63,7 @@ async function confirmPassword() {
                 <input class="searchbar" v-model="password" type="password"  @input="password_error=''" placeholder="Mot de passe..."/>
                 <p v-if="password_error" class="error">{{ password_error }}</p>
             </div>
-            <button class="confirm" @keyup.enter="confirmPassword" @click="confirmPassword">Confirmer</button>
+            <button class="confirm" @click="confirmPassword">Confirmer</button>
             <button class="cancel" @click="emit('cancel')">Annuler</button>
         </div>
     </div>

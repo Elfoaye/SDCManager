@@ -25,6 +25,7 @@ function addType() {
     const tag = newTag.value.trim();
     if (tag && !types.value.includes(tag)) {
         types.value.push(tag);
+        console.log("Added " + tag);
     }
     newTag.value = '';
 }
@@ -81,9 +82,9 @@ function cancelChanges() {
                                 @keyup.enter="addType"
                                 placeholder="Ajouter un tag..."
                             />
-                            <button @click="addTag">+</button>
+                            <button @click="addType">+</button>
                         </li>
-                        <li v-for="(type, index) in types" :key="index">
+                        <li v-for="(type, index) in types" :key="index" :class="{ edit: editIndex === index }">
                             <span v-if="editIndex !== index" class="tag" @dblclick="editType(index)">
                                 {{ type }}
                             </span>
@@ -199,11 +200,14 @@ li .tag {
   vertical-align: middle;
 }
 
+li.edit {
+    background-color: var(--surface-hover);
+    border: 1px solid var(--border-accent);
+}
+
 input.tagEdit {
   padding: 0.2rem;
-  background-color: white;
   border-radius: 0.4rem;
-  border: 1px solid var(--border, #ccc);
 }
 
 li button {
