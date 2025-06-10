@@ -5,7 +5,7 @@ import { listen } from '@tauri-apps/api/event';
 import { useBreadcrumb } from '../composables/breadcrumb';
 const { breadcrumb } = useBreadcrumb();
 
-const props = defineProps(['current_page','last_page','setPage']);
+const props = defineProps(['setPage']);
 
 const isAdmin = ref(false);
 const confirm = ref(false);

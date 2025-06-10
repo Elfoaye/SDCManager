@@ -57,8 +57,6 @@ listen('log_in_admin', (event) => {
 <template>
     <div class="app">
         <HeaderBar 
-            :currentPage="currentPage"
-            :lastPage="lastPage"
             :setPage="setPage"
         />
         

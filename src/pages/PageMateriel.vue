@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import ListeMateriel from '../components/ListeMateriel.vue';
 import DisplayMateriel from '../components/DisplayMateriel.vue'
 import ModifMateriel from '../components/ModifMateriel.vue'
@@ -14,8 +14,21 @@ const display = ref(null);
 const create = ref(false);
 const listRef = ref(null);
 
+const transitionName = ref('expand-height');
+
+const updateTransition = () => {
+  transitionName.value = window.matchMedia('(min-width: 1024px)').matches 
+    ? 'expand-width' 
+    : 'expand-height';
+};
+
 function setDisplay(value) {
-    display.value = value;
+    if(display.value === value) {
+        display.value = null;
+    } else {
+        display.value = value;
+    }
+    
     create.value = false;
 
     displayKey.value++;
@@ -45,16 +58,13 @@ async function onItemChange() {
     setDisplay(newItem);
 }
 
-function handleResize() {
-    isWide.value = window.innerWidth > wideWidth;
-}
-
 onMounted(() => {
-    window.addEventListener('resize', handleResize);
+  updateTransition();
+  window.addEventListener('resize', updateTransition);
 });
 
-onUnmounted(() => {
-    window.removeEventListener('resize', handleResize);
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateTransition);
 });
 
 watch(() => props.modif, () => {
@@ -110,38 +120,42 @@ watch(() => props.modif, () => {
     transition: width 0.3s ease, height 0.3s ease;
 }
 
-.expand-height-enter-from,
-.expand-height-leave-to {
-    opacity: 0;
-    transform: scaleX(0);
-    transform-origin: left;
-}
-.expand-height-enter-to, 
-.expand-height-leave-from {
-    opacity: 1;
-    transform: scaleX(1);
-    transform-origin: left;
-}
+/* Transition verticale */
 .expand-height-enter-active,
 .expand-height-leave-active {
-    transition: transform 0.3s ease, opacity 0.3s ease;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  will-change: transform, opacity;
+}
+.expand-height-enter-from,
+.expand-height-leave-to {
+  opacity: 0;
+  transform: scaleY(0);
+  transform-origin: bottom;
+}
+.expand-height-enter-to,
+.expand-height-leave-from {
+  opacity: 1;
+  transform: scaleY(1);
+  transform-origin: bottom;
 }
 
+/* Transition horizontale */
+.expand-width-enter-active,
+.expand-width-leave-active {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  will-change: transform, opacity;
+}
 .expand-width-enter-from,
 .expand-width-leave-to {
-    opacity: 0;
-    transform: scaleY(0);
-    transform-origin: bottom;
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left;
 }
 .expand-width-enter-to,
 .expand-width-leave-from {
-    opacity: 1;
-    transform: scaleY(1);
-    transform-origin: bottom;
-}
-.expand-width-enter-active,
-.expand-width-leave-active {
-    transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 1;
+  transform: scaleX(1);
+  transform-origin: left;
 }
 
 @media (min-width: 1024px) {
