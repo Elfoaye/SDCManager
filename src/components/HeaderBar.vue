@@ -37,7 +37,7 @@ onMounted(() => {
     </div>
     <header>
         <div class="topnav" :class="{ admin: isAdmin }">
-            <img src="../assets/LOGO_SDC.png">
+            <img src="../assets/Logo.png">
 
             <button v-if="isAdmin" @click="confirm=true">Mode Admin</button>
         </div>
