@@ -52,9 +52,18 @@ async function applyFormulas() {
 
 async function applyPassword() {
     if(oldPassword.value == '' || newPassword.value == '' || confirmNewPassword.value == '') return;
-    if(newPassword.value !== confirmNewPassword.value) return Promise.reject(new Error('Les nouveaux mots de passe ne correspondent pas'));
+    if(newPassword.value !== confirmNewPassword.value) return Promise.reject('Les nouveaux mots de passe ne correspondent pas');
 
     return await invoke('update_admin_password', { oldPassword: oldPassword.value, newPassword: newPassword.value });
+}
+
+function resetFields() {
+    invoke('get_loc_formulas').then((data) => formulas.value = data);
+    invoke('get_materiel_types').then((data) => types.value = data);
+    oldPassword.value = '';
+    newPassword.value = '';
+    confirmNewPassword.value = '';
+    applyMessage.value = {class: 'success', message: ''};
 }
 
 async function applyChanges() {
@@ -62,16 +71,12 @@ async function applyChanges() {
         await invoke('set_materiel_types', { newTypes: types.value });
         await applyFormulas();
         await applyPassword();
+        resetFields();
         applyMessage.value = {class: 'success', message: "Changements appliqués"};
     } catch (err) {
         applyMessage.value = {class: 'error', message: err};
         console.error(err);
     }
-}
-
-function cancelChanges() {
-    invoke('get_loc_formulas').then((data) => formulas.value = data);
-    invoke('get_materiel_types').then((data) => types.value = data);
 }
 </script>
 
@@ -121,11 +126,15 @@ function cancelChanges() {
                 </div>
                 <div class="admin">
                     <h2>Admin</h2>
-                    <label>Changer le mot de passe :
-                        <input v-model="newPassword" />
+                    <h3>Modifier le mot de passe</h3>
+                    <label>Mot de passe actuel :
+                        <input v-model="oldPassword" type="password"/>
+                    </label>
+                    <label>Nouveau mot de passe :
+                        <input v-model="newPassword" type="password"/>
                     </label>
                     <label>Confirmer le nouveau mot de passe :
-                        <input v-model="confirmNewPassword" />
+                        <input v-model="confirmNewPassword" type="password"/>
                     </label>
                 </div>
                 <div class="submit">
@@ -193,6 +202,20 @@ section div:not(.submit) {
 label {
     width: 100%;
     text-wrap: nowrap;
+}
+
+.admin {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
+.admin label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 28rem;
 }
 
 ul {
