@@ -19,8 +19,11 @@ invoke('get_materiel_types').then((data) => types.value = data);
 
 const newTag = ref('');
 const editIndex = ref(null);
+
+const oldPassword = ref('');
 const newPassword = ref('');
-const confirmNewPassword = ref('')
+const confirmNewPassword = ref('');
+
 const applyMessage = ref({class: 'success', message: ''});
 
 function addType() {
@@ -48,17 +51,17 @@ async function applyFormulas() {
 }
 
 async function applyPassword() {
-    if(newPassword.value == '' || confirmNewPassword.value == '') return;
-    if(newPassword.value !== confirmNewPassword.value) return Promise.reject(new Error('we need more errors!'));
+    if(oldPassword.value == '' || newPassword.value == '' || confirmNewPassword.value == '') return;
+    if(newPassword.value !== confirmNewPassword.value) return Promise.reject(new Error('Les nouveaux mots de passe ne correspondent pas'));
 
-    return await invoke('set_new_Password', { newPassword: newPassword.value });
+    return await invoke('update_admin_password', { oldPassword: oldPassword.value, newPassword: newPassword.value });
 }
 
 async function applyChanges() {
     try {
         await invoke('set_materiel_types', { newTypes: types.value });
         await applyFormulas();
-        //await applyPassword();
+        await applyPassword();
         applyMessage.value = {class: 'success', message: "Changements appliqués"};
     } catch (err) {
         applyMessage.value = {class: 'error', message: err};
