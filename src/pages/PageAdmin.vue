@@ -17,8 +17,10 @@ invoke('get_loc_formulas').then((data) => formulas.value = data);
 const types = ref([]);
 invoke('get_materiel_types').then((data) => types.value = data);
 
-const newTag = ref('')
+const newTag = ref('');
 const editIndex = ref(null);
+const newPassword = ref('');
+const confirmNewPassword = ref('')
 const applyMessage = ref({class: 'success', message: ''});
 
 function addType() {
@@ -38,10 +40,25 @@ function removeType(index) {
     types.value.splice(index, 1);
 }
 
+async function applyFormulas() {
+    if(!formulas.value || formulas.value.contrib_first_day == '' || formulas.value.contrib_following == '')
+        return;
+
+    return await invoke('set_loc_formulas', { formulas: formulas.value });
+}
+
+async function applyPassword() {
+    if(newPassword.value == '' || confirmNewPassword.value == '') return;
+    if(newPassword.value !== confirmNewPassword.value) return Promise.reject(new Error('we need more errors!'));
+
+    return await invoke('set_new_Password', { newPassword: newPassword.value });
+}
+
 async function applyChanges() {
     try {
-        await invoke('set_loc_formulas', { formulas: formulas.value });
         await invoke('set_materiel_types', { newTypes: types.value });
+        await applyFormulas();
+        //await applyPassword();
         applyMessage.value = {class: 'success', message: "Changements appliqués"};
     } catch (err) {
         applyMessage.value = {class: 'error', message: err};
@@ -99,18 +116,21 @@ function cancelChanges() {
                         </li>
                     </ul>
                 </div>
+                <div class="admin">
+                    <h2>Admin</h2>
+                    <label>Changer le mot de passe :
+                        <input v-model="newPassword" />
+                    </label>
+                    <label>Confirmer le nouveau mot de passe :
+                        <input v-model="confirmNewPassword" />
+                    </label>
+                </div>
                 <div class="submit">
                     <button class="apply" @click="applyChanges">Appliquer</button>
                     <button class="cancel" @click="cancelChanges">Annuler</button>
                 </div>
                 <p v-if="applyMessage.message" :class="applyMessage.class">{{ applyMessage.message }}</p>
             </section>
-            <!-- <section>
-                <h2>Admin</h2>
-                <div class="password">
-                    <button>Changer le mot de passe</button>
-                </div>
-            </section> -->
         </div>
     </div>
 </template>
