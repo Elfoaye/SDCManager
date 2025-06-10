@@ -1,4 +1,6 @@
 use crate::files_setup::{get_settings_json, set_settings_json};
+use crate::admin_auth::{is_admin};
+
 
 #[tauri::command]
 pub fn get_materiel_types(handle: tauri::AppHandle) -> Result<Vec<serde_json::Value>, String> {
@@ -24,6 +26,10 @@ pub fn get_loc_formulas(handle: tauri::AppHandle) -> Result<serde_json::Value, S
 
 #[tauri::command]
 pub fn set_materiel_types(new_types: Vec<serde_json::Value>, handle: tauri::AppHandle) -> Result<(), String> {
+    if !is_admin() {
+        return Err("Les droits Admin sont nécessaires pour cette action".to_string());
+    }
+
     let mut json = get_settings_json(&handle).map_err(|e| e.to_string())?;
     
     json["data"]["types"] = serde_json::Value::Array(new_types);
@@ -33,6 +39,10 @@ pub fn set_materiel_types(new_types: Vec<serde_json::Value>, handle: tauri::AppH
 
 #[tauri::command]
 pub fn set_loc_formulas(formulas: serde_json::Value, handle: tauri::AppHandle) -> Result<(), String> {
+    if !is_admin() {
+        return Err("Les droits Admin sont nécessaires pour cette action".to_string());
+    }
+
     let mut json = get_settings_json(&handle).map_err(|e| e.to_string())?;
 
     json["formula"] = formulas;

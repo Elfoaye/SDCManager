@@ -3,6 +3,7 @@ use rusqlite::{Connection, Result, params};
 use once_cell::sync::OnceCell;
 use std::sync::{Mutex, MutexGuard};
 use crate::files_setup::{get_or_create_data_dir};
+use crate::admin_auth::{is_admin};
 
 #[derive(Serialize, Deserialize)]
 pub struct Item {
@@ -89,6 +90,10 @@ pub fn get_item_data(id: i32, handle: tauri::AppHandle) -> Result<Item, String> 
 
 #[tauri::command]
 pub fn update_item(item: Item, handle: tauri::AppHandle) -> Result<String, String> {
+    if !is_admin() {
+        return Err("Les droits Admin sont nécessaires pour cette action".to_string());
+    }
+        
     let conn = get_database_connection(handle)?;
 
     conn.execute(
@@ -163,6 +168,10 @@ pub fn update_dispo(valeur: i32, old: i32, benef: f32, id: i32, handle: tauri::A
 
 #[tauri::command]
 pub fn add_item(item: Item, handle: tauri::AppHandle) -> Result<i64, String> {
+    if !is_admin() {
+        return Err("Les droits Admin sont nécessaires pour cette action".to_string());
+    }
+
     let conn = get_database_connection(handle)?;
 
     conn.execute(
@@ -192,6 +201,10 @@ pub fn add_item(item: Item, handle: tauri::AppHandle) -> Result<i64, String> {
 
 #[tauri::command]
 pub fn delete_item(id: i32, handle: tauri::AppHandle) -> Result<String, String> {
+    if !is_admin() {
+        return Err("Les droits Admin sont nécessaires pour cette action".to_string());
+    }
+    
     let conn = get_database_connection(handle)?;
 
     conn.execute(
