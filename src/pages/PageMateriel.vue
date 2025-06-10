@@ -14,13 +14,6 @@ const display = ref(null);
 const create = ref(false);
 const listRef = ref(null);
 
-const wideWidth = 1080;
-const isWide = ref(window.innerWidth > wideWidth);
-
-const transitionName = computed(() => {
-  return isWide.value ?  'expand-height' : 'expand-width';
-});
-
 function setDisplay(value) {
     display.value = value;
     create.value = false;
@@ -70,7 +63,7 @@ watch(() => props.modif, () => {
 </script>
 
 <template>
-    <div class="wrapper" :class="{'item-display': display !== null, wide: isWide}">
+    <div class="wrapper" :class="{'item-display': display !== null}">
         <ListeMateriel 
             class="list" 
             ref="listRef" 
@@ -110,10 +103,7 @@ watch(() => props.modif, () => {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-}
-
-.wrapper.wide {
-    flex-direction: row;
+    justify-content: center;
 }
 
 .list {
@@ -154,5 +144,13 @@ watch(() => props.modif, () => {
     transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
+@media (min-width: 1024px) {
+    .wrapper {
+        flex-direction: row;
+    }
 
+    .detail {
+        max-width: 30rem;
+    }
+}
 </style>

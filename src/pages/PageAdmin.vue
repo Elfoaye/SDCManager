@@ -19,6 +19,7 @@ invoke('get_materiel_types').then((data) => types.value = data);
 
 const newTag = ref('');
 const editIndex = ref(null);
+const tagMessage = ref('');
 
 const oldPassword = ref('');
 const newPassword = ref('');
@@ -30,17 +31,19 @@ function addType() {
     const tag = newTag.value.trim();
     if (tag && !types.value.includes(tag)) {
         types.value.push(tag);
-        console.log("Added " + tag);
     }
     newTag.value = '';
+    tagMessage.value = 'Pensez à appliquer les changements';
 }
 
 function editType(index) {
     editIndex.value = index;
+    tagMessage.value = 'Pensez à appliquer les changements';
 }
 
 function removeType(index) {
     types.value.splice(index, 1);
+    tagMessage.value = 'Pensez à appliquer les changements';
 }
 
 async function applyFormulas() {
@@ -64,6 +67,7 @@ function resetFields() {
     newPassword.value = '';
     confirmNewPassword.value = '';
     applyMessage.value = {class: 'success', message: ''};
+    tagMessage.value = '';
 }
 
 async function applyChanges() {
@@ -106,7 +110,7 @@ async function applyChanges() {
                             <input
                                 v-model="newTag"
                                 @keyup.enter="addType"
-                                placeholder="Ajouter un tag..."
+                                placeholder="Ajouter un type..."
                             />
                             <button @click="addType">+</button>
                         </li>
@@ -123,6 +127,7 @@ async function applyChanges() {
                             <button class="delete" @click="removeType(index)">x</button>
                         </li>
                     </ul>
+                    <p v-if="tagMessage" class="error">{{ tagMessage }}</p>
                 </div>
                 <div class="admin">
                     <h2>Admin</h2>

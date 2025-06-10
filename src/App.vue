@@ -94,12 +94,14 @@ listen('log_in_admin', (event) => {
 .layout {
     flex: 1;
     display: flex;
+    width: 100%;
     overflow: hidden;
 }
 
 .page {
     flex: 1;
     display: flex;
+    justify-content: center;
     padding: 0.5rem;
     overflow: hidden;
     max-width: 100%;

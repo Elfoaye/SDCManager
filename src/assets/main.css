@@ -97,7 +97,7 @@ button.selected {
     min-height: 20rem;
     max-height: 90%;
     min-width: 20rem;
-    max-width: 30rem;
+    max-width: 50rem;
     margin: 0.5rem;
     padding: 1em;
     overflow: auto;

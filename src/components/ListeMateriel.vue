@@ -199,8 +199,8 @@ watch(() => props.modif, () => {
                 
             </button>
         </li>
+        <li v-if="modif" class="new-item" @click="setCreate">+ Ajouter un objet</li>
         <ul>
-            <li v-if="modif" class="new-item" @click="setCreate">+ Ajouter un objet</li>
             <li v-for="item in sortedContent" @click="setItem(item)" :class="{ selected : isSelected(item) }" :data-id="item.id">
                 <p>{{ item.nom }}</p>
                 <p>{{ item.item_type }}</p>
@@ -403,6 +403,17 @@ li.head {
     border-bottom: 1px solid var(--border-accent);
 }
 
+li.new-item {
+    width: 100%;
+    padding: 1rem;
+    font-weight: 600;
+    background-color: var(--success-background) !important;
+}
+
+li.new-item:hover {
+    background-color: var(--success) !important;
+}
+
 .head button {
     white-space: nowrap;
     overflow: hidden;
@@ -424,16 +435,5 @@ li.head {
 .head button span {
   display: inline;
   margin-left: 0.25rem;
-}
-
-li.new-item {
-    width: 100%;
-    padding: 1rem;
-    font-weight: 600;
-    background-color: var(--success-background);
-}
-
-li.new-item:hover {
-    background-color: var(--success);
 }
 </style>
