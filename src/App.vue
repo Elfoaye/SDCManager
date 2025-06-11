@@ -8,6 +8,8 @@ import NavBar from './components/NavBar.vue';
 import HeaderBar from './components/HeaderBar.vue';
 import PageAccueil from './pages/PageAccueil.vue'
 import PageMateriel from './pages/PageMateriel.vue';
+import PageEditerDevis from './pages/PageEditerDevis.vue';
+import PageParcourirDevis from './pages/PageParcourirDevis.vue';
 import PageAuth from './pages/PageAuth.vue';
 import PageAdmin from './pages/PageAdmin.vue';
 import PageParams from './pages/PageParams.vue';
@@ -74,6 +76,8 @@ listen('log_in_admin', (event) => {
                     v-else-if="currentPage === 'consult' || currentPage === 'modif'" 
                     :modif="currentPage === 'modif'"
                 />
+                <PageParcourirDevis v-else-if="currentPage === 'devparcour'" />
+                <PageEditerDevis v-else-if="currentPage === 'devmodif'" />
                 <PageParams v-else-if="currentPage === 'params'" />
                 <PageAdmin v-else-if="currentPage === 'admin'" />
                 <PageAccueil v-else/>
