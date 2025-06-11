@@ -68,7 +68,7 @@ pub fn get_item_data(id: i32, handle: tauri::AppHandle) -> Result<Item, String> 
     let conn = get_database_connection(handle)?;
 
     let item = conn
-        .query_row("SELECT * FROM Materiel where id = ?",
+        .query_row("SELECT * FROM Materiel where materiel_id = ?",
             [id], 
             |row| {
                 Ok(Item {
@@ -106,7 +106,7 @@ pub fn update_item(item: Item, handle: tauri::AppHandle) -> Result<String, Strin
             contrib = ?6,
             nb_sorties = ?7,
             benef = ?8
-        WHERE id = ?9",
+        where materiel_id = ?9",
         rusqlite::params![
             item.nom,
             item.item_type,
@@ -134,7 +134,7 @@ pub fn update_dispo(valeur: i32, old: i32, benef: f32, id: i32, handle: tauri::A
     let conn = get_database_connection(handle)?;
 
     let total = conn.query_row(
-        "SELECT total FROM Materiel WHERE id = ?",
+        "SELECT total FROM Materiel where materiel_id = ?",
         params![id], 
         |row|  row.get(0)
     ).map_err(|e| e.to_string())?;
@@ -157,7 +157,7 @@ pub fn update_dispo(valeur: i32, old: i32, benef: f32, id: i32, handle: tauri::A
         params.push(&benef);
     }
 
-    sql.push_str(" WHERE id = ?");
+    sql.push_str(" where materiel_id = ?");
     params.push(&id);
     
     conn.execute(&sql, params.as_slice())
@@ -208,7 +208,7 @@ pub fn delete_item(id: i32, handle: tauri::AppHandle) -> Result<String, String> 
     let conn = get_database_connection(handle)?;
 
     conn.execute(
-        "DELETE FROM Materiel WHERE id = ?",
+        "DELETE FROM Materiel where materiel_id = ?",
         params![id])
     .map_err(|e| e.to_string())?;
 
