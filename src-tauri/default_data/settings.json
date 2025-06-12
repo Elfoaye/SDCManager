@@ -5,6 +5,9 @@
     },
     "formula": {
         "contrib_first_day": 0.033,
-        "contrib_following": 0.3
+        "contrib_following": 0.3,
+        "transport_km": 0.70,
+        "tech_day": 330,
+        "tech_hour": 35
     }
 }

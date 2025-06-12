@@ -10,8 +10,11 @@ setBreadcrumb([
   ]);
 
 const formulas = ref({
-  contrib_first_day: 0,
-  contrib_following: 0
+    contrib_first_day: 0,
+    contrib_following: 0,
+    transport_km: 0,
+    tech_day: 0,
+    tech_hour: 0
 });
 invoke('get_loc_formulas').then((data) => formulas.value = data);
 const types = ref([]);
@@ -102,6 +105,15 @@ async function applyChanges() {
                         <input v-model="formulas.contrib_following" type="number" />
                     </label>
                     <p>({{ Number((formulas.contrib_following*100).toFixed(2)) }}% de la contribution de base par jour supplémentaire)</p>
+                    <label>Transport au kilomètre :
+                        <input v-model="formulas.transport_km" type="number" />
+                    </label>
+                    <label>Technicien/Journée :
+                        <input v-model="formulas.tech_day" type="number" />
+                    </label>
+                    <label>Technicien/Heure :
+                        <input v-model="formulas.tech_hour" type="number" />
+                    </label>
                 </div>
                 <div class="types">
                     <h3>Types (Double click pour modifier)</h3>
