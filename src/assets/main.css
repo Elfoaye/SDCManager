@@ -58,6 +58,10 @@ h3 {
     font-weight: 600;
 }
 
+span {
+    font-weight: 500;
+}
+
 input {
     background-color: var(--background-alt);
     color: var(--text);

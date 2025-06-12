@@ -2,6 +2,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { ref, computed } from 'vue';
 import { useBreadcrumb } from '../composables/breadcrumb';
+import { useDevisStore } from '../composables/devisStore';
 import ListeSelectionDevis from '../components/ListeSelectionDevis.vue';
 
 const { setBreadcrumb } = useBreadcrumb();
@@ -11,10 +12,10 @@ setBreadcrumb([
     { label: 'Modifier', page: 'devmodif' }
 ]);
 
+const store = useDevisStore();
+
 const formulas = ref(null);
 invoke('get_loc_formulas').then((data) => formulas.value = data);
-
-const selectedItems = ref([]);
 
 const followingRate = computed(() => {
     if(!props.item || !formulas.value) return 0;
@@ -33,36 +34,32 @@ function totalCost(item) {
         <div class="title">
             <h1>Editer le devis</h1>
         </div>
-        <section class="base">
-            <div class="tech">
-                <label>Techniciens :
-                    <input type="number" />
+        <h2>Informations générales</h2>
+        <section class="infos">
+            <div class="line tech">
+                <label>Nom du devis :
+                    <input />
                 </label>
-                <label>Par Heure ?
-                    <input type="checkbox" />
+                <label>Date :
+                    <input />
                 </label>
-                <label>Prix unitaire :
-                    <input type="number" />
+                <div class="rate">
+                    <label>Durée (Jours) :
+                        <input type="number" />
+                    </label>
+                    <label class="inline">Par Heure ?
+                        <input type="checkbox" />
+                    </label>
+                </div>
+                <label>Nom du client :
+                    <input />
                 </label>
-                <label>Total :
-                    <input type="number" />
-                </label>
-            </div>
-            <div class="transport">
-                <label>Transport (km):
-                    <input type="number" />
-                </label>
-                <label>Prix unitaire :
-                    <input type="number" />
-                </label>
-                <label>Total :
-                    <input type="number" />
+                <label>Addresse du client :
+                    <input />
                 </label>
             </div>
-            <label>Adhésion ?
-                <input type="checkbox" />
-            </label>
         </section>
+        <h2>Materiel</h2>
         <section class="materiel">
             <ListeSelectionDevis class="select-list" />
             <ul>
@@ -70,11 +67,42 @@ function totalCost(item) {
                     <p>{{ item.nom }}</p>
                     <p>{{ item.contrib.toFixed(2) }} €</p>
                     <input v-model="item.qantity" />
-                    <input v-model="item.duration" />
                     <p>{{ totalCost(item) }}</p>
                 </li>
             </ul>
         </section>
+        <h2>Utilitaires</h2>
+        <section class="base">
+            <div class="line tech">
+                <label>Techniciens :
+                    <input type="number" />
+                </label>
+                <div class="rate">
+                    <label>Prix unitaire :
+                        <input type="number" />
+                    </label>
+                    <label class="inline">Par Heure ?
+                        <input type="checkbox" />
+                    </label>
+                </div>
+                <span>Total :</span>
+            </div>
+            <div class="line transport">
+                <label>Transport (km):
+                    <input type="number" />
+                </label>
+                <label>Prix unitaire :
+                    <input type="number" />
+                </label>
+                <span>Total :</span>
+            </div>
+            <div class="line adhesion">
+                <label class="inline">Adhésion ?
+                    <input type="checkbox" />
+                </label>
+            </div>
+        </section>
+        <h2>Autre</h2>
         <section class="bonus">
             <div class="other">
                 <label>Autre:
@@ -84,12 +112,17 @@ function totalCost(item) {
                     <input type="number" />
                 </label>
             </div>
-            <label>Geste commercial(%) :
-                <input type="number" />
-            </label>
-            <label>Geste commercial(€) :
-                <input type="number" />
-            </label>
+            <div class="free">
+                <label>Geste commercial(%) :
+                    <input type="number" />
+                </label>
+                <label>Geste commercial(€) :
+                    <input type="number" />
+                </label>
+            </div>
+        </section>
+        <section class="total">
+            <h2><span>Prix total :</span></h2>
         </section>
         <section class="preview">
 
@@ -112,6 +145,11 @@ function totalCost(item) {
 </template>
 
 <style scoped>
+.content {
+    max-height: 100%;
+    overflow-y: auto;
+}
+
 section {
     padding: 1rem;
     margin-bottom: 1rem;
@@ -121,21 +159,62 @@ section {
 section.base {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem
+    gap: 1rem;
+    
 }
 
-section.base div {
+.line {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    gap: 1rem
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: start;
+    gap: 1rem;
+    width: 100%;
 }
 
-section.base div label {
+.line label {
     display: flex;
     flex-direction: column;
 }
 
+label.inline {
+    flex-direction: row;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.rate {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
 .select-list {
     max-height: 40vh;
+}
+
+.bonus {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.free {
+    max-width: 25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.free label{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+}
+
+.submit {
+    display: flex;
+    gap: 1rem;
+    border-bottom: 0;
 }
 </style>

@@ -95,25 +95,29 @@ async function applyChanges() {
         <div class="params">
             <section>
                 <h2>Materiel</h2>
+                <h3>Formules</h3>
                 <div class="formulas">
-                    <h3>Formules</h3>
-                    <label>Contribution de base :
-                        <input v-model="formulas.contrib_first_day" type="number" />
-                    </label>
-                    <p>({{ Number((formulas.contrib_first_day*100).toFixed(2)) }}% de la valeur de l'objet)</p>
-                    <label>Contribution suivante :
-                        <input v-model="formulas.contrib_following" type="number" />
-                    </label>
-                    <p>({{ Number((formulas.contrib_following*100).toFixed(2)) }}% de la contribution de base par jour supplémentaire)</p>
-                    <label>Transport au kilomètre :
-                        <input v-model="formulas.transport_km" type="number" />
-                    </label>
-                    <label>Technicien/Journée :
-                        <input v-model="formulas.tech_day" type="number" />
-                    </label>
-                    <label>Technicien/Heure :
-                        <input v-model="formulas.tech_hour" type="number" />
-                    </label>
+                    <div class="pack">
+                        <label>Contribution de base :
+                            <input v-model="formulas.contrib_first_day" type="number" />
+                        </label>
+                        <p>({{ Number((formulas.contrib_first_day*100).toFixed(2)) }}% de la valeur de l'objet)</p>
+                        <label>Contribution suivante :
+                            <input v-model="formulas.contrib_following" type="number" />
+                        </label>
+                        <p>({{ Number((formulas.contrib_following*100).toFixed(2)) }}% de la contribution de base par jour supplémentaire)</p>
+                    </div>
+                    <div class="pack">
+                        <label>Transport au kilomètre :
+                            <input v-model="formulas.transport_km" type="number" />
+                        </label>
+                        <label>Technicien/Journée :
+                            <input v-model="formulas.tech_day" type="number" />
+                        </label>
+                        <label>Technicien/Heure :
+                            <input v-model="formulas.tech_hour" type="number" />
+                        </label>
+                    </div>
                 </div>
                 <div class="types">
                     <h3>Types (Double click pour modifier)</h3>
@@ -169,6 +173,7 @@ async function applyChanges() {
     max-width: 100%;
     display: grid;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 h2 {
@@ -310,6 +315,26 @@ li button.delete {
 
 li button.delete:hover {
   background-color: var(--accent-hover);
+}
+
+.formulas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin: 0;
+}
+
+section div.pack {
+    border-bottom: 0px;
+    margin: 0;
+    padding: 0;
+}
+
+.formulas label {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    max-width: 25rem;
+    margin-top: 1rem;
 }
 
 .formulas p {

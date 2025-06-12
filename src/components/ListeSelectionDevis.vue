@@ -1,8 +1,9 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
 import { ref, computed, onMounted } from 'vue';
+import { useDevisStore } from '../composables/devisStore'
 
-const props = defineProps(['selectedItems']);
+const store = useDevisStore();
 
 const listContent = ref([]);
 const types = ref([]);
@@ -13,7 +14,7 @@ const columns = [
   { label: 'Total', key: 'total' },
   { label: 'Contrib/Jour', key: 'contrib' },
   { label: 'Quantité', key: 'quantit' },
-  { label: 'Total', key: 'total' },
+  { label: 'Contrib/Total', key: 'total' },
 ]
 
 const sortProperty = ref(null);
@@ -55,7 +56,13 @@ function setSort(key) {
 
     sortAsc.value = false;
     sortProperty.value = key;
-    console.table(listContent.value);
+}
+
+function handleQuantityInput(item, event) {
+  const value = parseInt(event.target.value, 10)
+  if (!isNaN(value)) {
+    store.setItemQuantity(item, value)
+  }
 }
 
 onMounted(() => {
@@ -66,9 +73,8 @@ onMounted(() => {
 
 <template>
     <div class="content">
-        <h1>Ajouter du materiel</h1>
         <div class="search">
-            <input v-model="filterSearch" class="searchbar" name="searchbar" type="text" placeholder="Chercher par nom, catégorie..."/>
+            <input v-model="filterSearch" class="searchbar" type="text" placeholder="Chercher par nom, catégorie..."/>
         </div>
 
         <li class="head">
@@ -88,14 +94,19 @@ onMounted(() => {
                 <p>{{ item.item_type }}</p>
                 <p>{{ item.total }}</p>
                 <p>{{ item.contrib.toFixed(2) }} €</p>
-                <input />
-                <input />
+                <input type="number" @input="handleQuantityInput(item, $event)" min="0" :max="item.total"/>
+                <p></p>
             </li>
         </ul>
     </div>
 </template>
 
 <style scoped>
+.searchbar {
+    width: 50%;
+    padding: 1rem;
+}
+
 ul {
     display: flex;
     flex-direction: column;
