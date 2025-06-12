@@ -2,6 +2,8 @@
 import { invoke } from '@tauri-apps/api/core';
 import { ref, computed, onMounted } from 'vue';
 
+const props = defineProps(['selectedItems']);
+
 const listContent = ref([]);
 const types = ref([]);
 
@@ -149,6 +151,11 @@ li p:nth-child(6) {
 li.head {
     margin-top: 2rem;
     border-bottom: 1px solid var(--border-accent);
+}
+
+li input {
+    width: 4vw;
+    max-width: 4rem;
 }
 
 .head button {

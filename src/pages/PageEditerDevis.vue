@@ -1,4 +1,6 @@
 <script setup>
+import { invoke } from '@tauri-apps/api/core';
+import { ref, computed } from 'vue';
 import { useBreadcrumb } from '../composables/breadcrumb';
 import ListeSelectionDevis from '../components/ListeSelectionDevis.vue';
 
@@ -7,7 +9,23 @@ setBreadcrumb([
     { label: 'Accueil', page: null },
     { label: 'Devis & Factures', page: 'devparcour' },
     { label: 'Modifier', page: 'devmodif' }
-  ]);
+]);
+
+const formulas = ref(null);
+invoke('get_loc_formulas').then((data) => formulas.value = data);
+
+const selectedItems = ref([]);
+
+const followingRate = computed(() => {
+    if(!props.item || !formulas.value) return 0;
+    return props.item.contrib * formulas.value.contrib_following;
+});
+
+function totalCost(item) {
+    if(!item.duration.value || !item.quantity.value|| duration.value === 0) return 0;
+
+    return item.quantity * (quantity.value * (props.item.contrib + (duration.value - 1) * followingRate.value));
+};
 </script>
 
 <template>
@@ -46,7 +64,32 @@ setBreadcrumb([
             </label>
         </section>
         <section class="materiel">
-            <ListeSelectionDevis />
+            <ListeSelectionDevis class="select-list" />
+            <ul>
+                <li v-for="item in selectedItems" :data-id="item.id">
+                    <p>{{ item.nom }}</p>
+                    <p>{{ item.contrib.toFixed(2) }} €</p>
+                    <input v-model="item.qantity" />
+                    <input v-model="item.duration" />
+                    <p>{{ totalCost(item) }}</p>
+                </li>
+            </ul>
+        </section>
+        <section class="bonus">
+            <div class="other">
+                <label>Autre:
+                    <input type="text" />
+                </label>
+                <label>Prix :
+                    <input type="number" />
+                </label>
+            </div>
+            <label>Geste commercial(%) :
+                <input type="number" />
+            </label>
+            <label>Geste commercial(€) :
+                <input type="number" />
+            </label>
         </section>
         <section class="preview">
 
@@ -92,7 +135,7 @@ section.base div label {
     flex-direction: column;
 }
 
-section.materiel {
+.select-list {
     max-height: 40vh;
 }
 </style>
