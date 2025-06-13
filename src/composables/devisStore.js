@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export const useDevisStore = defineStore('devis', () => {
-    const selectedItems = ref([])
+    const selectedItems = ref([]);
 
     function setItemQuantity(item, quantity) {
         const q = Math.max(0, Math.min(quantity, item.total))
@@ -25,7 +25,7 @@ export const useDevisStore = defineStore('devis', () => {
     const extraFields = ref({
         name: '',
         date: '',
-        duration: 0,
+        duration: 1,
         hourly: false,
         clientName: '',
         clientAdress: '',

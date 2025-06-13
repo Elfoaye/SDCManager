@@ -7,6 +7,7 @@ const store = useDevisStore();
 
 const listContent = ref([]);
 const types = ref([]);
+const formulas = ref(null);
 
 const columns = [
   { label: 'Nom', key: 'nom' },
@@ -59,15 +60,27 @@ function setSort(key) {
 }
 
 function handleQuantityInput(item, event) {
-  const value = parseInt(event.target.value, 10)
-  if (!isNaN(value)) {
-    store.setItemQuantity(item, value)
-  }
+    const value = parseInt(event.target.value, 10);
+    if (!isNaN(value)) {
+        store.setItemQuantity(item, value);
+        console.table(store.selectedItems);
+    }
 }
+
+const priceLoc = (item) => computed(() => {
+    if(!item || !formulas.value) return 0;
+
+    const quantity = store.selectedItems.find(i => i.id === item.id)?.quantity ?? 0;
+    
+    if(quantity <= 0 || store.extraFields.duration === 0 ) return 0;
+
+    return quantity * (item.contrib + (store.extraFields.duration - 1) * formulas.value.followingRate);
+});
 
 onMounted(() => {
     invoke('get_materiel_types').then((data) => types.value = data);
     invoke('get_materiel_data').then((data) => listContent.value = data);
+    invoke('get_loc_formulas').then((data) => formulas.value = data);
 });
 </script>
 
@@ -95,7 +108,7 @@ onMounted(() => {
                 <p>{{ item.total }}</p>
                 <p>{{ item.contrib.toFixed(2) }} €</p>
                 <input type="number" @input="handleQuantityInput(item, $event)" min="0" :max="item.total"/>
-                <p></p>
+                <p v-if="priceLoc(item) > 0">{{ priceLoc(item) }}</p>
             </li>
         </ul>
     </div>
