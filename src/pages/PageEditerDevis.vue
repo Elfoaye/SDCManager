@@ -17,16 +17,22 @@ const store = useDevisStore();
 const formulas = ref(null);
 invoke('get_loc_formulas').then((data) => formulas.value = data);
 
+const byHour = ref(false);
+
 const followingRate = computed(() => {
     if(!props.item || !formulas.value) return 0;
     return props.item.contrib * formulas.value.contrib_following;
 });
 
-function totalCost(item) {
+function totalItemCost(item) {
     if(!item.duration.value || !item.quantity.value|| duration.value === 0) return 0;
 
     return item.quantity * (quantity.value * (props.item.contrib + (duration.value - 1) * followingRate.value));
 };
+
+function finalCost() {
+    return 0;
+}
 </script>
 
 <template>
@@ -38,24 +44,24 @@ function totalCost(item) {
         <section class="infos">
             <div class="line tech">
                 <label>Nom du devis :
-                    <input />
+                    <input v-model="store.extraFields.name"/>
                 </label>
                 <label>Date :
-                    <input />
+                    <input v-model="store.extraFields.date"/>
                 </label>
                 <div class="rate">
                     <label>Durée (Jours) :
-                        <input type="number" />
+                        <input type="number" v-model="store.extraFields.duration"/>
                     </label>
                     <label class="inline">Par Heure ?
-                        <input type="checkbox" />
+                        <input type="checkbox" v-model="store.extraFields.hourly"/>
                     </label>
                 </div>
                 <label>Nom du client :
-                    <input />
+                    <input v-model="store.extraFields.clientName"/>
                 </label>
                 <label>Addresse du client :
-                    <input />
+                    <input v-model="store.extraFields.clientAdress"/>
                 </label>
             </div>
         </section>
@@ -67,7 +73,7 @@ function totalCost(item) {
                     <p>{{ item.nom }}</p>
                     <p>{{ item.contrib.toFixed(2) }} €</p>
                     <input v-model="item.qantity" />
-                    <p>{{ totalCost(item) }}</p>
+                    <p>{{ totalItemCost(item) }}</p>
                 </li>
             </ul>
         </section>
@@ -75,30 +81,30 @@ function totalCost(item) {
         <section class="base">
             <div class="line tech">
                 <label>Techniciens :
-                    <input type="number" />
+                    <input type="number" v-model="store.extraFields.techQty"/>
                 </label>
                 <div class="rate">
                     <label>Prix unitaire :
-                        <input type="number" />
+                        <input type="number" v-model="store.extraFields.techRate"/>
                     </label>
                     <label class="inline">Par Heure ?
-                        <input type="checkbox" />
+                        <input type="checkbox" v-model="store.extraFields.techHourly"/>
                     </label>
                 </div>
-                <span>Total :</span>
+                <span>Total : {{ store.extraFields.techQty * store.extraFields.techRate }}</span>
             </div>
             <div class="line transport">
                 <label>Transport (km):
-                    <input type="number" />
+                    <input type="number" v-model="store.extraFields.transportKm"/>
                 </label>
                 <label>Prix unitaire :
-                    <input type="number" />
+                    <input type="number" v-model="store.extraFields.transportRate"/>
                 </label>
-                <span>Total :</span>
+                <span>Total : {{ store.extraFields.transportKm * store.extraFields.transportRate }}</span>
             </div>
             <div class="line adhesion">
                 <label class="inline">Adhésion ?
-                    <input type="checkbox" />
+                    <input type="checkbox" v-model="store.extraFields.adhesion"/>
                 </label>
             </div>
         </section>
@@ -106,23 +112,23 @@ function totalCost(item) {
         <section class="bonus">
             <div class="other">
                 <label>Autre:
-                    <input type="text" />
+                    <input v-model="store.extraFields.otherLabel"/>
                 </label>
                 <label>Prix :
-                    <input type="number" />
+                    <input type="number" v-model="store.extraFields.otherPrice"/>
                 </label>
             </div>
             <div class="free">
                 <label>Geste commercial(%) :
-                    <input type="number" />
+                    <input type="number" v-model="store.extraFields.discountPercent"/>
                 </label>
                 <label>Geste commercial(€) :
-                    <input type="number" />
+                    <input type="number" v-model="store.extraFields.discountEuro"/>
                 </label>
             </div>
         </section>
         <section class="total">
-            <h2><span>Prix total :</span></h2>
+            <h2><span>Prix total : {{ finalCost() }}</span></h2>
         </section>
         <section class="preview">
 
@@ -196,6 +202,11 @@ label.inline {
 .bonus {
     display: flex;
     flex-direction: column;
+    gap: 1rem;
+}
+
+.other {
+    display: flex;
     gap: 1rem;
 }
 

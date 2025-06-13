@@ -23,6 +23,12 @@ export const useDevisStore = defineStore('devis', () => {
     }
 
     const extraFields = ref({
+        name: '',
+        date: '',
+        duration: 0,
+        hourly: false,
+        clientName: '',
+        clientAdress: '',
         techQty: 0,
         techRate: 0,
         techHourly: false,
