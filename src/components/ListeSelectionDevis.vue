@@ -49,6 +49,11 @@ const sortedContent = computed(() => {
     });
 });
 
+function getQuantity(item) {
+    const val = store.selectedItems.find(i => i.id === item.id)?.quantity ?? 0;
+    return val === 0 ? '' : val;
+}
+
 function setSort(key) {
     if(sortProperty.value == key) {
         sortAsc.value = !sortAsc.value;
@@ -63,18 +68,17 @@ function handleQuantityInput(item, event) {
     const value = parseInt(event.target.value, 10);
     if (!isNaN(value)) {
         store.setItemQuantity(item, value);
-        console.table(store.selectedItems);
     }
 }
 
 const priceLoc = (item) => computed(() => {
     if(!item || !formulas.value) return 0;
 
-    const quantity = store.selectedItems.find(i => i.id === item.id)?.quantity ?? 0;
+    const quantity = store.selectedItems.find(i => i.id === item.id)?.quantity ?? 0; //TODO trouver quantity
     
-    if(quantity <= 0 || store.extraFields.duration === 0 ) return 0;
+    if(quantity <= 0 || store.devisInfos.duration === 0 ) return 0;
 
-    return quantity * (item.contrib + (store.extraFields.duration - 1) * formulas.value.followingRate);
+    return quantity * (item.contrib + (store.devisInfos.duration - 1) * formulas.value.followingRate);
 });
 
 onMounted(() => {
@@ -107,8 +111,8 @@ onMounted(() => {
                 <p>{{ item.item_type }}</p>
                 <p>{{ item.total }}</p>
                 <p>{{ item.contrib.toFixed(2) }} €</p>
-                <input type="number" @input="handleQuantityInput(item, $event)" min="0" :max="item.total"/>
-                <p v-if="priceLoc(item) > 0">{{ priceLoc(item) }}</p>
+                <input type="number" @input="handleQuantityInput(item, $event)" min="0" :max="item.total" :value="getQuantity(item)"/>
+                <p v-if="priceLoc(item).value > 0">{{ priceLoc(item).value }}</p>
             </li>
         </ul>
     </div>

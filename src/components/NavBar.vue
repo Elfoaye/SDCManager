@@ -24,7 +24,7 @@ const props = defineProps(['setPage']);
         </section>
 
         <section>
-            <h2>Devis</h2>
+            <h2>Devis & Factures</h2>
             <button @click="setPage('devparcour')">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M9 7L13 7" stroke="currentColor" stroke-linecap="round"/>

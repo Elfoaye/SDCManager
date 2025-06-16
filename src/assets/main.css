@@ -70,6 +70,14 @@ input {
     padding: 0.5rem;
 }
 
+textarea {
+    background-color: var(--background-alt);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 0.3rem;
+    padding: 0.5rem;
+}
+
 button {
     height: 100%;
     padding: 1rem;
