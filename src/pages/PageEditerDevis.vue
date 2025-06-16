@@ -139,13 +139,13 @@ watch(() => store.techHourly, () => {
             <ListeSelectionDevis class="select-list" />
 
             <div v-if="store.selectedItems.length > 0">
-                <h3>Items selectionnés : </h3>
+                <h3>Materiel selectionné : </h3>
                 <ul >
                     <li v-for="item in store.selectedItems" :data-id="item.id">
                         <p>{{ item.nom }}</p>
                         <p>{{ item.contrib.toFixed(2) }} €</p>
-                        <input v-model="item.quantity" />
-                        <input v-model="item.duration" />
+                        <p>{{ item.quantity }}</p>
+                        <p>{{ item.duration }}</p>
                         <p>{{ item.totalPrice.toFixed(2) }}</p>
                     </li>
                 </ul>

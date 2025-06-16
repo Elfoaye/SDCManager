@@ -16,45 +16,12 @@ const columns = [
   { label: 'Contrib/Jour', key: 'contrib' },
   { label: 'Quantité', key: 'quantit' },
   { label: 'Durée', key: 'duration' },
-  { label: 'Contrib/Total', key: 'total' },
+  { label: 'Prix', key: 'price' },
 ]
 
 const sortProperty = ref(null);
 const sortAsc = ref(true);
 const filterSearch = ref('');
-
-const filteredContent = computed(() => {
-    const query = String(filterSearch.value).trim().toLowerCase();
-
-    return listContent.value.filter(item =>  {
-        if (query && !(String(item.nom).toLowerCase().includes(query) || String(item.item_type).toLowerCase().includes(query))) // Search bar
-            return false;
-
-        return true;
-    });
-});
-
-const sortedContent = computed(() => {
-    if(!sortProperty.value) return filteredContent.value;
-
-    return [...filteredContent.value].sort((a, b) => {
-        const valA = a[sortProperty.value] ;
-        const valB = b[sortProperty.value];
-    
-        if(typeof valA === 'number' && typeof valB === 'number') {
-            return sortAsc.value ? valA - valB : valB - valA;
-        } else {
-            return sortAsc.value ? String(valB).localeCompare(String(valA)) :
-                                    String(valA).localeCompare(String(valB));
-        }
-    });
-});
-
-function priceLoc(item, quantity, duration) {
-    if(!item || !formulas.value || quantity <= 0 || duration <= 0) return 0;
-
-    return quantity * (item.contrib + (duration - 1) * formulas.value.contrib_following);
-}
 
 const getQuantity = computed(() => {
     return (item) => {
@@ -76,6 +43,64 @@ const getPrice = computed(() => {
         return val === 0 ? '' : val;
     };
 });
+
+const filteredContent = computed(() => {
+    const query = String(filterSearch.value).trim().toLowerCase();
+
+    return listContent.value.filter(item =>  {
+        if (query && !(String(item.nom).toLowerCase().includes(query) || String(item.item_type).toLowerCase().includes(query))) // Search bar
+            return false;
+
+        return true;
+    });
+});
+
+const sortedContent = computed(() => {
+    if(!sortProperty.value) return filteredContent.value;
+
+    return [...filteredContent.value].sort((a, b) => {
+        let valA, valB;
+
+        const key = sortProperty.value;
+
+        if (key === 'quantit') {
+            valA = getQuantity.value(a);
+            valB = getQuantity.value(b);
+        } else if (key === 'duration') {
+            valA = getDuration.value(a);
+            valB = getDuration.value(b);
+        } else if (key === 'price') {
+            valA = getPrice.value(a);
+            valB = getPrice.value(b);
+        } else {
+            valA = a[sortProperty.value];
+            valB = b[sortProperty.value];
+        }
+
+        const isEmpty = v => v === '' || v === null || v === undefined || v === 0;
+
+        const aEmpty = isEmpty(valA);
+        const bEmpty = isEmpty(valB);
+
+        // Mettre les valeurs vides à la fin
+        if (aEmpty && !bEmpty) return 1;
+        if (!aEmpty && bEmpty) return -1;
+        if (aEmpty && bEmpty) return 0;
+    
+        if(typeof valA === 'number' && typeof valB === 'number') {
+            return sortAsc.value ? valA - valB : valB - valA;
+        } else {
+            return sortAsc.value ? String(valB).localeCompare(String(valA)) :
+                                    String(valA).localeCompare(String(valB));
+        }
+    });
+});
+
+function priceLoc(item, quantity, duration) {
+    if(!item || !formulas.value || quantity <= 0 || duration <= 0) return 0;
+
+    return quantity * (item.contrib + (duration - 1) * (item.contrib * formulas.value.contrib_following));
+}
 
 function setSort(key) {
     if(sortProperty.value == key) {
@@ -137,9 +162,9 @@ onMounted(() => {
                 <p>{{ item.item_type }}</p>
                 <p>{{ item.total }}</p>
                 <p>{{ item.contrib.toFixed(2) }} €</p>
-                <input type="number" @input="handleQuantityInput(item, $event, null)" min="0" :max="item.total" :value="getQuantity(item)"/>
-                <input type="number" @input="handleQuantityInput(item, null, $event)" min="0" :max="item.total" :value="getDuration(item)"/>
-                <p v-if="getPrice(item) > 0">{{ getPrice(item) }} €</p>
+                <input type="number" @change="handleQuantityInput(item, $event, null)" min="0" :max="item.total" :value="getQuantity(item)"/>
+                <input type="number" @change="handleQuantityInput(item, null, $event)" min="0" :max="item.total" :value="getDuration(item)"/>
+                <p v-if="getPrice(item) > 0">{{ getPrice(item).toFixed(2) }} €</p>
             </li>
         </ul>
     </div>
