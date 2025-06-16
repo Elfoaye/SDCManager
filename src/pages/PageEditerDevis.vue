@@ -32,13 +32,6 @@ function setExtrafield(){
     tempExtrafield.value = {name: '', price: ''};
 }
 
-function totalItemCost(item) {
-    if(!formulas.value || !item.duration || !item.quantity|| duration === 0) return 0;
-
-    return item.quantity * (quantity.value * (props.item.contrib 
-    + (duration.value - 1) * formulas.value.followingRate.value));
-};
-
 function finalCost() {
     return 0;
 }
@@ -152,7 +145,8 @@ watch(() => store.techHourly, () => {
                         <p>{{ item.nom }}</p>
                         <p>{{ item.contrib.toFixed(2) }} €</p>
                         <input v-model="item.quantity" />
-                        <p>{{ totalItemCost(item) }}</p>
+                        <input v-model="item.duration" />
+                        <p>{{ item.totalPrice.toFixed(2) }}</p>
                     </li>
                 </ul>
             </div>
@@ -306,7 +300,7 @@ ul {
 
 li {
     display: grid;
-    grid-template-columns: 3fr 1fr 1fr 1fr;
+    grid-template-columns: 3fr 1fr 1fr 1fr 1fr;
     padding: 0 0.5rem;
     margin: 0;
     gap: 1rem;

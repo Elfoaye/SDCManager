@@ -1,7 +1,13 @@
+import { invoke } from '@tauri-apps/api/core';
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
+const UNSET = Symbol('unset');
+
 export const useDevisStore = defineStore('devis', () => {
+    const formulas = ref(null);
+    invoke('get_loc_formulas').then((data) => formulas.value = data);
+
     const devisInfos = ref({
         id: '',
         name: '',
@@ -31,25 +37,31 @@ export const useDevisStore = defineStore('devis', () => {
         discountEuro: 0
     });
 
-    function setItemQuantity(item, quantity) {
-        const q = Math.max(0, Math.min(quantity, item.total))
+    function setItemQuantity(item, quantity, duration, price) {
+        if ((quantity !== 'unset' && (!quantity || quantity <= 0)) || 
+            (duration !== 'unset' && (!duration || duration <= 0))) {
+            selectedItems.value = selectedItems.value.filter(i => i.id !== item.id);
+            return;
+        }
         const existing = selectedItems.value.find(i => i.id === item.id);
 
-        console.log("Item id : " + item.id + " Quandtity : " + quantity + " Existing : " + existing);
+        if (existing) {
+            if (quantity != 'unset') existing.quantity = quantity;
+            if (duration != 'unset') existing.duration = duration;
+            if (price != 'unset') existing.totalPrice = price;
+        } else {
+            const q = quantity !== 'unset' ? quantity : 1;
+            const d = duration !== 'unset' ? duration : devisInfos.value.duration;
 
-        if (q > 0) {
-            if (existing) {
-                existing.quantity = q;
-            } else {
-                selectedItems.value.push({
-                ...item,
-                quantity: q
-                });
-            }
-        } else if (existing) {
-            selectedItems.value = selectedItems.value.filter(i => i.id !== item.id);
+            selectedItems.value.push({
+            ...item,
+            quantity: q,
+            duration: d,
+            totalPrice: price ?? 0,
+            });
         }
     }
 
-    return { devisInfos, clientInfos, selectedItems, extraItems, utilitaries, setItemQuantity};
+    return { formulas, devisInfos, clientInfos, selectedItems, 
+        extraItems, utilitaries, setItemQuantity};
 })

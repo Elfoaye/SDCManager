@@ -15,6 +15,7 @@ const columns = [
   { label: 'Total', key: 'total' },
   { label: 'Contrib/Jour', key: 'contrib' },
   { label: 'Quantité', key: 'quantit' },
+  { label: 'Durée', key: 'duration' },
   { label: 'Contrib/Total', key: 'total' },
 ]
 
@@ -49,10 +50,32 @@ const sortedContent = computed(() => {
     });
 });
 
-function getQuantity(item) {
-    const val = store.selectedItems.find(i => i.id === item.id)?.quantity ?? 0;
-    return val === 0 ? '' : val;
+function priceLoc(item, quantity, duration) {
+    if(!item || !formulas.value || quantity <= 0 || duration <= 0) return 0;
+
+    return quantity * (item.contrib + (duration - 1) * formulas.value.contrib_following);
 }
+
+const getQuantity = computed(() => {
+    return (item) => {
+        const val = store.selectedItems.find(i => i.id === item.id)?.quantity ?? 0;
+        return val === 0 ? '' : val;
+    };
+});
+
+const getDuration = computed(() => {
+    return (item) => {
+        const val = store.selectedItems.find(i => i.id === item.id)?.duration ?? 0;
+        return val === 0 ? '' : val;
+    };
+});
+
+const getPrice = computed(() => {
+    return (item) => {
+        const val = store.selectedItems.find(i => i.id === item.id)?.totalPrice ?? 0;
+        return val === 0 ? '' : val;
+    };
+});
 
 function setSort(key) {
     if(sortProperty.value == key) {
@@ -64,22 +87,25 @@ function setSort(key) {
     sortProperty.value = key;
 }
 
-function handleQuantityInput(item, event) {
-    const value = parseInt(event.target.value, 10);
-    if (!isNaN(value)) {
-        store.setItemQuantity(item, value);
+function handleQuantityInput(item, quantity, duration) {
+    if(!item) return;
+
+    const currentItem = store.selectedItems.find(i => i.id === item.id);
+
+    if(quantity) {
+        const newQuant = Math.max(0, Math.min(parseInt(quantity.target.value, 10), item.total));
+        const newDur = currentItem ? currentItem.duration : store.devisInfos.duration;
+        const price = priceLoc(item, newQuant, newDur);
+
+        store.setItemQuantity(item, newQuant, 'unset', price);
+    } else if (duration) {
+        const newDur = Math.max(0, parseInt(duration.target.value, 10));
+        const newQuant = currentItem ? currentItem.quantity : 1;
+        const price = priceLoc(item, newQuant, newDur);
+
+        store.setItemQuantity(item, 'unset', newDur, price);
     }
 }
-
-const priceLoc = (item) => computed(() => {
-    if(!item || !formulas.value) return 0;
-
-    const quantity = store.selectedItems.find(i => i.id === item.id)?.quantity ?? 0; //TODO trouver quantity
-    
-    if(quantity <= 0 || store.devisInfos.duration === 0 ) return 0;
-
-    return quantity * (item.contrib + (store.devisInfos.duration - 1) * formulas.value.followingRate);
-});
 
 onMounted(() => {
     invoke('get_materiel_types').then((data) => types.value = data);
@@ -111,8 +137,9 @@ onMounted(() => {
                 <p>{{ item.item_type }}</p>
                 <p>{{ item.total }}</p>
                 <p>{{ item.contrib.toFixed(2) }} €</p>
-                <input type="number" @input="handleQuantityInput(item, $event)" min="0" :max="item.total" :value="getQuantity(item)"/>
-                <p v-if="priceLoc(item).value > 0">{{ priceLoc(item).value }}</p>
+                <input type="number" @input="handleQuantityInput(item, $event, null)" min="0" :max="item.total" :value="getQuantity(item)"/>
+                <input type="number" @input="handleQuantityInput(item, null, $event)" min="0" :max="item.total" :value="getDuration(item)"/>
+                <p v-if="getPrice(item) > 0">{{ getPrice(item) }} €</p>
             </li>
         </ul>
     </div>
@@ -137,7 +164,7 @@ ul {
 
 li, li.head {
     display: grid;
-    grid-template-columns: 3fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-columns: 3fr 1fr 1fr 1fr 1fr 1fr 1fr;
     padding: 0 0.5rem;
     margin: 0;
     gap: 1rem;
