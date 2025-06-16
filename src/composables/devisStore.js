@@ -2,8 +2,6 @@ import { invoke } from '@tauri-apps/api/core';
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-const UNSET = Symbol('unset');
-
 export const useDevisStore = defineStore('devis', () => {
     const formulas = ref(null);
     invoke('get_loc_formulas').then((data) => formulas.value = data);

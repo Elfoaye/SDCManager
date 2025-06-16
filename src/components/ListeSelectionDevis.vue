@@ -58,31 +58,25 @@ const filteredContent = computed(() => {
 const sortedContent = computed(() => {
     if(!sortProperty.value) return filteredContent.value;
 
-    return [...filteredContent.value].sort((a, b) => {
-        let valA, valB;
-
-        const key = sortProperty.value;
-
-        if (key === 'quantit') {
-            valA = getQuantity.value(a);
-            valB = getQuantity.value(b);
-        } else if (key === 'duration') {
-            valA = getDuration.value(a);
-            valB = getDuration.value(b);
-        } else if (key === 'price') {
-            valA = getPrice.value(a);
-            valB = getPrice.value(b);
-        } else {
-            valA = a[sortProperty.value];
-            valB = b[sortProperty.value];
+    const getSortableValue = (item) => {
+        switch (sortProperty.value) {
+        case 'quantit': return getQuantity.value(item);
+        case 'duration': return getDuration.value(item);
+        case 'price': return getPrice.value(item);
+        default: return item[sortProperty.value];
         }
+    };
 
-        const isEmpty = v => v === '' || v === null || v === undefined || v === 0;
+    const isEmpty = (val) =>
+        val === '' || val === null || val === undefined || val === 0;
+
+    return [...filteredContent.value].sort((a, b) => {
+        const valA = getSortableValue(a);
+        const valB = getSortableValue(b);
 
         const aEmpty = isEmpty(valA);
         const bEmpty = isEmpty(valB);
 
-        // Mettre les valeurs vides à la fin
         if (aEmpty && !bEmpty) return 1;
         if (!aEmpty && bEmpty) return -1;
         if (aEmpty && bEmpty) return 0;

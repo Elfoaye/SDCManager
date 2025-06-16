@@ -20,16 +20,18 @@ const tempExtrafield = ref({
 
 const formulas = ref(null);
 
-const followingRate = computed(() => {
-    if(!props.item || !formulas.value) return 0;
-    return props.item.contrib * formulas.value.contrib_following;
-});
-
-function setExtrafield(){
+function addExtrafield(){
     if(tempExtrafield.value.name === '' || tempExtrafield.value.price === '') return;
 
     store.extraItems.push(tempExtrafield.value);
     tempExtrafield.value = {name: '', price: ''};
+}
+
+function removeExtraField(item) {
+    const index = store.extraItems.indexOf(item);
+    if (index !== -1) {
+        store.extraItems.splice(index, 1);
+    }
 }
 
 function finalCost() {
@@ -37,23 +39,21 @@ function finalCost() {
 }
 
 function setTechRate() {
-    if(!formulas.value) {
-        console.error("No formulas imported yet");
-        return;
-    }
-    console.log("Setting tech rate");
-    store.techRate = store.techHourly ? formulas.tech_hour : formulas.tech_day;
+    store.utilitaries.techRate = store.utilitaries.techHourly ? formulas.value.tech_hour : formulas.value.tech_day;
 }
 
 onMounted( async() => {
     formulas.value = await invoke('get_loc_formulas');
 
-    if(store.techRate === 0) {
+    if(store.utilitaries.techRate === 0) {
         setTechRate();
+    }
+    if(store.utilitaries.transportRate === 0) {
+        store.utilitaries.transportRate = formulas.value.transport_km;
     }
 });
 
-watch(() => store.techHourly, () => {
+watch(() => store.utilitaries.techHourly, () => {
     setTechRate();
 });
 </script>
@@ -103,7 +103,7 @@ watch(() => store.techHourly, () => {
         <section class="base">
             <div class="line tech">
                 <label>Techniciens :
-                    <input type="number" v-model="store.utilitaries.techQty"/>
+                    <input type="number" v-model="store.utilitaries.techQty" min="0"/>
                 </label>
                 <div class="rate">
                     <label>Prix unitaire :
@@ -114,7 +114,7 @@ watch(() => store.techHourly, () => {
                     </label>
                 </div>
                 <label>Total : 
-                    <span>{{ store.utilitaries.techQty * store.utilitaries.techRate }}</span>
+                    <span>{{ store.utilitaries.techQty * store.utilitaries.techRate }} €</span>
                 </label>
             </div>
             <div class="line transport">
@@ -125,7 +125,7 @@ watch(() => store.techHourly, () => {
                     <input type="number" v-model="store.utilitaries.transportRate"/>
                 </label>
                 <label>Total : 
-                    <span>{{ store.utilitaries.transportKm * store.utilitaries.transportRate }}</span>
+                    <span>{{ store.utilitaries.transportKm * store.utilitaries.transportRate }} €</span>
                 </label>
             </div>
             <div class="line adhesion">
@@ -156,7 +156,7 @@ watch(() => store.techHourly, () => {
                     <li v-for="item in store.extraItems" :data-id="item.id">
                         <p>{{ item.name }}</p>
                         <p>{{ item.price.toFixed(2) }} €</p>
-                        <button>Supprimer</button>
+                        <button @click="removeExtraField(item)">Supprimer</button>
                     </li>
                 </ul>
             </div>
@@ -170,7 +170,7 @@ watch(() => store.techHourly, () => {
                 <label>Prix :
                     <input type="number" v-model="tempExtrafield.price"/>
                 </label>
-                <button @click="setExtrafield">Ajouter</button>
+                <button @click="addExtrafield">Ajouter</button>
             </div>
             <div class="free">
                 <label>Geste commercial(%) :
