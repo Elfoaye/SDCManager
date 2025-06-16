@@ -14,7 +14,8 @@ const formulas = ref({
     contrib_following: 0,
     transport_km: 0,
     tech_day: 0,
-    tech_hour: 0
+    tech_hour: 0,
+    membership: 0
 });
 invoke('get_loc_formulas').then((data) => formulas.value = data);
 const types = ref([]);
@@ -116,6 +117,9 @@ async function applyChanges() {
                         </label>
                         <label>Technicien/Heure :
                             <input v-model="formulas.tech_hour" type="number" />
+                        </label>
+                        <label>Adhésion morale :
+                            <input v-model="formulas.membership" type="number" />
                         </label>
                     </div>
                 </div>

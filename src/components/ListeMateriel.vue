@@ -217,7 +217,9 @@ watch(() => props.modif, () => {
 
 <style scoped>
 .content {
- margin: 0.5rem;
+    margin: 0.5rem;
+    max-height: 100%;
+    overflow: hidden;
 }
 
 .title.modify {

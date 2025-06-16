@@ -105,7 +105,8 @@ listen('log_in_admin', (event) => {
     display: flex;
     justify-content: center;
     padding: 0.5rem;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     max-width: 100%;
 }
 </style>

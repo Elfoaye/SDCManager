@@ -17,9 +17,8 @@ body {
     flex-grow: 2;
     display: flex;
     flex-direction: column;
+    width: 95%;
     max-width: 60rem;
-    max-height: 100%;
-    overflow: hidden;
 }
 
 .title {

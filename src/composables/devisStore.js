@@ -3,9 +3,6 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export const useDevisStore = defineStore('devis', () => {
-    const formulas = ref(null);
-    invoke('get_loc_formulas').then((data) => formulas.value = data);
-
     const devisInfos = ref({
         id: '',
         name: '',
@@ -30,8 +27,7 @@ export const useDevisStore = defineStore('devis', () => {
         techHourly: false,
         transportKm: 0,
         transportRate: 0,
-        adhesion: false,
-        discountPercent: 0,
+        membership: false,
         discountEuro: 0
     });
 
@@ -60,6 +56,6 @@ export const useDevisStore = defineStore('devis', () => {
         }
     }
 
-    return { formulas, devisInfos, clientInfos, selectedItems, 
+    return { devisInfos, clientInfos, selectedItems, 
         extraItems, utilitaries, setItemQuantity};
 })

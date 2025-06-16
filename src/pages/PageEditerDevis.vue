@@ -34,15 +34,26 @@ function removeExtraField(item) {
     }
 }
 
-function finalCost() {
-    return 0;
-}
+const finalCost = computed(() => {
+    let price = store.utilitaries.techQty * store.utilitaries.techRate;
+    price += store.utilitaries.transportKm * store.utilitaries.transportRate;
+    if(store.utilitaries.membership && formulas.value) {
+        price += formulas.value.membership;
+    }
+
+    price += store.selectedItems.reduce((sum, item) => sum + item.totalPrice, 0);
+    price += store.extraItems.reduce((sum, item) => sum + item.price, 0);
+
+    price -= store.utilitaries.discountEuro;
+
+    return price;
+});
 
 function setTechRate() {
     store.utilitaries.techRate = store.utilitaries.techHourly ? formulas.value.tech_hour : formulas.value.tech_day;
 }
 
-onMounted( async() => {
+onMounted(async() => {
     formulas.value = await invoke('get_loc_formulas');
 
     if(store.utilitaries.techRate === 0) {
@@ -92,10 +103,10 @@ watch(() => store.utilitaries.techHourly, () => {
             </div>
             <div class="line">
                 <label>Mail du client :
-                    <input v-model="store.clientInfos.name"/>
+                    <input v-model="store.clientInfos.phone"/>
                 </label>
                 <label>Telephone du client :
-                    <input v-model="store.clientInfos.eventName"/>
+                    <input v-model="store.clientInfos.mail"/>
                 </label>
             </div>
         </section>
@@ -114,7 +125,7 @@ watch(() => store.utilitaries.techHourly, () => {
                     </label>
                 </div>
                 <label>Total : 
-                    <span>{{ store.utilitaries.techQty * store.utilitaries.techRate }} €</span>
+                    <span>{{ (store.utilitaries.techQty * store.utilitaries.techRate).toFixed(2) }} €</span>
                 </label>
             </div>
             <div class="line transport">
@@ -125,12 +136,12 @@ watch(() => store.utilitaries.techHourly, () => {
                     <input type="number" v-model="store.utilitaries.transportRate"/>
                 </label>
                 <label>Total : 
-                    <span>{{ store.utilitaries.transportKm * store.utilitaries.transportRate }} €</span>
+                    <span>{{ (store.utilitaries.transportKm * store.utilitaries.transportRate).toFixed(2) }} €</span>
                 </label>
             </div>
-            <div class="line adhesion">
+            <div class="line">
                 <label class="inline">Adhésion ?
-                    <input type="checkbox" v-model="store.utilitaries.adhesion"/>
+                    <input type="checkbox" v-model="store.utilitaries.membership"/>
                 </label>
             </div>
         </section>
@@ -146,7 +157,7 @@ watch(() => store.utilitaries.techHourly, () => {
                         <p>{{ item.contrib.toFixed(2) }} €</p>
                         <p>{{ item.quantity }}</p>
                         <p>{{ item.duration }}</p>
-                        <p>{{ item.totalPrice.toFixed(2) }}</p>
+                        <p>{{ item.totalPrice.toFixed(2) }} €</p>
                     </li>
                 </ul>
             </div>
@@ -164,25 +175,22 @@ watch(() => store.utilitaries.techHourly, () => {
         <h2>Autre</h2>
         <section class="bonus">
             <div class="other">
-                <label>Nom:
+                <label>Nom : 
                     <input v-model="tempExtrafield.name"/>
                 </label>
-                <label>Prix :
+                <label>Prix (€) : 
                     <input type="number" v-model="tempExtrafield.price"/>
                 </label>
                 <button @click="addExtrafield">Ajouter</button>
             </div>
             <div class="free">
-                <label>Geste commercial(%) :
-                    <input type="number" v-model="store.utilitaries.discountPercent"/>
-                </label>
-                <label>Geste commercial(€) :
+                <label>Geste commercial (€) : 
                     <input type="number" v-model="store.utilitaries.discountEuro"/>
                 </label>
             </div>
         </section>
         <section class="total">
-            <h2><span>Prix total : {{ finalCost() }}</span></h2>
+            <h2><span>Prix total : {{ finalCost.toFixed(2) }} €</span></h2>
         </section>
         <!-- <section class="preview">
 
@@ -211,10 +219,6 @@ watch(() => store.utilitaries.techHourly, () => {
 </template>
 
 <style scoped>
-.content {
-    max-height: 100%;
-    overflow-y: auto;
-}
 
 section {
     padding: 1rem;

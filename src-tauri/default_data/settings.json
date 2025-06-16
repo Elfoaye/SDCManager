@@ -8,6 +8,7 @@
         "contrib_following": 0.3,
         "transport_km": 0.70,
         "tech_day": 330,
-        "tech_hour": 35
+        "tech_hour": 35,
+        "membership": 25
     }
 }
