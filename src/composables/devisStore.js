@@ -136,13 +136,40 @@ export const useDevisStore = defineStore('devis', () => {
 
         try {
             devisInfos.value.id = await invoke('save_devis', { fullDevis: fullDevis });
-            console.log(devisInfos.value.id);
             return { result: 'success', message: "Devis sauvegardé" };
         } catch (err) {
             return { result: 'error', message: err.toString() };
         }
     }
 
+    function reset() {
+        devisInfos.value = {
+            id: 0,
+            name: '',
+            date: '',
+            duration: 1,
+        };
+        clientInfos.value = {
+            id: 0,
+            name: '',
+            eventName: '',
+            adress: '',
+            phone: '',
+            mail: ''
+        };
+        selectedItems.value = [];
+        extraItems.value = [];
+        utilitaries.value = { 
+            techQty: 0,
+            techRate: 0,
+            techHourly: false,
+            transportKm: 0,
+            transportRate: 0,
+            membership: false,
+            discountEuro: 0 
+        };
+    }
+
     return { devisInfos, clientInfos, selectedItems, 
-        extraItems, utilitaries, setItemQuantity, saveDevis};
+        extraItems, utilitaries, setItemQuantity, saveDevis, loadDevis, reset};
 });

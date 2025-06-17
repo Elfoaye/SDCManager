@@ -317,7 +317,6 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
         |row| row.get(0)
     ).unwrap_or(false);
 
-    println!("Devis exist = {}", devis_exists);
     let devis_id = if full_devis.devis.id == 0 || !devis_exists {
         generate_new_devis_id(&conn).map_err(|e| e.to_string())?
     } else {
@@ -341,8 +340,6 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
 
     // Devis
     if devis_exists { // Update devis
-        println!("Mise à jour du devis = {}", devis_id);
-
         transaction.execute(
             "UPDATE Devis SET client_id = ?, nom = ?, date = ?, durée = ?, adhesion = ?, promo = ?, etat = ? WHERE devis_id = ?",
             params![
@@ -361,8 +358,6 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
         transaction.execute("DELETE FROM Devis_materiel WHERE devis_id = ?", [devis_id]).map_err(|e| e.to_string())?;
         transaction.execute("DELETE FROM Devis_extra WHERE devis_id = ?", [devis_id]).map_err(|e| e.to_string())?;
     } else { // Insert new devis
-        println!("Insertion du nouveau devis = {}", devis_id);
-
         transaction.execute(
             "INSERT INTO Devis (devis_id, client_id, nom, date, durée, adhesion, promo, etat) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             params![
@@ -386,8 +381,6 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
         ).map_err(|e| e.to_string())?;
 
         for item in &full_devis.items {
-            println!("Tentative d'insertion materiel_id = {}", item.item_id);
-
             requete_item.execute(params![
                 devis_id,
                 item.item_id,

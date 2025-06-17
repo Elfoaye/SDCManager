@@ -55,8 +55,18 @@ function setTechRate() {
     store.utilitaries.techRate = store.utilitaries.techHourly ? formulas.value.tech_hour : formulas.value.tech_day;
 }
 
+function newDevis() {
+    store.reset();
+    setTechRate();
+    store.utilitaries.transportRate = formulas.value.transport_km;
+    saveMassage.value = null;
+}
+
+// TODO Faire marcher ça
 function loadDevis(id) {
+    console.log("Chargement du devis " + id);
     store.loadDevis(id);
+    saveMassage.value = null;
 }
 
 async function saveDevis() {
@@ -64,7 +74,11 @@ async function saveDevis() {
 }
 
 function cancelDevis() {
-    
+    if(store.devisInfos.id == 0) {
+        newDevis();
+    } else {
+        loadDevis(store.devisInfos.id);
+    }
 }
 
 onMounted(async() => {
@@ -92,7 +106,7 @@ watch(() => store.utilitaries.techHourly, () => {
         <div class="context">
             <p v-if="store.devisInfos.id > 0">Edition du devis {{ store.devisInfos.id + " " + store.devisInfos.name }}</p>
             <p v-else>Nouveau devis</p>
-            <button>Nouveau devis</button>
+            <button @click="newDevis">Nouveau devis</button>
         </div>
         <h2>Informations générales</h2>
         <section class="infos">
@@ -220,7 +234,7 @@ watch(() => store.utilitaries.techHourly, () => {
                 <button @click="saveDevis">
                     {{ store.devisInfos.id > 0 ? 'Mettre à jour' : 'Enregistrer' }}
                 </button>
-                <button>
+                <button @click="cancelDevis">
                     Annuler
                 </button>
                 <!-- <button>
