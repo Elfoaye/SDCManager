@@ -18,6 +18,53 @@ pub struct Item {
     benef: f32
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct Client {
+    id: i32,
+    nom: String,
+    evenement: String,
+    adresse: String,
+    tel: String,
+    mail: String
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Devis {
+    id: i32,
+    client_id: i32,
+    nom: String,
+    date: String,
+    adhesion: bool,
+    promo: f32,
+    etat: String
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct DevisItem {
+    id: i32,
+    devis_id: i32,
+    item_id: i32,
+    quantité: i32,
+    durée: i32,
+    etat: String
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct DevisExtra {
+    id: i32,
+    devis_id: i32,
+    nom: String,
+    prix: f32
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct FullDevis {
+    client: Client,
+    devis: Devis,
+    items: Vec<DevisItem>,
+    extra: Vec<DevisExtra>
+}
+
 static DB_CONN: OnceCell<Mutex<Connection>> = OnceCell::new();
 
 fn get_database_connection(handle: tauri::AppHandle) -> Result<MutexGuard<'static, Connection>, String> {
@@ -213,4 +260,63 @@ pub fn delete_item(id: i32, handle: tauri::AppHandle) -> Result<String, String> 
     .map_err(|e| e.to_string())?;
 
     Ok("Objet supprimé".to_string())
+}
+
+#[tauri::command]
+pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<String, String> {
+    let conn = get_database_connection(handle)?;
+
+    conn.execute(
+        "INSERT INTO Client (nom, evenement, adresse, tel, mail) VALUES (?, ?, ?, ?, ?)",
+        params![
+            full_devis.client.nom,
+            full_devis.client.evenement,
+            full_devis.client.adresse,
+            full_devis.client.tel,
+            full_devis.client.mail
+        ],
+    ).map_err(|e| e.to_string())?;
+    let client_id = conn.last_insert_rowid();
+
+    // Insertion du devis
+    conn.execute(
+        "INSERT INTO Devis (client_id, nom, date, adhesion, promo, etat) VALUES (?, ?, ?, ?, ?, ?)",
+        params![
+            client_id,
+            full_devis.devis.nom,
+            full_devis.devis.date,
+            full_devis.devis.adhesion,
+            full_devis.devis.promo,
+            full_devis.devis.etat
+        ],
+    ).map_err(|e| e.to_string())?;
+    let devis_id = conn.last_insert_rowid();
+
+    // Insertion des devis_items
+    for item in &full_devis.items {
+        conn.execute(
+            "INSERT INTO Devis_materiel (devis_id, materiel_id, quantité, durée, etat) VALUES (?, ?, ?, ?, ?)",
+            params![
+                devis_id,
+                item.item_id,
+                item.quantité,
+                item.durée,
+                item.etat
+            ],
+        ).map_err(|e| e.to_string())?;
+    }
+
+    // Insertion des extras
+    for extra in &full_devis.extra {
+        conn.execute(
+            "INSERT INTO Devis_extra (devis_id, nom, prix) VALUES (?, ?, ?)",
+            params![
+                devis_id,
+                extra.nom,
+                extra.prix
+            ],
+        ).map_err(|e| e.to_string())?;
+    }
+
+    Ok("Devis sauvegardé".to_string())
 }

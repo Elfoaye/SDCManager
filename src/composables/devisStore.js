@@ -56,6 +56,14 @@ export const useDevisStore = defineStore('devis', () => {
         }
     }
 
+    function saveDevis() {
+
+    }
+
+    function cancelDevis() {
+        
+    }
+
     return { devisInfos, clientInfos, selectedItems, 
         extraItems, utilitaries, setItemQuantity};
 })

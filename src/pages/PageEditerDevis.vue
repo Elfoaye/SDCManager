@@ -53,6 +53,14 @@ function setTechRate() {
     store.utilitaries.techRate = store.utilitaries.techHourly ? formulas.value.tech_hour : formulas.value.tech_day;
 }
 
+function saveDevis() {
+
+}
+
+function cancelDevis() {
+    
+}
+
 onMounted(async() => {
     formulas.value = await invoke('get_loc_formulas');
 
@@ -202,7 +210,7 @@ watch(() => store.utilitaries.techHourly, () => {
             <button>
                 Annuler
             </button>
-            <button>
+            <!-- <button>
                 Apperçu
             </button>
             <button>
@@ -213,7 +221,7 @@ watch(() => store.utilitaries.techHourly, () => {
             </button>
             <button>
                 Dupliquer
-            </button>
+            </button> -->
         </section>
     </div>
 </template>
