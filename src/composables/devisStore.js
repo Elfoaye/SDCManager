@@ -57,6 +57,47 @@ export const useDevisStore = defineStore('devis', () => {
         }
     }
 
+    async function loadDevis(id) {
+        try {
+            const fullDevis = await invoke('load_devis', { devis_id: id });
+
+            store.clientInfos = {
+                name: fullDevis.client.nom,
+                eventName: fullDevis.client.evenement,
+                adress: fullDevis.client.adresse,
+                phone: fullDevis.client.tel,
+                mail: fullDevis.client.mail,
+                id: fullDevis.client.id
+            };
+
+            store.devisInfos = {
+                id: fullDevis.devis.id,
+                name: fullDevis.devis.nom,
+                date: fullDevis.devis.date,
+                duration: fullDevis.devis.durée
+            };
+
+            store.selectedItems = fullDevis.items.map(item => ({
+                id: item.item_id,
+                quantity: item.quantité,
+                duration: item.durée,
+                totalPrice: 0
+            }));
+
+            store.extraItems = fullDevis.extra.map(extra => ({
+                name: extra.nom,
+                price: extra.prix
+            }));
+
+            store.utilitaries.membership = fullDevis.devis.adhesion;
+            store.utilitaries.discountEuro = fullDevis.devis.promo;
+
+            return { result: 'success', message: 'Devis chargé' };
+        } catch (err) {
+            return { result: 'error', message: err.toString() };
+        }
+    }
+
     async function saveDevis() {
         const fullDevis = {
             client: {
@@ -72,6 +113,7 @@ export const useDevisStore = defineStore('devis', () => {
                 client_id: clientInfos.value.id,
                 nom: devisInfos.value.name,
                 date: devisInfos.value.date,
+                durée: devisInfos.value.duration,
                 adhesion: utilitaries.value.membership,
                 promo: utilitaries.value.discountEuro,
                 etat: "devis"
@@ -93,8 +135,7 @@ export const useDevisStore = defineStore('devis', () => {
         };
 
         try {
-            const result = await invoke('save_devis', { fullDevis: fullDevis });
-            devisInfos.value.id = result;
+            devisInfos.value.id = await invoke('save_devis', { fullDevis: fullDevis });
             return { result: 'success', message: "Devis sauvegardé" };
         } catch (err) {
             return { result: 'error', message: err.toString() };

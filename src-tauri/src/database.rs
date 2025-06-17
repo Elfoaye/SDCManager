@@ -34,6 +34,7 @@ pub struct Devis {
     client_id: i32,
     nom: String,
     date: String,
+    durée: i32,
     adhesion: bool,
     promo: f32,
     etat: String
@@ -264,9 +265,10 @@ pub fn delete_item(id: i32, handle: tauri::AppHandle) -> Result<String, String> 
 
 #[tauri::command]
 pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64, String> {
-    let conn = get_database_connection(handle)?;
+    let mut conn = get_database_connection(handle)?;
+    let transaction = conn.transaction().map_err(|e| e.to_string())?;
 
-    conn.execute(
+    transaction.execute(
         "INSERT INTO Client (nom, evenement, adresse, tel, mail) VALUES (?, ?, ?, ?, ?)",
         params![
             full_devis.client.nom,
@@ -276,47 +278,130 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
             full_devis.client.mail
         ],
     ).map_err(|e| e.to_string())?;
-    let client_id = conn.last_insert_rowid();
+    let client_id = transaction.last_insert_rowid();
 
-    // Insertion du devis
-    conn.execute(
-        "INSERT INTO Devis (client_id, nom, date, adhesion, promo, etat) VALUES (?, ?, ?, ?, ?, ?)",
+    transaction.execute(
+        "INSERT INTO Devis (client_id, nom, date, durée, adhesion, promo, etat) VALUES (?, ?, ?, ?, ?, ?, ?)",
         params![
             client_id,
             full_devis.devis.nom,
             full_devis.devis.date,
+            full_devis.devis.durée,
             full_devis.devis.adhesion,
             full_devis.devis.promo,
             full_devis.devis.etat
         ],
     ).map_err(|e| e.to_string())?;
-    let devis_id = conn.last_insert_rowid();
+    let devis_id = transaction.last_insert_rowid();
 
-    // Insertion des devis_items
-    for item in &full_devis.items {
-        conn.execute(
-            "INSERT INTO Devis_materiel (devis_id, materiel_id, quantité, durée, etat) VALUES (?, ?, ?, ?, ?)",
-            params![
+    { // Scope limit for borrowing in transaction.prepare 
+        let mut requete_item = transaction.prepare(
+            "INSERT INTO Devis_materiel (devis_id, materiel_id, quantité, durée, etat) 
+            VALUES (?, ?, ?, ?, ?)"
+        ).map_err(|e| e.to_string())?;
+
+        for item in &full_devis.items {
+            requete_item.execute(params![
                 devis_id,
                 item.item_id,
                 item.quantité,
                 item.durée,
                 item.etat
-            ],
-        ).map_err(|e| e.to_string())?;
+            ]).map_err(|e| e.to_string())?;
+        }
     }
 
-    // Insertion des extras
-    for extra in &full_devis.extra {
-        conn.execute(
-            "INSERT INTO Devis_extra (devis_id, nom, prix) VALUES (?, ?, ?)",
-            params![
+    { // Scope limit for borrowing in transaction.prepare 
+        let mut requete_extra = transaction.prepare(
+            "INSERT INTO Devis_extra (devis_id, nom, prix) VALUES (?, ?, ?)"
+        ).map_err(|e| e.to_string())?;
+
+        for extra in &full_devis.extra {
+            requete_extra.execute(params![
                 devis_id,
                 extra.nom,
                 extra.prix
-            ],
-        ).map_err(|e| e.to_string())?;
+            ]).map_err(|e| e.to_string())?;
+        }
     }
 
+    transaction.commit().map_err(|e| e.to_string())?;
+
     Ok(devis_id)
+}
+
+#[tauri::command]
+pub fn load_devis(devis_id: i64, handle: tauri::AppHandle) -> Result<FullDevis, String> {
+    let conn = get_database_connection(handle)?;
+
+    let devis: Devis = conn.query_row(
+        "SELECT id, client_id, nom, date, durée, adhesion, promo, etat FROM Devis WHERE id = ?",
+        params![devis_id],
+        |row| Ok(Devis {
+            id: row.get(0)?,
+            client_id: row.get(1)?,
+            nom: row.get(2)?,
+            date: row.get(3)?,
+            durée: row.get(4)?,
+            adhesion: row.get(5)?,
+            promo: row.get(6)?,
+            etat: row.get(7)?,
+        }),
+    ).map_err(|e| e.to_string())?;
+
+    let client: Client = conn.query_row(
+        "SELECT id, nom, evenement, adresse, tel, mail FROM Client WHERE id = ?",
+        params![devis.client_id],
+        |row| Ok(Client {
+            id: row.get(0)?,
+            nom: row.get(1)?,
+            evenement: row.get(2)?,
+            adresse: row.get(3)?,
+            tel: row.get(4)?,
+            mail: row.get(5)?,
+        }),
+    ).map_err(|e| e.to_string())?;
+
+    let mut stmt_items = conn.prepare(
+        "SELECT id, devis_id, materiel_id, quantité, durée, etat FROM Devis_materiel WHERE devis_id = ?"
+    ).map_err(|e| e.to_string())?;
+    let items_iter = stmt_items.query_map(params![devis_id], |row| {
+        Ok(DevisItem {
+            id: row.get(0)?,
+            devis_id: row.get(1)?,
+            item_id: row.get(2)?,
+            quantité: row.get(3)?,
+            durée: row.get(4)?,
+            etat: row.get(5)?,
+        })
+    }).map_err(|e| e.to_string())?;
+
+    let mut items = Vec::new();
+    for item_res in items_iter {
+        items.push(item_res.map_err(|e| e.to_string())?);
+    }
+
+    let mut stmt_extra = conn.prepare(
+        "SELECT id, devis_id, nom, prix FROM Devis_extra WHERE devis_id = ?"
+    ).map_err(|e| e.to_string())?;
+    let extra_iter = stmt_extra.query_map(params![devis_id], |row| {
+        Ok(DevisExtra {
+            id: row.get(0)?,
+            devis_id: row.get(1)?,
+            nom: row.get(2)?,
+            prix: row.get(3)?,
+        })
+    }).map_err(|e| e.to_string())?;
+
+    let mut extra = Vec::new();
+    for extra_res in extra_iter {
+        extra.push(extra_res.map_err(|e| e.to_string())?);
+    }
+
+    Ok(FullDevis {
+        client,
+        devis,
+        items,
+        extra,
+    })
 }

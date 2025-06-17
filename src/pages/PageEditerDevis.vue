@@ -55,6 +55,10 @@ function setTechRate() {
     store.utilitaries.techRate = store.utilitaries.techHourly ? formulas.value.tech_hour : formulas.value.tech_day;
 }
 
+function loadDevis(id) {
+    store.loadDevis(id);
+}
+
 async function saveDevis() {
     saveMassage.value = await store.saveDevis();
 }
@@ -91,7 +95,7 @@ watch(() => store.utilitaries.techHourly, () => {
                 <label>Nom du devis :
                     <input v-model="store.devisInfos.name"/>
                 </label>
-                <label>Date :
+                <label>Date de début :
                     <input v-model="store.devisInfos.date"/>
                 </label>
                 <label>Durée (Jours) :
