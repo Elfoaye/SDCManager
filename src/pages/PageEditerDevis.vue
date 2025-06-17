@@ -20,6 +20,8 @@ const tempExtrafield = ref({
 
 const formulas = ref(null);
 
+const saveMassage = ref(null);
+
 function addExtrafield(){
     if(tempExtrafield.value.name === '' || tempExtrafield.value.price === '') return;
 
@@ -53,8 +55,8 @@ function setTechRate() {
     store.utilitaries.techRate = store.utilitaries.techHourly ? formulas.value.tech_hour : formulas.value.tech_day;
 }
 
-function saveDevis() {
-
+async function saveDevis() {
+    saveMassage.value = await store.saveDevis();
 }
 
 function cancelDevis() {
@@ -63,6 +65,7 @@ function cancelDevis() {
 
 onMounted(async() => {
     formulas.value = await invoke('get_loc_formulas');
+    saveMassage.value = null;
 
     if(store.utilitaries.techRate === 0) {
         setTechRate();
@@ -204,24 +207,27 @@ watch(() => store.utilitaries.techHourly, () => {
 
         </section> -->
         <section class="submit">
-            <button>
-                Sauvegarder
-            </button>
-            <button>
-                Annuler
-            </button>
-            <!-- <button>
-                Apperçu
-            </button>
-            <button>
-                Télecharger
-            </button>
-            <button>
-                Facturer
-            </button>
-            <button>
-                Dupliquer
-            </button> -->
+            <div class="buttons">
+                <button @click="saveDevis">
+                    Sauvegarder
+                </button>
+                <button>
+                    Annuler
+                </button>
+                <!-- <button>
+                    Apperçu
+                </button>
+                <button>
+                    Télecharger
+                </button>
+                <button>
+                    Facturer
+                </button>
+                <button>
+                    Dupliquer
+                </button> -->
+            </div>
+            <p v-if="saveMassage" :class="saveMassage.result">{{ saveMassage.message }}</p>
         </section>
     </div>
 </template>

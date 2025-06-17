@@ -4,13 +4,14 @@ import { ref } from 'vue'
 
 export const useDevisStore = defineStore('devis', () => {
     const devisInfos = ref({
-        id: '',
+        id: 0,
         name: '',
         date: '',
         duration: 1,
     });
 
     const clientInfos = ref({
+        id: 0,
         name: '',
         eventName: '',
         adress: '',
@@ -56,14 +57,50 @@ export const useDevisStore = defineStore('devis', () => {
         }
     }
 
-    function saveDevis() {
+    async function saveDevis() {
+        const fullDevis = {
+            client: {
+                id: clientInfos.value.id,
+                nom: clientInfos.value.name,
+                evenement: clientInfos.value.eventName,
+                adresse: clientInfos.value.adress,
+                tel: clientInfos.value.phone,
+                mail: clientInfos.value.mail
+            },
+            devis: {
+                id: devisInfos.value.id,
+                client_id: clientInfos.value.id,
+                nom: devisInfos.value.name,
+                date: devisInfos.value.date,
+                adhesion: utilitaries.value.membership,
+                promo: utilitaries.value.discountEuro,
+                etat: "devis"
+            },
+            items: selectedItems.value.map(item => ({
+                id: 0,
+                devis_id: devisInfos.value.id,
+                item_id: item.id,
+                quantité: item.quantity,
+                durée: item.duration,
+                etat: "devis"
+            })),
+            extra: extraItems.value.map(extra => ({
+                id: 0,
+                devis_id: devisInfos.value.id,
+                nom: extra.name,
+                prix: parseFloat(extra.price)
+            }))
+        };
 
-    }
-
-    function cancelDevis() {
-        
+        try {
+            const result = await invoke('save_devis', { fullDevis: fullDevis });
+            devisInfos.value.id = result;
+            return { result: 'success', message: "Devis sauvegardé" };
+        } catch (err) {
+            return { result: 'error', message: err.toString() };
+        }
     }
 
     return { devisInfos, clientInfos, selectedItems, 
-        extraItems, utilitaries, setItemQuantity};
-})
+        extraItems, utilitaries, setItemQuantity, saveDevis};
+});

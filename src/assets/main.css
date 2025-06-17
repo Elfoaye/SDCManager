@@ -123,3 +123,11 @@ button.selected {
 .itemCard span {
     font-weight: 500;
 }
+
+.success {
+    color: var(--success);
+}
+
+.error {
+    color: var(--error);
+}

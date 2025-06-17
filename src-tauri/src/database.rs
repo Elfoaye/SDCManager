@@ -263,7 +263,7 @@ pub fn delete_item(id: i32, handle: tauri::AppHandle) -> Result<String, String> 
 }
 
 #[tauri::command]
-pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<String, String> {
+pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64, String> {
     let conn = get_database_connection(handle)?;
 
     conn.execute(
@@ -318,5 +318,5 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<Str
         ).map_err(|e| e.to_string())?;
     }
 
-    Ok("Devis sauvegardé".to_string())
+    Ok(devis_id)
 }
