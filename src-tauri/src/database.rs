@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
-use rusqlite::{Connection, Result, params};
+use rusqlite::{Connection, Result, params, OptionalExtension};
+use chrono::Local;
 use once_cell::sync::OnceCell;
 use std::sync::{Mutex, MutexGuard};
 use crate::files_setup::{get_or_create_data_dir};
@@ -64,6 +65,15 @@ pub struct FullDevis {
     devis: Devis,
     items: Vec<DevisItem>,
     extra: Vec<DevisExtra>
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct SummDevis {
+    id: i32,
+    nom: String,
+    date: String,
+    client_nom: String,
+    evenement: String,
 }
 
 static DB_CONN: OnceCell<Mutex<Connection>> = OnceCell::new();
@@ -263,9 +273,45 @@ pub fn delete_item(id: i32, handle: tauri::AppHandle) -> Result<String, String> 
     Ok("Objet supprimé".to_string())
 }
 
+fn generate_new_devis_id(conn: &Connection) -> Result<i32, rusqlite::Error> {
+
+    let now = Local::now();
+    let current_year = now.format("%Y").to_string();
+    let current_month = now.format("%m").to_string();
+
+    let last_devis_id: Option<i32> = conn.query_row(
+        "SELECT devis_id FROM Devis ORDER BY devis_id DESC LIMIT 1",
+        [],
+        |row| row.get(0),
+    ).optional()?;
+
+    let new_numero = if let Some(last_id) = last_devis_id {
+        let last_id_str = format!("{:08}", last_id);
+        let last_year = &last_id_str[0..4];
+        let last_month = &last_id_str[4..6];
+        let last_numero = &last_id_str[6..8];
+
+        if last_year == current_year && last_month == current_month {
+            let last_num: u32 = last_numero.parse().unwrap_or(0);
+            last_num + 1
+        } else {
+            1
+        }
+    } else {
+        1
+    };
+
+    let new_id_str = format!("{}{}{:02}", current_year, current_month, new_numero);
+    let new_id = new_id_str.parse::<i32>().unwrap();
+
+    Ok(new_id)
+}
+
 #[tauri::command]
 pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64, String> {
     let mut conn = get_database_connection(handle)?;
+    let devis_id = generate_new_devis_id(&conn).map_err(|e| e.to_string())?;
+
     let transaction = conn.transaction().map_err(|e| e.to_string())?;
 
     transaction.execute(
@@ -281,8 +327,9 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
     let client_id = transaction.last_insert_rowid();
 
     transaction.execute(
-        "INSERT INTO Devis (client_id, nom, date, durée, adhesion, promo, etat) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO Devis (devis_id, client_id, nom, date, durée, adhesion, promo, etat) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         params![
+            devis_id,
             client_id,
             full_devis.devis.nom,
             full_devis.devis.date,
