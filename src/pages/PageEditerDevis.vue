@@ -89,6 +89,11 @@ watch(() => store.utilitaries.techHourly, () => {
         <div class="title">
             <h1>Editer le devis</h1>
         </div>
+        <div class="context">
+            <p v-if="store.devisInfos.id > 0">Edition du devis {{ store.devisInfos.id + " " + store.devisInfos.name }}</p>
+            <p v-else>Nouveau devis</p>
+            <button>Nouveau devis</button>
+        </div>
         <h2>Informations générales</h2>
         <section class="infos">
             <div class="line tech">
@@ -213,7 +218,7 @@ watch(() => store.utilitaries.techHourly, () => {
         <section class="submit">
             <div class="buttons">
                 <button @click="saveDevis">
-                    Sauvegarder
+                    {{ store.devisInfos.id > 0 ? 'Mettre à jour' : 'Enregistrer' }}
                 </button>
                 <button>
                     Annuler
@@ -237,6 +242,10 @@ watch(() => store.utilitaries.techHourly, () => {
 </template>
 
 <style scoped>
+.context {
+    display: flex;
+    justify-content: space-between;
+}
 
 section {
     padding: 1rem;

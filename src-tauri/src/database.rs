@@ -310,10 +310,23 @@ fn generate_new_devis_id(conn: &Connection) -> Result<i32, rusqlite::Error> {
 #[tauri::command]
 pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64, String> {
     let mut conn = get_database_connection(handle)?;
-    let devis_id = generate_new_devis_id(&conn).map_err(|e| e.to_string())?;
+
+    let devis_exists: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM Devis WHERE devis_id = ?)",
+        [full_devis.devis.id],
+        |row| row.get(0)
+    ).unwrap_or(false);
+
+    println!("Devis exist = {}", devis_exists);
+    let devis_id = if full_devis.devis.id == 0 || !devis_exists {
+        generate_new_devis_id(&conn).map_err(|e| e.to_string())?
+    } else {
+        full_devis.devis.id
+    };
 
     let transaction = conn.transaction().map_err(|e| e.to_string())?;
 
+    // Client
     transaction.execute(
         "INSERT INTO Client (nom, evenement, adresse, tel, mail) VALUES (?, ?, ?, ?, ?)",
         params![
@@ -326,21 +339,46 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
     ).map_err(|e| e.to_string())?;
     let client_id = transaction.last_insert_rowid();
 
-    transaction.execute(
-        "INSERT INTO Devis (devis_id, client_id, nom, date, durée, adhesion, promo, etat) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        params![
-            devis_id,
-            client_id,
-            full_devis.devis.nom,
-            full_devis.devis.date,
-            full_devis.devis.durée,
-            full_devis.devis.adhesion,
-            full_devis.devis.promo,
-            full_devis.devis.etat
-        ],
-    ).map_err(|e| e.to_string())?;
-    let devis_id = transaction.last_insert_rowid();
+    // Devis
+    if devis_exists { // Update devis
+        println!("Mise à jour du devis = {}", devis_id);
 
+        transaction.execute(
+            "UPDATE Devis SET client_id = ?, nom = ?, date = ?, durée = ?, adhesion = ?, promo = ?, etat = ? WHERE devis_id = ?",
+            params![
+                    client_id,
+                    full_devis.devis.nom,
+                    full_devis.devis.date,
+                    full_devis.devis.durée,
+                    full_devis.devis.adhesion,
+                    full_devis.devis.promo,
+                    full_devis.devis.etat,
+                    devis_id
+                ],
+        ).map_err(|e| e.to_string())?;
+        
+        // Clean up linked elements
+        transaction.execute("DELETE FROM Devis_materiel WHERE devis_id = ?", [devis_id]).map_err(|e| e.to_string())?;
+        transaction.execute("DELETE FROM Devis_extra WHERE devis_id = ?", [devis_id]).map_err(|e| e.to_string())?;
+    } else { // Insert new devis
+        println!("Insertion du nouveau devis = {}", devis_id);
+
+        transaction.execute(
+            "INSERT INTO Devis (devis_id, client_id, nom, date, durée, adhesion, promo, etat) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            params![
+                devis_id,
+                client_id,
+                full_devis.devis.nom,
+                full_devis.devis.date,
+                full_devis.devis.durée,
+                full_devis.devis.adhesion,
+                full_devis.devis.promo,
+                full_devis.devis.etat
+            ],
+        ).map_err(|e| e.to_string())?;
+    }
+
+    // Materiel
     { // Scope limit for borrowing in transaction.prepare 
         let mut requete_item = transaction.prepare(
             "INSERT INTO Devis_materiel (devis_id, materiel_id, quantité, durée, etat) 
@@ -348,6 +386,8 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
         ).map_err(|e| e.to_string())?;
 
         for item in &full_devis.items {
+            println!("Tentative d'insertion materiel_id = {}", item.item_id);
+
             requete_item.execute(params![
                 devis_id,
                 item.item_id,
@@ -358,6 +398,7 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
         }
     }
 
+    // Extras
     { // Scope limit for borrowing in transaction.prepare 
         let mut requete_extra = transaction.prepare(
             "INSERT INTO Devis_extra (devis_id, nom, prix) VALUES (?, ?, ?)"
@@ -374,7 +415,7 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
 
     transaction.commit().map_err(|e| e.to_string())?;
 
-    Ok(devis_id)
+    Ok(devis_id.into())
 }
 
 #[tauri::command]
