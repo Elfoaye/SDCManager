@@ -36,6 +36,10 @@ pub struct Devis {
     nom: String,
     date: String,
     durée: i32,
+    nb_tech: i32,
+    taux_tech: f32,
+    nb_km: i32,
+    taux_km: f32,
     adhesion: bool,
     promo: f32,
     etat: String
@@ -358,12 +362,16 @@ pub fn save_devis(full_devis: FullDevisIN, handle: tauri::AppHandle) -> Result<i
     // Devis
     if devis_exists { // Update devis
         transaction.execute(
-            "UPDATE Devis SET client_id = ?, nom = ?, date = ?, durée = ?, adhesion = ?, promo = ?, etat = ? WHERE devis_id = ?",
+            "UPDATE Devis SET client_id = ?, nom = ?, date = ?, durée = ?, nb_tech = ?, taux_tech = ?, nb_km = ?, taux_km = ?, adhesion = ?, promo = ?, etat = ? WHERE devis_id = ?",
             params![
                     client_id,
                     full_devis.devis.nom,
                     full_devis.devis.date,
                     full_devis.devis.durée,
+                    full_devis.devis.nb_tech,
+                    full_devis.devis.taux_tech,
+                    full_devis.devis.nb_km,
+                    full_devis.devis.taux_km,
                     full_devis.devis.adhesion,
                     full_devis.devis.promo,
                     full_devis.devis.etat,
@@ -433,7 +441,7 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevisOU
     let conn = get_database_connection(handle)?;
 
     let devis: Devis = conn.query_row(
-        "SELECT devis_id, client_id, nom, date, durée, adhesion, promo, etat FROM Devis WHERE devis_id = ?",
+        "SELECT devis_id, client_id, nom, date, durée, nb_tech, taux_tech, nb_km, taux_km, adhesion, promo, etat FROM Devis WHERE devis_id = ?",
         params![devis_id],
         |row| Ok(Devis {
             id: row.get(0)?,
@@ -441,9 +449,13 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevisOU
             nom: row.get(2)?,
             date: row.get(3)?,
             durée: row.get(4)?,
-            adhesion: row.get(5)?,
-            promo: row.get(6)?,
-            etat: row.get(7)?,
+            nb_tech: row.get(5)?,
+            taux_tech: row.get(6)?,
+            nb_km: row.get(7)?,
+            taux_km: row.get(8)?,
+            adhesion: row.get(9)?,
+            promo: row.get(10)?,
+            etat: row.get(11)?,
         }),
     ).map_err(|e| e.to_string())?;
 

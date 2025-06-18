@@ -82,6 +82,10 @@ export const useDevisStore = defineStore('devis', () => {
                 nom: devisInfos.value.name,
                 date: devisInfos.value.date,
                 durée: devisInfos.value.duration,
+                nb_tech: utilitaries.value.techQty,
+                taux_tech: utilitaries.value.techRate,
+                nb_km: utilitaries.value.transportKm,
+                taux_km: utilitaries.value.transportRate,
                 adhesion: utilitaries.value.membership,
                 promo: utilitaries.value.discountEuro,
                 etat: "devis"
@@ -143,12 +147,17 @@ export const useDevisStore = defineStore('devis', () => {
                 price: extra.prix
             }));
 
-            utilitaries.value.membership = fullDevis.devis.adhesion;
-            utilitaries.value.discountEuro = fullDevis.devis.promo;
-
-            return { result: 'success', message: 'Devis chargé' };
+            utilitaries.value = {
+                techQty: fullDevis.devis.nb_tech,
+                techRate: fullDevis.devis.taux_tech,
+                techHourly: (fullDevis.devis.taux_tech < 100),
+                transportKm: fullDevis.devis.nb_km,
+                transportRate: fullDevis.devis.taux_km,
+                membership: fullDevis.devis.adhesion,
+                discountEuro: fullDevis.devis.promo
+            };         
         } catch (err) {
-            return { result: 'error', message: err.toString() };
+            throw err;
         }
     }
 

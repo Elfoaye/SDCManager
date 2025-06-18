@@ -11,7 +11,7 @@ const { setBreadcrumb } = useBreadcrumb();
 setBreadcrumb([
     { label: 'Accueil', page: null },
     { label: 'Devis & Factures', page: 'devparcour' },
-    { label: 'Modifier', page: 'devmodif' }
+    { label: 'Éditer', page: 'devmodif' }
 ]);
 
 const store = useDevisStore();
@@ -23,6 +23,7 @@ const tempExtrafield = ref({
 const formulas = ref(null);
 const contextName = ref('');
 const saveMassage = ref({ result: 'success', message: '' });
+const loadError = ref('');
 
 function addExtrafield(){
     if(tempExtrafield.value.name === '' || tempExtrafield.value.price === '') return;
@@ -57,37 +58,47 @@ function setTechRate() {
     store.utilitaries.techRate = store.utilitaries.techHourly ? formulas.value.tech_hour : formulas.value.tech_day;
 }
 
+function setContextName() {
+    if(store.devisInfos.id <= 0) {
+        contextName.value = '';
+        return;
+    }
+
+    contextName.value = store.devisInfos.id + ' ' + store.devisInfos.name;
+}
+
 function newDevis() {
     store.reset();
     setTechRate();
     store.utilitaries.transportRate = formulas.value.transport_km;
     saveMassage.value = null;
-    contextName.value = null;
+    setContextName();
 }
 
 async function loadDevis(id) {
+    if(id <= 0) {
+        newDevis();
+        setContextName();
+        return;
+    }
+
     try {
         await store.loadDevis(id);
-        console.table(store.selectedItems);
-
-        saveMassage.value = null;
-        contextName.value = store.devisInfos.id + ' ' + store.devisInfos.name;
+        loadError.value = '';
+        setContextName();
     } catch (err) {
-        saveMassage.value = err;
+        console.error(err);
+        loadError.value = err;
     }
 }
 
 async function saveDevis() {
     saveMassage.value = await store.saveDevis();
-    contextName.value = store.devisInfos.id + ' ' + store.devisInfos.name;
+    setContextName();
 }
 
 function cancelDevis() {
-    if(store.devisInfos.id == 0) {
-        newDevis();
-    } else {
-        loadDevis(store.devisInfos.id);
-    }
+    loadDevis(store.devisInfos.id);
 }
 
 onMounted(async() => {
@@ -111,12 +122,13 @@ watch(() => store.utilitaries.techHourly, () => {
 <template>
     <div class="content">
         <div class="title">
-            <h1>Editer le devis</h1>
+            <h1>Éditer le devis</h1>
         </div>
+        <p v-if="loadError" class="error">{{ loadError }}</p>
         <div class="context">
-            <p v-if="contextName">Edition du devis {{ contextName }}</p>
-            <p v-else>Nouveau devis</p>
-            <button @click="newDevis">Nouveau devis</button>
+            <h2 v-if="contextName">Edition du devis {{ contextName }}</h2>
+            <h2 v-else>Nouveau devis</h2>
+            <button v-if="contextName" @click="newDevis">Nouveau devis</button>
         </div>
         <h2>Informations générales</h2>
         <section class="infos">
@@ -269,6 +281,7 @@ watch(() => store.utilitaries.techHourly, () => {
 .context {
     display: flex;
     justify-content: space-between;
+    margin-bottom: 1rem;
 }
 
 section {

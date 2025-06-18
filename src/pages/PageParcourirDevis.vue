@@ -78,7 +78,7 @@ function setDevis(id) {
         </div>
         <div class="list">
             <div class="search">
-                <input v-model="filterSearch" class="searchbar" type="text" placeholder="Chercher par nom, catégorie..."/>
+                <input v-model="filterSearch" class="searchbar" type="text" placeholder="Chercher par ID, nom, client..."/>
             </div>
 
             <li class="head">

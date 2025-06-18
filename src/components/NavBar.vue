@@ -45,7 +45,7 @@ const props = defineProps(['setPage']);
                     <path d="M9 9L13 9" stroke="currentColor" stroke-linecap="round"/>
                     <path d="M9 17L13 17" stroke="currentColor" stroke-linecap="round"/>
                 </svg>
-                Créer
+                Éditer
             </button>
         </section>
 
