@@ -1,9 +1,11 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onBeforeMount ,onMounted, watch } from 'vue';
 import { useBreadcrumb } from '../composables/breadcrumb';
 import { useDevisStore } from '../composables/devisStore';
 import ListeSelectionDevis from '../components/ListeSelectionDevis.vue';
+
+const props = defineProps(['devis']);
 
 const { setBreadcrumb } = useBreadcrumb();
 setBreadcrumb([
@@ -63,9 +65,11 @@ function newDevis() {
     contextName.value = null;
 }
 
-function loadDevis(id) {
+async function loadDevis(id) {
     try {
-        store.loadDevis(id);
+        await store.loadDevis(id);
+        console.table(store.selectedItems);
+
         saveMassage.value = null;
         contextName.value = store.devisInfos.id + ' ' + store.devisInfos.name;
     } catch (err) {
@@ -89,6 +93,7 @@ function cancelDevis() {
 onMounted(async() => {
     formulas.value = await invoke('get_loc_formulas');
     saveMassage.value = null;
+    loadDevis(props.devis);
 
     if(store.utilitaries.techRate === 0) {
         setTechRate();

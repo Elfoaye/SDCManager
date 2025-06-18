@@ -20,6 +20,7 @@ loadTheme()
 const currentPage = ref(null);
 const lastPage = ref(null);
 const redirect = ref(null);
+const currentDevis = ref(0);
 
 const adminPages = ['modif','admin'];
 function isAdminProtected(value) {
@@ -43,6 +44,11 @@ async function setPage(value) {
     currentPage.value = value;
 }
 
+function setDevis(id) {
+    currentDevis.value = id;
+    setPage('devmodif');
+}
+
 function onAdminLogOut() {
     if(isAdminProtected(currentPage.value)) {
         setPage(null);
@@ -61,7 +67,6 @@ listen('log_in_admin', (event) => {
         <HeaderBar 
             :setPage="setPage"
         />
-        
         <div class="layout">
             <NavBar :setPage="setPage"/>
 
@@ -76,8 +81,14 @@ listen('log_in_admin', (event) => {
                     v-else-if="currentPage === 'consult' || currentPage === 'modif'" 
                     :modif="currentPage === 'modif'"
                 />
-                <PageParcourirDevis v-else-if="currentPage === 'devparcour'" />
-                <PageEditerDevis v-else-if="currentPage === 'devmodif'" />
+                <PageParcourirDevis 
+                    v-else-if="currentPage === 'devparcour'" 
+                    :setDevis="setDevis"
+                />
+                <PageEditerDevis 
+                    v-else-if="currentPage === 'devmodif'" 
+                    :devis="currentDevis"
+                />
                 <PageParams v-else-if="currentPage === 'params'" />
                 <PageAdmin v-else-if="currentPage === 'admin'" />
                 <PageAccueil v-else/>

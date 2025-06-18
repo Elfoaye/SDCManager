@@ -3,6 +3,8 @@ import { invoke } from '@tauri-apps/api/core';
 import { ref, computed } from 'vue';
 import { useBreadcrumb } from '../composables/breadcrumb';
 
+const props = defineProps(['setDevis']);
+
 const { setBreadcrumb } = useBreadcrumb();
 setBreadcrumb([
     { label: 'Accueil', page: null },
@@ -63,6 +65,10 @@ function setSort(key) {
     sortAsc.value = false;
     sortProperty.value = key;
 }
+
+function setDevis(id) {
+    props.setDevis(id);
+}
 </script>
 
 <template>
@@ -86,7 +92,7 @@ function setSort(key) {
                 </button>
             </li>
             <ul>
-                <li v-for="item in sortedContent" :data-id="item.id">
+                <li v-for="item in sortedContent" @click="setDevis(item.id)" :data-id="item.id">
                     <p>{{ item.id }}</p>
                     <p>{{ item.nom }}</p>
                     <p>{{ item.date }}</p>
@@ -117,7 +123,7 @@ ul {
 
 li, li.head {
     display: grid;
-    grid-template-columns: 3fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr 2fr 1fr 1fr 1fr;
     padding: 0 0.5rem;
     margin: 0;
     gap: 1rem;
@@ -148,6 +154,11 @@ li p {
 li.head {
     margin-top: 2rem;
     border-bottom: 1px solid var(--border-accent);
+}
+
+li:not(.head):hover {
+    cursor: pointer;
+    background-color: var(--surface-hover);
 }
 
 .head button {

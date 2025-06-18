@@ -52,6 +52,15 @@ pub struct DevisItem {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct FullItem {
+    item: Item,
+    quantité: i32,
+    durée: i32,
+    etat: String
+}
+
+
+#[derive(Serialize, Deserialize)]
 pub struct DevisExtra {
     id: i32,
     devis_id: i32,
@@ -60,10 +69,18 @@ pub struct DevisExtra {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct FullDevis {
+pub struct FullDevisIN {
     client: Client,
     devis: Devis,
     items: Vec<DevisItem>,
+    extra: Vec<DevisExtra>
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct FullDevisOUT {
+    client: Client,
+    devis: Devis,
+    items: Vec<FullItem>,
     extra: Vec<DevisExtra>
 }
 
@@ -308,7 +325,7 @@ fn generate_new_devis_id(conn: &Connection) -> Result<i32, rusqlite::Error> {
 }
 
 #[tauri::command]
-pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64, String> {
+pub fn save_devis(full_devis: FullDevisIN, handle: tauri::AppHandle) -> Result<i64, String> {
     let mut conn = get_database_connection(handle)?;
 
     let devis_exists: bool = conn.query_row(
@@ -412,7 +429,7 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
 }
 
 #[tauri::command]
-pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, String> {
+pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevisOUT, String> {
     let conn = get_database_connection(handle)?;
 
     let devis: Devis = conn.query_row(
@@ -443,17 +460,31 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, 
         }),
     ).map_err(|e| e.to_string())?;
 
-    let mut stmt_items = conn.prepare(
-        "SELECT d_item_id, devis_id, materiel_id, quantité, durée, etat FROM Devis_materiel WHERE devis_id = ?"
-    ).map_err(|e| e.to_string())?;
-    let items_iter = stmt_items.query_map(params![devis_id], |row| {
-        Ok(DevisItem {
-            id: row.get(0)?,
-            devis_id: row.get(1)?,
-            item_id: row.get(2)?,
-            quantité: row.get(3)?,
-            durée: row.get(4)?,
-            etat: row.get(5)?,
+    let mut stmt = conn.prepare("
+        SELECT 
+            m.materiel_id, m.nom, m.item_type, m.total, m.dispo, m.valeur, m.contrib, m.nb_sorties, m.benef,
+            d.quantité, d.durée, d.etat
+        FROM Devis_materiel d
+        JOIN Materiel m ON d.materiel_id = m.materiel_id
+        WHERE d.devis_id = ?
+    ").map_err(|e| e.to_string())?;
+
+    let items_iter = stmt.query_map(params![devis_id], |row| {
+        Ok(FullItem {
+            item: Item {
+                id: row.get(0)?,
+                nom: row.get(1)?,
+                item_type: row.get(2)?,
+                total: row.get(3)?,
+                dispo: row.get(4)?,
+                valeur: row.get(5)?,
+                contrib: row.get(6)?,
+                nb_sorties: row.get(7)?,
+                benef: row.get(8)?,
+            },
+            quantité: row.get(9)?,
+            durée: row.get(10)?,
+            etat: row.get(11)?,
         })
     }).map_err(|e| e.to_string())?;
 
@@ -479,7 +510,7 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, 
         extra.push(extra_res.map_err(|e| e.to_string())?);
     }
 
-    Ok(FullDevis {
+    Ok(FullDevisOUT {
         client,
         devis,
         items,

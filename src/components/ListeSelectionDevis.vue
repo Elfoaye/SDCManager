@@ -7,7 +7,6 @@ const store = useDevisStore();
 
 const listContent = ref([]);
 const types = ref([]);
-const formulas = ref(null);
 
 const columns = [
   { label: 'Nom', key: 'nom' },
@@ -90,12 +89,6 @@ const sortedContent = computed(() => {
     });
 });
 
-function priceLoc(item, quantity, duration) {
-    if(!item || !formulas.value || quantity <= 0 || duration <= 0) return 0;
-
-    return quantity * (item.contrib + (duration - 1) * (item.contrib * formulas.value.contrib_following));
-}
-
 function setSort(key) {
     if(sortProperty.value == key) {
         sortAsc.value = !sortAsc.value;
@@ -114,22 +107,19 @@ function handleQuantityInput(item, quantity, duration) {
     if(quantity) {
         const newQuant = Math.max(0, Math.min(parseInt(quantity.target.value, 10), item.total));
         const newDur = currentItem ? currentItem.duration : store.devisInfos.duration;
-        const price = priceLoc(item, newQuant, newDur);
 
-        store.setItemQuantity(item, newQuant, 'unset', price);
+        store.setItemQuantity(item, newQuant, 'unset');
     } else if (duration) {
         const newDur = Math.max(0, parseInt(duration.target.value, 10));
         const newQuant = currentItem ? currentItem.quantity : 1;
-        const price = priceLoc(item, newQuant, newDur);
 
-        store.setItemQuantity(item, 'unset', newDur, price);
+        store.setItemQuantity(item, 'unset', newDur);
     }
 }
 
 onMounted(() => {
     invoke('get_materiel_types').then((data) => types.value = data);
     invoke('get_materiel_data').then((data) => listContent.value = data);
-    invoke('get_loc_formulas').then((data) => formulas.value = data);
 });
 </script>
 

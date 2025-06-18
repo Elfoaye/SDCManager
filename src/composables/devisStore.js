@@ -3,6 +3,9 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export const useDevisStore = defineStore('devis', () => {
+    const formulas = ref(null);
+    invoke('get_loc_formulas').then((data) => formulas.value = data);
+
     const devisInfos = ref({
         id: 0,
         name: '',
@@ -32,7 +35,13 @@ export const useDevisStore = defineStore('devis', () => {
         discountEuro: 0
     });
 
-    function setItemQuantity(item, quantity, duration, price) {
+    function priceLoc(item, quantity, duration) {
+        if(!item || !formulas.value || quantity <= 0 || duration <= 0) return 0;
+
+        return quantity * (item.contrib + (duration - 1) * (item.contrib * formulas.value.contrib_following));
+    }
+
+    function setItemQuantity(item, quantity, duration) {
         if ((quantity !== 'unset' && (!quantity || quantity <= 0)) || 
             (duration !== 'unset' && (!duration || duration <= 0))) {
             selectedItems.value = selectedItems.value.filter(i => i.id !== item.id);
@@ -43,7 +52,7 @@ export const useDevisStore = defineStore('devis', () => {
         if (existing) {
             if (quantity != 'unset') existing.quantity = quantity;
             if (duration != 'unset') existing.duration = duration;
-            if (price != 'unset') existing.totalPrice = price;
+            totalPrice = priceLoc(item, existing.quantity, existing.duration);
         } else {
             const q = quantity !== 'unset' ? quantity : 1;
             const d = duration !== 'unset' ? duration : devisInfos.value.duration;
@@ -52,7 +61,7 @@ export const useDevisStore = defineStore('devis', () => {
             ...item,
             quantity: q,
             duration: d,
-            totalPrice: price ?? 0,
+            totalPrice: priceLoc(item, q, d)
             });
         }
     }
@@ -97,15 +106,12 @@ export const useDevisStore = defineStore('devis', () => {
             devisInfos.value.id = await invoke('save_devis', { fullDevis: fullDevis });
             return { result: 'success', message: "Devis sauvegardé" };
         } catch (err) {
-            console.error(err);
             return { result: 'error', message: err.toString() };
         }
     }
 
     async function loadDevis(id) {
         try {
-            console.log("Chargement du devis " + id);
-
             const fullDevis = await invoke('load_devis', { devisId: id });
 
             clientInfos.value = {
@@ -117,8 +123,6 @@ export const useDevisStore = defineStore('devis', () => {
                 id: fullDevis.client.id
             };
 
-             console.table(fullDevis);
-
             devisInfos.value = {
                 id: fullDevis.devis.id,
                 name: fullDevis.devis.nom,
@@ -126,11 +130,12 @@ export const useDevisStore = defineStore('devis', () => {
                 duration: fullDevis.devis.durée
             };
 
-            selectedItems.value = fullDevis.items.map(item => ({
-                id: item.item_id,
-                quantity: item.quantité,
-                duration: item.durée,
-                totalPrice: 0
+            selectedItems.value = fullDevis.items.map(fullItem => ({
+                ...fullItem.item,
+                quantity: fullItem.quantité,
+                duration: fullItem.durée,
+                state: fullItem.etat,
+                totalPrice: priceLoc(fullItem.item, fullItem.quantité, fullItem.durée)
             }));
 
             extraItems.value = fullDevis.extra.map(extra => ({
