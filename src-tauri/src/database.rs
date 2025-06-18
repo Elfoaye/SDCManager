@@ -412,11 +412,11 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
 }
 
 #[tauri::command]
-pub fn load_devis(devis_id: i64, handle: tauri::AppHandle) -> Result<FullDevis, String> {
+pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, String> {
     let conn = get_database_connection(handle)?;
 
     let devis: Devis = conn.query_row(
-        "SELECT id, client_id, nom, date, durée, adhesion, promo, etat FROM Devis WHERE id = ?",
+        "SELECT devis_id, client_id, nom, date, durée, adhesion, promo, etat FROM Devis WHERE devis_id = ?",
         params![devis_id],
         |row| Ok(Devis {
             id: row.get(0)?,
@@ -431,7 +431,7 @@ pub fn load_devis(devis_id: i64, handle: tauri::AppHandle) -> Result<FullDevis, 
     ).map_err(|e| e.to_string())?;
 
     let client: Client = conn.query_row(
-        "SELECT id, nom, evenement, adresse, tel, mail FROM Client WHERE id = ?",
+        "SELECT client_id, nom, evenement, adresse, tel, mail FROM Client WHERE client_id = ?",
         params![devis.client_id],
         |row| Ok(Client {
             id: row.get(0)?,
@@ -444,7 +444,7 @@ pub fn load_devis(devis_id: i64, handle: tauri::AppHandle) -> Result<FullDevis, 
     ).map_err(|e| e.to_string())?;
 
     let mut stmt_items = conn.prepare(
-        "SELECT id, devis_id, materiel_id, quantité, durée, etat FROM Devis_materiel WHERE devis_id = ?"
+        "SELECT d_item_id, devis_id, materiel_id, quantité, durée, etat FROM Devis_materiel WHERE devis_id = ?"
     ).map_err(|e| e.to_string())?;
     let items_iter = stmt_items.query_map(params![devis_id], |row| {
         Ok(DevisItem {
@@ -463,7 +463,7 @@ pub fn load_devis(devis_id: i64, handle: tauri::AppHandle) -> Result<FullDevis, 
     }
 
     let mut stmt_extra = conn.prepare(
-        "SELECT id, devis_id, nom, prix FROM Devis_extra WHERE devis_id = ?"
+        "SELECT extra_id, devis_id, nom, prix FROM Devis_extra WHERE devis_id = ?"
     ).map_err(|e| e.to_string())?;
     let extra_iter = stmt_extra.query_map(params![devis_id], |row| {
         Ok(DevisExtra {

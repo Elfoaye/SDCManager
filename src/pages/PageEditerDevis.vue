@@ -19,8 +19,8 @@ const tempExtrafield = ref({
 });
 
 const formulas = ref(null);
-
-const saveMassage = ref(null);
+const contextName = ref('');
+const saveMassage = ref({ result: 'success', message: '' });
 
 function addExtrafield(){
     if(tempExtrafield.value.name === '' || tempExtrafield.value.price === '') return;
@@ -60,17 +60,22 @@ function newDevis() {
     setTechRate();
     store.utilitaries.transportRate = formulas.value.transport_km;
     saveMassage.value = null;
+    contextName.value = null;
 }
 
-// TODO Faire marcher ça
 function loadDevis(id) {
-    console.log("Chargement du devis " + id);
-    store.loadDevis(id);
-    saveMassage.value = null;
+    try {
+        store.loadDevis(id);
+        saveMassage.value = null;
+        contextName.value = store.devisInfos.id + ' ' + store.devisInfos.name;
+    } catch (err) {
+        saveMassage.value = err;
+    }
 }
 
 async function saveDevis() {
     saveMassage.value = await store.saveDevis();
+    contextName.value = store.devisInfos.id + ' ' + store.devisInfos.name;
 }
 
 function cancelDevis() {
@@ -104,7 +109,7 @@ watch(() => store.utilitaries.techHourly, () => {
             <h1>Editer le devis</h1>
         </div>
         <div class="context">
-            <p v-if="store.devisInfos.id > 0">Edition du devis {{ store.devisInfos.id + " " + store.devisInfos.name }}</p>
+            <p v-if="contextName">Edition du devis {{ contextName }}</p>
             <p v-else>Nouveau devis</p>
             <button @click="newDevis">Nouveau devis</button>
         </div>
