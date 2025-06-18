@@ -486,3 +486,38 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, 
         extra,
     })
 }
+
+#[tauri::command]
+pub fn get_devis_summaries(handle: tauri::AppHandle) -> Result<Vec<SummDevis>, String> {
+    let conn = get_database_connection(handle)?;
+
+    let mut request = conn.prepare(
+        "SELECT 
+            d.devis_id, 
+            d.nom, 
+            d.date, 
+            c.nom, 
+            c.evenement
+         FROM Devis d
+         JOIN Client c ON d.client_id = c.client_id"
+    ).map_err(|e| e.to_string())?;
+
+    let devis_iter = request
+        .query_map([], |row| {
+            Ok(SummDevis {
+                id: row.get(0)?,
+                nom: row.get(1)?,
+                date: row.get(2)?,
+                client_nom: row.get(3)?,
+                evenement: row.get(4)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+    let mut result = Vec::new();
+    for devis in devis_iter {
+        result.push(devis.map_err(|e| e.to_string())?);
+    }
+
+    Ok(result)
+}

@@ -1,4 +1,5 @@
 <script setup>
+import { invoke } from '@tauri-apps/api/core';
 import { ref, computed } from 'vue';
 import { useBreadcrumb } from '../composables/breadcrumb';
 
@@ -17,7 +18,7 @@ const columns = [
 ]
 
 const listContent = ref([]);
-// listContent.value = await invoke('get_devis_summaries');
+invoke('get_devis_summaries').then((data) => listContent.value = data);
 
 const sortProperty = ref(null);
 const sortAsc = ref(true);
@@ -27,7 +28,10 @@ const filteredContent = computed(() => {
     const query = String(filterSearch.value).trim().toLowerCase();
 
     return listContent.value.filter(devis =>  {
-        if (query && !(String(devis.nom).toLowerCase().includes(query) || String(devis.client_nom).toLowerCase().includes(query))) // Search bar
+        if (query && !(String(devis.nom).toLowerCase().includes(query) || 
+            String(devis.id).toLowerCase().includes(query) ||
+            String(devis.client_nom).toLowerCase().includes(query) ||
+            String(devis.evenement).toLowerCase().includes(query))) // Search bar
             return false;
 
         return true;
@@ -49,6 +53,16 @@ const sortedContent = computed(() => {
         }
     });
 });
+
+function setSort(key) {
+    if(sortProperty.value == key) {
+        sortAsc.value = !sortAsc.value;
+        return;
+    }
+
+    sortAsc.value = false;
+    sortProperty.value = key;
+}
 </script>
 
 <template>
