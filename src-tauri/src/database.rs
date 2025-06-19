@@ -324,21 +324,31 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
     } else {
         full_devis.devis.id
     };
-
     let transaction = conn.transaction().map_err(|e| e.to_string())?;
 
     // Client
-    transaction.execute(
-        "INSERT INTO Client (nom, evenement, adresse, tel, mail) VALUES (?, ?, ?, ?, ?)",
-        params![
-            full_devis.client.nom,
-            full_devis.client.evenement,
-            full_devis.client.adresse,
-            full_devis.client.tel,
-            full_devis.client.mail
-        ],
-    ).map_err(|e| e.to_string())?;
-    let client_id = transaction.last_insert_rowid();
+    let maybe_client_id: Option<i64> = transaction.query_row(
+        "SELECT client_id FROM Client WHERE nom = ? AND evenement = ?",
+        params![full_devis.client.nom, full_devis.client.evenement],
+        |row| row.get(0)
+    ).optional().map_err(|e| e.to_string())?;
+
+    let client_id = 
+    if let Some(id) = maybe_client_id { // If exist get existing id
+        id
+    } else { // Insert and get new id
+        transaction.execute(
+            "INSERT INTO Client (nom, evenement, adresse, tel, mail) VALUES (?, ?, ?, ?, ?)",
+            params![
+                full_devis.client.nom,
+                full_devis.client.evenement,
+                full_devis.client.adresse,
+                full_devis.client.tel,
+                full_devis.client.mail
+            ],
+        ).map_err(|e| e.to_string())?;
+        transaction.last_insert_rowid()
+    };
 
     // Devis
     if devis_exists { // Update devis

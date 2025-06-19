@@ -212,10 +212,10 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
             </div>
             <div class="line">
                 <label>Mail du client :
-                    <input v-model="store.clientInfos.phone"/>
+                    <input v-model="store.clientInfos.mail"/>
                 </label>
                 <label>Telephone du client :
-                    <input v-model="store.clientInfos.mail"/>
+                    <input v-model="store.clientInfos.phone"/>
                 </label>
             </div>
         </section>

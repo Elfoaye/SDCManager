@@ -119,6 +119,7 @@ export const useDevisStore = defineStore('devis', () => {
 
         try {
             devisInfos.value.id = await invoke('save_devis', { fullDevis: fullDevis });
+            clients.value = await invoke('get_client_infos');
             return { result: 'success', message: "Devis sauvegardé" };
         } catch (err) {
             return { result: 'error', message: err.toString() };
