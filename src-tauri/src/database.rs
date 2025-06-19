@@ -522,6 +522,29 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, 
 }
 
 #[tauri::command]
+pub fn delete_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<(), String> {
+    let mut conn = get_database_connection(handle)?;
+
+    let transaction = conn.transaction().map_err(|e| e.to_string())?;
+
+    transaction
+        .execute("DELETE FROM Devis_materiel WHERE devis_id = ?", [devis_id])
+        .map_err(|e| e.to_string())?;
+
+    transaction
+        .execute("DELETE FROM Devis_extra WHERE devis_id = ?", [devis_id])
+        .map_err(|e| e.to_string())?;
+
+    transaction
+        .execute("DELETE FROM Devis WHERE devis_id = ?", [devis_id])
+        .map_err(|e| e.to_string())?;
+
+    transaction.commit().map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+#[tauri::command]
 pub fn get_devis_summaries(handle: tauri::AppHandle) -> Result<Vec<SummDevis>, String> {
     let conn = get_database_connection(handle)?;
 

@@ -17,7 +17,6 @@ setBreadcrumb([
 
 const isAdmin = ref(false);
 listen('log_in_admin', (event) => {
-    console.log("log outt admin");
     isAdmin.value = event.payload;
 });
 
@@ -146,7 +145,7 @@ function cancelDevis() {
 }
 
 function deleteDevis() {
-    invoke("delete_devis", { id: store.devisInfos.id });
+    invoke("delete_devis", { devisId: store.devisInfos.id });
     newDevis();
 }
 

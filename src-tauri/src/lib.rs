@@ -3,7 +3,7 @@ mod database;
 mod settings;
 mod admin_auth;
 use database::{get_materiel_data, get_item_data, update_dispo, 
-    update_item, add_item, delete_item, save_devis, load_devis,
+    update_item, add_item, delete_item, save_devis, load_devis, delete_devis,
     get_devis_summaries, get_client_infos};
 use settings::{get_materiel_types, get_loc_formulas, 
     set_materiel_types, set_loc_formulas};
@@ -17,7 +17,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler!
             [get_materiel_data, get_item_data,
             update_dispo, update_item, add_item, delete_item, 
-            save_devis, load_devis, get_devis_summaries, get_client_infos,
+            save_devis, load_devis, delete_devis,
+            get_devis_summaries, get_client_infos,
             get_materiel_types, get_loc_formulas, 
             set_materiel_types, set_loc_formulas,
             update_admin_password, log_in_admin, log_out_admin, is_admin])
