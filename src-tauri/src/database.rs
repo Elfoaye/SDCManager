@@ -46,23 +46,12 @@ pub struct Devis {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct DevisItem {
-    id: i32,
-    devis_id: i32,
-    item_id: i32,
-    quantité: i32,
-    durée: i32,
-    etat: String
-}
-
-#[derive(Serialize, Deserialize)]
 pub struct FullItem {
     item: Item,
     quantité: i32,
     durée: i32,
     etat: String
 }
-
 
 #[derive(Serialize, Deserialize)]
 pub struct DevisExtra {
@@ -73,15 +62,7 @@ pub struct DevisExtra {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct FullDevisIN {
-    client: Client,
-    devis: Devis,
-    items: Vec<DevisItem>,
-    extra: Vec<DevisExtra>
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct FullDevisOUT {
+pub struct FullDevis {
     client: Client,
     devis: Devis,
     items: Vec<FullItem>,
@@ -329,7 +310,7 @@ fn generate_new_devis_id(conn: &Connection) -> Result<i32, rusqlite::Error> {
 }
 
 #[tauri::command]
-pub fn save_devis(full_devis: FullDevisIN, handle: tauri::AppHandle) -> Result<i64, String> {
+pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64, String> {
     let mut conn = get_database_connection(handle)?;
 
     let devis_exists: bool = conn.query_row(
@@ -408,7 +389,7 @@ pub fn save_devis(full_devis: FullDevisIN, handle: tauri::AppHandle) -> Result<i
         for item in &full_devis.items {
             requete_item.execute(params![
                 devis_id,
-                item.item_id,
+                item.item.id,
                 item.quantité,
                 item.durée,
                 item.etat
@@ -437,7 +418,7 @@ pub fn save_devis(full_devis: FullDevisIN, handle: tauri::AppHandle) -> Result<i
 }
 
 #[tauri::command]
-pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevisOUT, String> {
+pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, String> {
     let conn = get_database_connection(handle)?;
 
     let devis: Devis = conn.query_row(
@@ -522,7 +503,7 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevisOU
         extra.push(extra_res.map_err(|e| e.to_string())?);
     }
 
-    Ok(FullDevisOUT {
+    Ok(FullDevis {
         client,
         devis,
         items,

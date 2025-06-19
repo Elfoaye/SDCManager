@@ -91,9 +91,17 @@ export const useDevisStore = defineStore('devis', () => {
                 etat: "devis"
             },
             items: selectedItems.value.map(item => ({
-                id: 0,
-                devis_id: devisInfos.value.id,
-                item_id: item.id,
+                item: {
+                    id: item.id,
+                    nom: item.nom,
+                    item_type: item.item_type,
+                    total: item.total,
+                    dispo: item.dispo,
+                    valeur: item.valeur,
+                    contrib: item.contrib,
+                    nb_sorties: item.nb_sorties,
+                    benef: item.benef
+                },
                 quantité: item.quantity,
                 durée: item.duration,
                 etat: "devis"
@@ -150,7 +158,7 @@ export const useDevisStore = defineStore('devis', () => {
             utilitaries.value = {
                 techQty: fullDevis.devis.nb_tech,
                 techRate: fullDevis.devis.taux_tech,
-                techHourly: (fullDevis.devis.taux_tech < 100),
+                techHourly: (fullDevis.devis.taux_tech < 100 && fullDevis.taux_tech > 0),
                 transportKm: fullDevis.devis.nb_km,
                 transportRate: fullDevis.devis.taux_km,
                 membership: fullDevis.devis.adhesion,
