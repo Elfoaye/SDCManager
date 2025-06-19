@@ -54,6 +54,43 @@ const finalCost = computed(() => {
     return price;
 });
 
+const uniqueClientNames = computed(() => {
+    if(!store.clients) return [];
+    
+    const names = store.clients.map(c => c.nom);
+    return [...new Set(names)];
+});
+
+const matchingEvents = computed(() => {
+    if(!store.clients) return [];
+
+    return store.clients
+        .filter(c => c.nom === store.clientInfos.name)
+        .map(c => c.evenement);
+});
+
+function onNameInput() {
+    store.clientInfos.eventName = '';
+    store.clientInfos.adress = '';
+    store.clientInfos.phone = '';
+    store.clientInfos.mail = '';
+}
+
+function onEventInput() {
+    console.table(matchingEvents.value);
+    if(!store.clients) return;
+
+    const client = store.clients.find(c =>
+        c.nom === store.clientInfos.name && c.evenement === store.clientInfos.eventName
+    );
+    if (client) {
+        store.clientInfos.id = client.id;
+        store.clientInfos.adress = client.adresse;
+        store.clientInfos.phone = client.tel;
+        store.clientInfos.mail = client.mail;
+    }
+}
+
 function setTechRate() {
     store.utilitaries.techRate = store.utilitaries.techHourly ? formulas.value.tech_hour : formulas.value.tech_day;
 }
@@ -158,10 +195,16 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
         <section class="infos">
             <div class="line">
                 <label>Nom du client :
-                    <input v-model="store.clientInfos.name"/>
+                    <input v-model="store.clientInfos.name" list="client-names" @input="onNameInput"/>
+                    <datalist id="client-names">
+                        <option v-for="name in uniqueClientNames" :key="name">{{ name }}</option>
+                    </datalist>
                 </label>
                 <label>Nom de l'evenement :
-                    <input v-model="store.clientInfos.eventName"/>
+                    <input v-model="store.clientInfos.eventName" list="event-names" @input="onEventInput"/>
+                    <datalist id="event-names">
+                        <option v-for="event in matchingEvents" :key="event">{{ event }}</option>
+                    </datalist>
                 </label>
                 <label>Addresse du client :
                     <textarea v-model="store.clientInfos.adress"></textarea>
@@ -271,8 +314,7 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
                 <button @click="cancelDevis" class="cancel">
                     Annuler
                 </button>
-                
-                <button>
+                <!-- <button>
                     Télecharger
                 </button>
                 <button>
@@ -280,7 +322,7 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
                 </button>
                 <button>
                     Dupliquer
-                </button>
+                </button> -->
             </div>
             <p v-if="saveMassage" :class="saveMassage.result">{{ saveMassage.message }}</p>
         </section>

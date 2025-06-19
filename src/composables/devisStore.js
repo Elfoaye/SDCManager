@@ -6,6 +6,9 @@ export const useDevisStore = defineStore('devis', () => {
     const formulas = ref(null);
     invoke('get_loc_formulas').then((data) => formulas.value = data);
 
+    const clients = ref([]);
+    invoke('get_client_infos').then((data) => clients.value = data);
+
     const devisInfos = ref({
         id: 0,
         name: '',
@@ -22,9 +25,6 @@ export const useDevisStore = defineStore('devis', () => {
         mail: ''
     });
 
-    const selectedItems = ref([]);
-    const extraItems = ref([]);
-
     const utilitaries = ref({
         techQty: 0,
         techRate: 0,
@@ -34,6 +34,9 @@ export const useDevisStore = defineStore('devis', () => {
         membership: false,
         discountEuro: 0
     });
+
+    const selectedItems = ref([]);
+    const extraItems = ref([]);
 
     function priceLoc(item, quantity, duration) {
         if(!item || !formulas.value || quantity <= 0 || duration <= 0) return 0;
@@ -197,6 +200,6 @@ export const useDevisStore = defineStore('devis', () => {
         };
     }
 
-    return { devisInfos, clientInfos, selectedItems, 
+    return { clients, devisInfos, clientInfos, selectedItems, 
         extraItems, utilitaries, setItem, saveDevis, loadDevis, reset};
 });

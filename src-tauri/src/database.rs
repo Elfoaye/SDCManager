@@ -545,3 +545,32 @@ pub fn get_devis_summaries(handle: tauri::AppHandle) -> Result<Vec<SummDevis>, S
 
     Ok(result)
 }
+
+#[tauri::command]
+pub fn get_client_infos(handle: tauri::AppHandle) -> Result<Vec<Client>, String> {
+    let conn = get_database_connection(handle)?;
+
+    let mut request = conn.prepare(
+        "SELECT * FROM Client"
+    ).map_err(|e| e.to_string())?;
+
+    let client_iter = request
+        .query_map([], |row| {
+            Ok(Client {
+                id: row.get(0)?,
+                nom: row.get(1)?,
+                evenement: row.get(2)?,
+                adresse: row.get(3)?,
+                tel: row.get(4)?,
+                mail: row.get(5)?
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+    let mut result = Vec::new();
+    for client in client_iter {
+        result.push(client.map_err(|e| e.to_string())?);
+    }
+
+    Ok(result)
+}
