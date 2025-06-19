@@ -108,12 +108,12 @@ function handleQuantityInput(item, quantity, duration) {
         const newQuant = Math.max(0, Math.min(parseInt(quantity.target.value, 10), item.total));
         const newDur = currentItem ? currentItem.duration : store.devisInfos.duration;
 
-        store.setItemQuantity(item, newQuant, 'unset');
+        store.setItem(item, newQuant, 'unset');
     } else if (duration) {
         const newDur = Math.max(0, parseInt(duration.target.value, 10));
         const newQuant = currentItem ? currentItem.quantity : 1;
 
-        store.setItemQuantity(item, 'unset', newDur);
+        store.setItem(item, 'unset', newDur);
     }
 }
 

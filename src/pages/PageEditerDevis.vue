@@ -1,6 +1,6 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
-import { ref, computed, onBeforeMount ,onMounted, watch } from 'vue';
+import { ref, computed ,onMounted, watch } from 'vue';
 import { useBreadcrumb } from '../composables/breadcrumb';
 import { useDevisStore } from '../composables/devisStore';
 import ListeSelectionDevis from '../components/ListeSelectionDevis.vue';
@@ -117,18 +117,28 @@ onMounted(async() => {
 watch(() => store.utilitaries.techHourly, () => {
     setTechRate();
 });
+
+watch(() => store.devisInfos.duration, (newVal, oldVal) => {
+    if (newVal === oldVal) return;
+
+    store.selectedItems.forEach(item => {
+        if(item.duration === oldVal) {
+            store.setItem(item, 'unset', newVal);
+        }
+    });
+});
 </script>
 
 <template>
     <div class="content">
-        <div class="title">
-            <h1>Éditer le devis</h1>
+        <div class="title" :class="{ new: !contextName }">
+            <h1 v-if="contextName">Éditer le devis</h1>
+            <h1 v-else>Nouveau devis</h1>
         </div>
         <p v-if="loadError" class="error">{{ loadError }}</p>
-        <div class="context">
-            <h2 v-if="contextName">Edition du devis {{ contextName }}</h2>
-            <h2 v-else>Nouveau devis</h2>
-            <button v-if="contextName" @click="newDevis">Nouveau devis</button>
+        <div class="context" v-if="contextName">
+            <h2>{{ contextName }}</h2>
+            <button @click="newDevis" class="new">Nouveau devis</button>
         </div>
         <h2>Informations générales</h2>
         <section class="infos">
@@ -249,19 +259,19 @@ watch(() => store.utilitaries.techHourly, () => {
             <h2><span>Prix total : {{ finalCost.toFixed(2) }} €</span></h2>
         </section>
         <!-- <section class="preview">
-
+            <button>
+                Apperçu
+            </button>
         </section> -->
         <section class="submit">
             <div class="buttons">
-                <button @click="saveDevis">
+                <button @click="saveDevis" class="save">
                     {{ store.devisInfos.id > 0 ? 'Mettre à jour' : 'Enregistrer' }}
                 </button>
-                <button @click="cancelDevis">
+                <button @click="cancelDevis" class="cancel">
                     Annuler
                 </button>
-                <!-- <button>
-                    Apperçu
-                </button>
+                
                 <button>
                     Télecharger
                 </button>
@@ -270,7 +280,7 @@ watch(() => store.utilitaries.techHourly, () => {
                 </button>
                 <button>
                     Dupliquer
-                </button> -->
+                </button>
             </div>
             <p v-if="saveMassage" :class="saveMassage.result">{{ saveMassage.message }}</p>
         </section>
@@ -278,10 +288,19 @@ watch(() => store.utilitaries.techHourly, () => {
 </template>
 
 <style scoped>
+.title {
+    border: 2px solid var(--warning);
+}
+
+.title.new {
+    border: 2px solid var(--success);
+}
+
 .context {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 1rem;
+    align-items: center;
+    margin: 1rem;
 }
 
 section {
@@ -380,8 +399,18 @@ li:not(.head):nth-child(even) {
 }
 
 .submit {
+    position: sticky;
+    bottom: -0.5rem;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 0;
+    border-top: 1px solid var(--border-accent);
+    background-color: var(--background);
+}
+
+.buttons {
     display: flex;
     gap: 1rem;
-    border-bottom: 0;
 }
 </style>

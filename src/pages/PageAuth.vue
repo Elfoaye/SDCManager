@@ -119,7 +119,6 @@ button {
 
 button.cancel {
     justify-self: start;
-    background-color: var(--disabled);
 }
 
 .search {

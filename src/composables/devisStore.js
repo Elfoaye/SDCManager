@@ -41,7 +41,7 @@ export const useDevisStore = defineStore('devis', () => {
         return quantity * (item.contrib + (duration - 1) * (item.contrib * formulas.value.contrib_following));
     }
 
-    function setItemQuantity(item, quantity, duration) {
+    function setItem(item, quantity, duration) {
         if ((quantity !== 'unset' && (!quantity || quantity <= 0)) || 
             (duration !== 'unset' && (!duration || duration <= 0))) {
             selectedItems.value = selectedItems.value.filter(i => i.id !== item.id);
@@ -52,7 +52,7 @@ export const useDevisStore = defineStore('devis', () => {
         if (existing) {
             if (quantity != 'unset') existing.quantity = quantity;
             if (duration != 'unset') existing.duration = duration;
-            totalPrice = priceLoc(item, existing.quantity, existing.duration);
+            existing.totalPrice = priceLoc(item, existing.quantity, existing.duration);
         } else {
             const q = quantity !== 'unset' ? quantity : 1;
             const d = duration !== 'unset' ? duration : devisInfos.value.duration;
@@ -198,5 +198,5 @@ export const useDevisStore = defineStore('devis', () => {
     }
 
     return { devisInfos, clientInfos, selectedItems, 
-        extraItems, utilitaries, setItemQuantity, saveDevis, loadDevis, reset};
+        extraItems, utilitaries, setItem, saveDevis, loadDevis, reset};
 });

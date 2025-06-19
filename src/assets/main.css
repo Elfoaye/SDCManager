@@ -100,6 +100,23 @@ button.selected {
     background-color: var(--accent-hover);
 }
 
+button.new {
+    background-color: var(--success-background);
+}
+
+button.new:hover {
+    background-color: var(--success);
+}
+
+button.cancel {
+    background-color: var(--disabled);
+}
+
+button.cancel:hover {
+    background-color: var(--border-focus);
+}
+
+
 .itemCard {
     flex-grow: 1;
     display: flex;
