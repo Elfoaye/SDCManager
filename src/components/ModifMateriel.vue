@@ -273,7 +273,7 @@ watch(
     background-color: var(--background-alt);
     border: 1px solid var(--border-accent);
     border-radius: 0.5rem;
-    padding: 1em;
+    padding: 1rem;
 }
 
 .change {

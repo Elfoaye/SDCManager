@@ -30,6 +30,7 @@ const formulas = ref(null);
 const contextName = ref('');
 const saveMassage = ref({ result: 'success', message: '' });
 const loadError = ref('');
+const confirm = ref(null);
 
 function addExtrafield(){
     if(tempExtrafield.value.name === '' || tempExtrafield.value.price === '') return;
@@ -144,9 +145,22 @@ function cancelDevis() {
     loadDevis(store.devisInfos.id);
 }
 
-function deleteDevis() {
-    invoke("delete_devis", { devisId: store.devisInfos.id });
+async function deleteDevis() {
+    if(!(store.devisInfos.id > 0)) return;
+
+    await invoke("delete_devis", { devisId: store.devisInfos.id });
+    confirm.value = null;
     newDevis();
+}
+
+function confirmDelete() {
+    if(!(store.devisInfos.id > 0)) return;
+
+    confirm.value = 'delete';
+}
+
+function confirmCancel() {
+    confirm.value = null;
 }
 
 onMounted(async() => {
@@ -181,6 +195,16 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
 
 <template>
     <div class="content">
+        <div v-if="confirm" class="confirm">
+            <div class="pop-up">
+                <p>Êtes-vous sûr de vouloir supprimer <span>{{ contextName }}</span> ?</p>
+
+                <div class="confirm-buttons">
+                    <button @click="deleteDevis" class="delete" >Supprimer</button>
+                    <button @click="confirmCancel" class="cancel">Annuler</button>
+                </div>
+            </div>
+        </div>
         <div class="title" :class="{ new: store.devisInfos.id === 0 }">
             <h1 v-if="store.devisInfos.id > 0">Éditer le devis</h1>
             <h1 v-else>Nouveau devis</h1>
@@ -188,7 +212,7 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
         <p v-if="loadError" class="error">{{ loadError }}</p>
         <div class="context" v-if="contextName">
             <h2>{{ contextName }}</h2>
-            <button v-if="isAdmin" @click="deleteDevis" class="delete">Supprimer</button>
+            <button v-if="isAdmin" @click="confirmDelete" class="delete">Supprimer</button>
         </div>
         <h2>Informations générales</h2>
         <section class="infos">
@@ -343,6 +367,37 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
 </template>
 
 <style scoped>
+.confirm {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.pop-up {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    max-height: 5rem;
+    background-color: var(--background-alt);
+    border: 1px solid var(--border-accent);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    padding-bottom: 2rem;
+}
+
+.confirm-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
 .title {
     border: 2px solid var(--warning);
 }
