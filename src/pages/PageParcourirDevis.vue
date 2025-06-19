@@ -91,6 +91,7 @@ function setDevis(id) {
                     <span v-if="sortProperty === col.key">{{ sortAsc ? '▲' : '▼' }}</span>
                 </button>
             </li>
+            <li class="new-item" @click="setDevis(0)">+ Nouveau devis</li>
             <ul>
                 <li v-for="item in sortedContent" @click="setDevis(item.id)" :data-id="item.id">
                     <p>{{ item.id }}</p>
@@ -182,5 +183,18 @@ li:not(.head):hover {
 .head button span {
   display: inline;
   margin-left: 0.25rem;
+}
+
+li.new-item {
+    grid-template-columns: 1fr;
+    width: 100% - 1rem;
+    padding: 1rem;
+    padding-right: 0;
+    font-weight: 600;
+    background-color: var(--success-background) !important;
+}
+
+li.new-item:hover {
+    background-color: var(--success) !important;
 }
 </style>

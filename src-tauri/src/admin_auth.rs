@@ -70,9 +70,11 @@ pub fn log_in_admin(password: String, handle: tauri::AppHandle) -> Result<(), St
 }
 
 #[tauri::command]
-pub fn log_out_admin(handle: tauri::AppHandle) {
+pub fn log_out_admin(handle: tauri::AppHandle) -> Result<(), String> {
     *IS_ADMIN.lock().unwrap() = false;
     handle.emit("log_in_admin", false).unwrap();
+
+    Ok(())
 }
 
 #[tauri::command]

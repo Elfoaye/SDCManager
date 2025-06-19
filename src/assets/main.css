@@ -116,6 +116,14 @@ button.cancel:hover {
     background-color: var(--border-focus);
 }
 
+button.delete {
+    background-color: var(--background-error);
+}
+
+button.delete:hover {
+    background-color: var(--error);
+}
+
 
 .itemCard {
     flex-grow: 1;

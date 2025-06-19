@@ -1,5 +1,6 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import { ref, computed ,onMounted, watch } from 'vue';
 import { useBreadcrumb } from '../composables/breadcrumb';
 import { useDevisStore } from '../composables/devisStore';
@@ -13,6 +14,12 @@ setBreadcrumb([
     { label: 'Devis & Factures', page: 'devparcour' },
     { label: 'Éditer', page: 'devmodif' }
 ]);
+
+const isAdmin = ref(false);
+listen('log_in_admin', (event) => {
+    console.log("log outt admin");
+    isAdmin.value = event.payload;
+});
 
 const store = useDevisStore();
 const tempExtrafield = ref({
@@ -138,7 +145,14 @@ function cancelDevis() {
     loadDevis(store.devisInfos.id);
 }
 
+function deleteDevis() {
+    invoke("delete_devis", { id: store.devisInfos.id });
+    newDevis();
+}
+
 onMounted(async() => {
+    invoke('is_admin').then((value) => isAdmin.value = value);
+
     formulas.value = await invoke('get_loc_formulas');
     saveMassage.value = null;
     loadDevis(props.devis);
@@ -168,14 +182,14 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
 
 <template>
     <div class="content">
-        <div class="title" :class="{ new: !contextName }">
-            <h1 v-if="contextName">Éditer le devis</h1>
+        <div class="title" :class="{ new: store.devisInfos.id === 0 }">
+            <h1 v-if="store.devisInfos.id > 0">Éditer le devis</h1>
             <h1 v-else>Nouveau devis</h1>
         </div>
         <p v-if="loadError" class="error">{{ loadError }}</p>
         <div class="context" v-if="contextName">
             <h2>{{ contextName }}</h2>
-            <button @click="newDevis" class="new">Nouveau devis</button>
+            <button v-if="isAdmin" @click="deleteDevis" class="delete">Supprimer</button>
         </div>
         <h2>Informations générales</h2>
         <section class="infos">
@@ -308,7 +322,7 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
         </section> -->
         <section class="submit">
             <div class="buttons">
-                <button @click="saveDevis" class="save">
+                <button @click="saveDevis" class="new">
                     {{ store.devisInfos.id > 0 ? 'Mettre à jour' : 'Enregistrer' }}
                 </button>
                 <button @click="cancelDevis" class="cancel">
