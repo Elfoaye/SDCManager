@@ -5,6 +5,7 @@ import { ref, computed ,onMounted, watch } from 'vue';
 import { useBreadcrumb } from '../composables/breadcrumb';
 import { useDevisStore } from '../composables/devisStore';
 import ListeSelectionDevis from '../components/ListeSelectionDevis.vue';
+import DisplayDevis from '../components/DisplayDevis.vue';
 
 const props = defineProps(['devis', 'setDevis']);
 
@@ -355,11 +356,9 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
         <section class="total">
             <h2><span>Prix total : {{ finalCost.toFixed(2) }} €</span></h2>
         </section>
-        <!-- <section class="preview">
-            <button>
-                Apperçu
-            </button>
-        </section> -->
+        <section class="preview">
+            <DisplayDevis class=".preview-small"/>
+        </section>
         <section class="submit">
             <div class="buttons">
                 <button @click="saveDevis" class="new">
@@ -523,6 +522,15 @@ li {
 
 li:not(.head):nth-child(even) {
     background-color: var(--background-alt);
+}
+
+.preview-small {
+  transform: scale(0.7);
+  transform-origin: top left;
+  width: 148mm;
+  height: auto;
+  overflow: hidden;
+  border: 1px solid #ccc;
 }
 
 .submit {
