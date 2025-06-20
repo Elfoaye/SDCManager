@@ -165,6 +165,18 @@ function confirmCancel() {
     confirm.value = null;
 }
 
+async function duplicateDevis() {
+    try {
+        const newId = await invoke("duplicate_devis", { devisId: store.devisInfos.id });
+        loadError.value = '';
+        loadDevis(newId);
+    } catch (err) {
+        console.error(err + " on duplicating devis " + id);
+        loadError.value = err;
+    }
+    
+}
+
 onMounted(async() => {
     invoke('is_admin').then((value) => isAdmin.value = value);
 
@@ -184,14 +196,17 @@ watch(() => store.utilitaries.techHourly, () => {
     setTechRate();
 });
 
+let lastValidDuration = store.devisInfos.duration;
 watch(() => store.devisInfos.duration, (newVal, oldVal) => {
-    if (newVal === oldVal) return;
+    if (!newVal || newVal <= 0) return;
 
     store.selectedItems.forEach(item => {
-        if(item.duration === oldVal) {
+        if(item.duration === lastValidDuration) {
             store.setItem(item, 'unset', newVal);
         }
     });
+
+    lastValidDuration = newVal;
 });
 </script>
 
@@ -226,7 +241,7 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
                     <input v-model="store.devisInfos.date"/>
                 </label>
                 <label>Durée (Jours) :
-                    <input type="number" v-model="store.devisInfos.duration"/>
+                    <input type="number" v-model="store.devisInfos.duration" min="1"/>
                 </label>
             </div>
         </section>
@@ -266,7 +281,7 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
                 </label>
                 <div class="rate">
                     <label>Prix unitaire :
-                        <input type="number" v-model="store.utilitaries.techRate"/>
+                        <input type="number" v-model="store.utilitaries.techRate" min="0"/>
                     </label>
                     <label class="inline">Par Heure ?
                         <input type="checkbox" v-model="store.utilitaries.techHourly"/>
@@ -278,10 +293,10 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
             </div>
             <div class="line transport">
                 <label>Transport (km):
-                    <input type="number" v-model="store.utilitaries.transportKm"/>
+                    <input type="number" v-model="store.utilitaries.transportKm" min="0"/>
                 </label>
                 <label>Prix unitaire :
-                    <input type="number" v-model="store.utilitaries.transportRate"/>
+                    <input type="number" v-model="store.utilitaries.transportRate" min="0"/>
                 </label>
                 <label>Total : 
                     <span>{{ (store.utilitaries.transportKm * store.utilitaries.transportRate).toFixed(2) }} €</span>
@@ -358,10 +373,10 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
                 </button>
                 <button>
                     Facturer
-                </button>
-                <button>
-                    Dupliquer
                 </button> -->
+                <button @click="duplicateDevis">
+                    Dupliquer
+                </button>
             </div>
             <p v-if="saveMassage" :class="saveMassage.result">{{ saveMassage.message }}</p>
         </section>

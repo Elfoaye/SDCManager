@@ -538,6 +538,45 @@ pub fn delete_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<(), Strin
 }
 
 #[tauri::command]
+pub fn duplicate_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<i32, String> {
+    let mut conn = get_database_connection(handle)?;
+    let transaction = conn.transaction().map_err(|e| e.to_string())?;
+
+    let new_devis_id = generate_new_devis_id(&transaction).map_err(|e| e.to_string())?;
+
+    transaction.execute(
+        "INSERT INTO Devis (
+            devis_id, client_id, nom, date, durée, nb_tech, taux_tech, nb_km, taux_km, adhesion, promo, etat
+        )
+        SELECT 
+            ?, client_id, nom || ' (copie)', date, durée, nb_tech, taux_tech, nb_km, taux_km, adhesion, promo, etat
+        FROM Devis
+        WHERE devis_id = ?",
+        params![new_devis_id, devis_id],
+    ).map_err(|e| e.to_string())?;
+
+    transaction.execute(
+        "INSERT INTO Devis_materiel (devis_id, materiel_id, quantité, durée, etat)
+         SELECT ?, materiel_id, quantité, durée, etat
+         FROM Devis_materiel
+         WHERE devis_id = ?",
+        params![new_devis_id, devis_id],
+    ).map_err(|e| e.to_string())?;
+
+    transaction.execute(
+        "INSERT INTO Devis_extra (devis_id, nom, prix)
+         SELECT ?, nom, prix
+         FROM Devis_extra
+         WHERE devis_id = ?",
+        params![new_devis_id, devis_id],
+    ).map_err(|e| e.to_string())?;
+
+    transaction.commit().map_err(|e| e.to_string())?;
+
+    Ok(new_devis_id)
+}
+
+#[tauri::command]
 pub fn get_devis_summaries(handle: tauri::AppHandle) -> Result<Vec<SummDevis>, String> {
     let conn = get_database_connection(handle)?;
 
