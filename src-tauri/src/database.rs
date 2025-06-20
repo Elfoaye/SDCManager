@@ -375,13 +375,17 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
         transaction.execute("DELETE FROM Devis_extra WHERE devis_id = ?", [devis_id]).map_err(|e| e.to_string())?;
     } else { // Insert new devis
         transaction.execute(
-            "INSERT INTO Devis (devis_id, client_id, nom, date, durée, adhesion, promo, etat) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO Devis (devis_id, client_id, nom, date, durée, nb_tech, taux_tech, nb_km, taux_km, adhesion, promo, etat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             params![
                 devis_id,
                 client_id,
                 full_devis.devis.nom,
                 full_devis.devis.date,
                 full_devis.devis.durée,
+                full_devis.devis.nb_tech,
+                full_devis.devis.taux_tech,
+                full_devis.devis.nb_km,
+                full_devis.devis.taux_km,
                 full_devis.devis.adhesion,
                 full_devis.devis.promo,
                 full_devis.devis.etat
@@ -497,7 +501,7 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, 
     }
 
     let mut stmt_extra = conn.prepare(
-        "SELECT extra_id, devis_id, nom, prix FROM Devis_extra WHERE devis_id = ?"
+        "SELECT d_extra_id, devis_id, nom, prix FROM Devis_extra WHERE devis_id = ?"
     ).map_err(|e| e.to_string())?;
     let extra_iter = stmt_extra.query_map(params![devis_id], |row| {
         Ok(DevisExtra {
@@ -523,23 +527,12 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, 
 
 #[tauri::command]
 pub fn delete_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<(), String> {
-    let mut conn = get_database_connection(handle)?;
+    let conn = get_database_connection(handle)?;
 
-    let transaction = conn.transaction().map_err(|e| e.to_string())?;
-
-    transaction
-        .execute("DELETE FROM Devis_materiel WHERE devis_id = ?", [devis_id])
-        .map_err(|e| e.to_string())?;
-
-    transaction
-        .execute("DELETE FROM Devis_extra WHERE devis_id = ?", [devis_id])
-        .map_err(|e| e.to_string())?;
-
-    transaction
+    // SQL delete items & extras on cascade
+    conn
         .execute("DELETE FROM Devis WHERE devis_id = ?", [devis_id])
         .map_err(|e| e.to_string())?;
-
-    transaction.commit().map_err(|e| e.to_string())?;
 
     Ok(())
 }

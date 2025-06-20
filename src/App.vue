@@ -88,6 +88,7 @@ listen('log_in_admin', (event) => {
                 <PageEditerDevis 
                     v-else-if="currentPage === 'devmodif'" 
                     :devis="currentDevis"
+                    :setDevis="setDevis"
                 />
                 <PageParams v-else-if="currentPage === 'params'" />
                 <PageAdmin v-else-if="currentPage === 'admin'" />

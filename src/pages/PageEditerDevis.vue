@@ -6,7 +6,7 @@ import { useBreadcrumb } from '../composables/breadcrumb';
 import { useDevisStore } from '../composables/devisStore';
 import ListeSelectionDevis from '../components/ListeSelectionDevis.vue';
 
-const props = defineProps(['devis']);
+const props = defineProps(['devis', 'setDevis']);
 
 const { setBreadcrumb } = useBreadcrumb();
 setBreadcrumb([
@@ -84,7 +84,6 @@ function onNameInput() {
 }
 
 function onEventInput() {
-    console.table(matchingEvents.value);
     if(!store.clients) return;
 
     const client = store.clients.find(c =>
@@ -113,8 +112,11 @@ function setContextName() {
 
 function newDevis() {
     store.reset();
+    if(props.devis !== 0) props.setDevis(0);
+
     setTechRate();
     store.utilitaries.transportRate = formulas.value.transport_km;
+
     saveMassage.value = null;
     setContextName();
 }
@@ -131,7 +133,7 @@ async function loadDevis(id) {
         loadError.value = '';
         setContextName();
     } catch (err) {
-        console.error(err);
+        console.error(err + " on loading devis " + id);
         loadError.value = err;
     }
 }
