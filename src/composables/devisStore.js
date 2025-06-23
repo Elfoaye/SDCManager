@@ -201,6 +201,6 @@ export const useDevisStore = defineStore('devis', () => {
         };
     }
 
-    return { clients, devisInfos, clientInfos, selectedItems, 
+    return { formulas, clients, devisInfos, clientInfos, selectedItems, 
         extraItems, utilitaries, setItem, saveDevis, loadDevis, reset};
 });

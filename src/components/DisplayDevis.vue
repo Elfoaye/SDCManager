@@ -1,22 +1,32 @@
 <script setup>
-import { ref } from 'vue';
+import { computed } from 'vue';
+import { useDevisStore } from '../composables/devisStore';
 
 const props = defineProps(['devis']);
+const store = useDevisStore();
 
-const materiel = ref([
-    {nom: 'Tente 3x3', item_type:'Acessoires', valeur:2500.00, contrib: 65.00, quantité: 2, totalPrice: 130 },
-    {nom: 'Tente 3x3', item_type:'Acessoires', valeur:2500.00, contrib: 65.00, quantité: 2, totalPrice: 130 },
-    {nom: 'Tente 3x3', item_type:'Acessoires', valeur:2500.00, contrib: 65.00, quantité: 2, totalPrice: 130 },
-    {nom: 'Tente 3x3', item_type:'Acessoires', valeur:2500.00, contrib: 65.00, quantité: 2, totalPrice: 130 },
-    {nom: 'Tente 3x3', item_type:'Acessoires', valeur:2500.00, contrib: 65.00, quantité: 2, totalPrice: 130 },
-    {nom: 'Tente 3x3', item_type:'Acessoires', valeur:2500.00, contrib: 65.00, quantité: 2, totalPrice: 130 },
-    {nom: 'Tente 3x3', item_type:'Acessoires', valeur:2500.00, contrib: 65.00, quantité: 2, totalPrice: 130 },
-    {nom: 'Tente 3x3', item_type:'Acessoires', valeur:2500.00, contrib: 65.00, quantité: 2, totalPrice: 130 },
-    {nom: 'Tente 3x3', item_type:'Acessoires', valeur:2500.00, contrib: 65.00, quantité: 2, totalPrice: 130 },
-    {nom: 'Tente 3x3', item_type:'Acessoires', valeur:2500.00, contrib: 65.00, quantité: 2, totalPrice: 130 },
-    {nom: 'Tente 3x3', item_type:'Acessoires', valeur:2500.00, contrib: 65.00, quantité: 2, totalPrice: 130 },
-    {nom: 'Tente 3x3', item_type:'Acessoires', valeur:2500.00, contrib: 65.00, quantité: 2, totalPrice: 130 },
-]);
+const materielAssur = computed(() => {
+    return store.selectedItems.reduce((sum, item) => sum + item.valeur, 0);
+});
+
+const materielCost = computed(() => {
+    return store.selectedItems.reduce((sum, item) => sum + item.totalPrice, 0);
+});
+
+const finalCost = computed(() => {
+    let price = store.utilitaries.techQty * store.utilitaries.techRate;
+    price += store.utilitaries.transportKm * store.utilitaries.transportRate;
+    if(store.utilitaries.membership && store.formulas) {
+        price += store.formulas.membership;
+    }
+
+    price += materielCost.value;
+    price += store.extraItems.reduce((sum, item) => sum + item.price, 0);
+
+    price -= store.utilitaries.discountEuro;
+
+    return price;
+});
 </script>
 
 <template>
@@ -26,17 +36,15 @@ const materiel = ref([
                 <div class="infos">
                     <img src="../assets/LOGO_SDC.png">
                     <div class="general-info">
-                        <p class="date">A Arvieux le 20/06/2025</p>
+                        <p class="date">A Arvieux le {{ store.devisInfos.date }}</p>
                         <div class="adress">
-                            <p>Nom du Client</p>
-                            <p>Adreses totale, 
-                                possiblement sur plusieurs lignes 
-                                Au moins 3</p>
+                            <p>{{ store.clientInfos.name }}</p>
+                            <p>{{ store.clientInfos.adress }}</p>
                         </div>  
                     </div>
                 </div>
                 <p class="context blue">Contribution mise à disposition de matériel Son et éclairage</p>
-                <p class="nom-devis">Facture n°20250601</p>
+                <p class="nom-devis">Devis n°{{ store.devisInfos.id }}</p>
             </header>
             <div class="body">
                 <table>
@@ -50,18 +58,24 @@ const materiel = ref([
                     </thead>
                     <tbody>
                         <tr>
-                            <td>Technicien</td>
-                            <td>330€</td>
-                            <td>2</td>
-                            <td>660€</td>
+                            <td>Technicien/jour</td>
+                            <td>{{ store.utilitaries.techRate }}€</td>
+                            <td>{{ store.utilitaries.techQty }}</td>
+                            <td>{{ store.utilitaries.techRate * store.utilitaries.techQty }}€</td>
                         </tr>
                         <tr>
                             <td>Transport</td>
-                            <td>0.70€</td>
-                            <td>20</td>
-                            <td>14€</td>
+                            <td>{{ store.utilitaries.transportRate }}€</td>
+                            <td>{{ store.utilitaries.transportKm }}</td>
+                            <td>{{ store.utilitaries.transportRate * store.utilitaries.transportKm }}€</td>
                         </tr>
-                        <tr v-if="materiel.length < 10" class="Materiel">
+                        <tr v-if="store.selectedItems.length > 10">
+                            <td>Matériel (détails page suivante)</td>
+                            <td></td>
+                            <td></td>
+                            <td>{{ materielCost.toFixed(2) }}€</td>
+                        </tr>
+                        <tr v-else-if="store.selectedItems.length > 0" class="Materiel">
                             <td colspan="4">
                                 <table class="materiel">
                                     <thead class="blue">
@@ -72,45 +86,54 @@ const materiel = ref([
                                             <th>Valeur à Assurer</th>
                                             <th>Contrib.</th>
                                             <th>Unités</th>
+                                            <th>Durée</th>
                                             <th>Total</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr v-for="item in materiel">
+                                        <tr v-for="item in store.selectedItems">
                                             <td>{{ item.nom }}</td>
                                             <td>{{ item.item_type }}</td>
-                                            <td>{{ item.valeur }}€</td>
-                                            <td>{{ item.valeur * item.quantité }}€</td>
-                                            <td>{{ item.contrib }}€</td>
-                                            <td>{{ item.quantité }}</td>
-                                            <td>{{ item.totalPrice }}€</td>
+                                            <td>{{ Number(item.valeur.toFixed(2)) }}€</td>
+                                            <td>{{ Number((item.valeur * item.quantity).toFixed(2)) }}€</td>
+                                            <td>{{ Number(item.contrib.toFixed(2)) }}€</td>
+                                            <td>{{ item.quantity }}</td>
+                                            <td>{{ item.duration }}</td>
+                                            <td>{{ Number(item.totalPrice.toFixed(2)) }}€</td>
                                         </tr>
                                     </tbody>
                                     <tfoot class="blue">
-                                        <tr>
+                                        <tr>                   
                                             <td>TOTAL</td>
                                             <td></td>
                                             <td></td>
-                                            <td>7854,26€</td>
+                                            <td>{{ Number(materielAssur.toFixed(2)) }}€</td>
                                             <td></td>
                                             <td></td>
-                                            <td>1208,20€</td>
+                                            <td></td>
+                                            <td>{{ Number(materielCost.toFixed(2)) }}€</td>                        
                                         </tr>
                                     </tfoot>
                                 </table>
                             </td>
                         </tr>
-                        <tr v-else-if="materiel.length > 0">
-                            <td>Matériel (détails page suivante)</td>
-                            <td></td>
-                            <td></td>
-                            <td>10000,70€</td>
-                        </tr>
-                        <tr>
+                        <tr v-if="store.utilitaries.membership">
                             <td>Adhésion morale année scolaire 2025/2026</td>
                             <td></td>
                             <td></td>
                             <td>25€</td>
+                        </tr>
+                        <tr v-for="extra in store.extraItems">
+                            <td>{{ extra.name }}</td>
+                            <td></td>
+                            <td></td>
+                            <td>{{ Number(extra.price.toFixed(2)) }}€</td>
+                        </tr>
+                        <tr v-if="store.utilitaries.discountEuro > 0">
+                            <td>Geste commercial</td>
+                            <td></td>
+                            <td></td>
+                            <td>{{ Number(store.utilitaries.discountEuro.toFixed(2)) }}€</td>
                         </tr>
                     </tbody>
                     <tfoot class="blue">
@@ -118,7 +141,7 @@ const materiel = ref([
                             <td>TOTAL Général</td>
                             <td></td>
                             <td></td>
-                            <td>12080,20 €</td>
+                            <td>{{ finalCost.toFixed(2) }}€</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -137,7 +160,7 @@ const materiel = ref([
             </footer>
         </div>
 
-        <div class="page" v-if="materiel.length > 10">
+        <div class="page" v-if="store.selectedItems.length > 10">
             <header>
                 <div class="infos">
                     <img src="../assets/LOGO_SDC.png">
@@ -157,32 +180,35 @@ const materiel = ref([
                         <th>Valeur à Assurer</th>
                         <th>Contrib.</th>
                         <th>Unités</th>
+                        <th>Durée</th>
                         <th>Total</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="item in materiel">
+                    <tr v-for="item in store.selectedItems">
                         <td>{{ item.nom }}</td>
                         <td>{{ item.item_type }}</td>
-                        <td>{{ item.valeur }}€</td>
-                        <td>{{ item.valeur * item.quantité }}€</td>
-                        <td>{{ item.contrib }}€</td>
-                        <td>{{ item.quantité }}</td>
-                        <td>{{ item.totalPrice }}€</td>
+                        <td>{{ Number(item.valeur) }}€</td>
+                        <td>{{ Number((item.valeur * item.quantity).toFixed(2)) }}€</td>
+                        <td>{{ Number(item.contrib.toFixed(2)) }}€</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.duration }}</td>
+                        <td>{{ Number(item.totalPrice.toFixed(2)) }}€</td>
                     </tr>
                 </tbody>
                 <tfoot class="blue">
-                    <tr>
+                    <tr>                   
                         <td>TOTAL</td>
                         <td></td>
                         <td></td>
-                        <td>7854,26€</td>
+                        <td>{{ Number(materielAssur.toFixed(2)) }}€</td>
                         <td></td>
                         <td></td>
-                        <td>1208,20€</td>
+                        <td></td>
+                        <td>{{ Number(materielCost.toFixed(2)) }}€</td>                        
                     </tr>
                 </tfoot>
-                </table>
+            </table>
             
             <footer>
                 <p class="legal">

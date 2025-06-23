@@ -131,6 +131,21 @@ h2 {
     padding: 1rem;
 }
 
+.submit {
+    position: sticky;
+    bottom: -0.5rem;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-bottom: 0;
+    border: 1px solid var(--border-accent);
+    border-bottom: 0;
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+    background-color: var(--background);
+}
+
 .buttons {
     display: flex;
     gap: 1rem;

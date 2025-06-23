@@ -47,8 +47,7 @@ async function setPage(value) {
 
 function setDevis(id, modif) {
     currentDevis.value = id;
-    
-    console.log("Setting modif = " + modif + " on devis " + id );
+
     if(modif || id === 0) {
         setPage('devmodif');
     } else {
