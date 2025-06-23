@@ -49,7 +49,7 @@ const props = defineProps(['setPage']);
             </button>
         </section>
 
-        <section>
+        <section class="last">
             <h2>Admin</h2>
             <button @click="setPage('admin')">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -93,6 +93,10 @@ section {
     padding-bottom: 0.5rem;
     background-color: var(--accent);
     border-bottom: 1px solid var(--border-accent);
+}
+
+section.last {
+    border: 0;
 }
 
 h2 {

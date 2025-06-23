@@ -96,7 +96,7 @@ function setSort(key) {
                     <p>{{ item.date }}</p>
                     <p>{{ item.client_nom }}</p>
                     <p>{{ item.evenement }}</p>
-                    <!-- <button @click="setDevis(item.id, true)">&#9998;</button> -->
+                    <button class="modif" @click.stop="setDevis(item.id, true)">&#9998;</button>
                 </li>
             </ul>
         </div>
@@ -104,25 +104,35 @@ function setSort(key) {
 </template>
 
 <style scoped>
+.content {
+    overflow-y: hidden;
+}
+
 .searchbar {
     width: 50%;
     padding: 1rem;
 }
 
-ul {
+.list {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    list-style-type: none;
+    min-height: 0;
+}
+
+ul {
+    flex: 1;
     margin: 0;
     padding: 0;
     padding-bottom: 2rem;
+    list-style-type: none;
     overflow-y: auto;
     overflow-x: hidden;
 }
 
 li, li.head {
     display: grid;
-    grid-template-columns: 1fr 2fr 1fr 1fr 1fr 1fr;
+    grid-template-columns: 2fr 3fr 2fr 2fr 3fr 1fr;
     padding: 0 0.5rem;
     margin: 0;
     gap: 1rem;
@@ -148,6 +158,17 @@ li p {
     overflow: hidden;
     text-overflow: ellipsis;
     padding-left: 0
+}
+
+li:not(.head) button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    justify-self: center;
+    align-self: center;
+    max-width: 3rem;
+    max-height: 3rem;
+    font-size: 1.5rem;
 }
 
 li.head {
