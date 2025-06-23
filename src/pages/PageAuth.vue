@@ -60,7 +60,7 @@ onBeforeUnmount(() => {
     <div class="content">
         <h1>Cette section requiert des droits Admin</h1>
         <h2>Identifiez-vous pour continuer</h2>
-        <div class="submit">
+        <div class="zone">
             <div class="field">
                 <input 
                     ref="passwordInput" 
@@ -87,7 +87,7 @@ onBeforeUnmount(() => {
     align-items: center;
 }
 
-.submit {
+.zone {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
@@ -96,7 +96,7 @@ onBeforeUnmount(() => {
     margin-top: 2rem;
 }
 
-.submit .field {
+.zone .field {
     grid-column: span 2;
     display: flex;
     flex-direction: column;

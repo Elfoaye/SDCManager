@@ -20,188 +20,195 @@ const materiel = ref([
 </script>
 
 <template>
-    <div class="page">
-        <header>
-            <div class="infos">
-                <img src="../assets/LOGO_SDC.png">
-                <div class="general-info">
-                    <p class="date">A Arvieux le 20/06/2025</p>
-                    <div class="adress">
-                        <p>Nom du Client</p>
-                        <p>Adreses totale, 
-                            possiblement sur plusieurs lignes 
-                            Au moins 3</p>
-                    </div>  
+    <div class="all">
+        <div class="page">
+            <header>
+                <div class="infos">
+                    <img src="../assets/LOGO_SDC.png">
+                    <div class="general-info">
+                        <p class="date">A Arvieux le 20/06/2025</p>
+                        <div class="adress">
+                            <p>Nom du Client</p>
+                            <p>Adreses totale, 
+                                possiblement sur plusieurs lignes 
+                                Au moins 3</p>
+                        </div>  
+                    </div>
                 </div>
+                <p class="context blue">Contribution mise à disposition de matériel Son et éclairage</p>
+                <p class="nom-devis">Facture n°20250601</p>
+            </header>
+            <div class="body">
+                <table>
+                    <thead class="blue">
+                        <tr>
+                            <th>Dénomination</th>
+                            <th>VLU</th>
+                            <th>Unités</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Technicien</td>
+                            <td>330€</td>
+                            <td>2</td>
+                            <td>660€</td>
+                        </tr>
+                        <tr>
+                            <td>Transport</td>
+                            <td>0.70€</td>
+                            <td>20</td>
+                            <td>14€</td>
+                        </tr>
+                        <tr v-if="materiel.length < 10" class="Materiel">
+                            <td colspan="4">
+                                <table class="materiel">
+                                    <thead class="blue">
+                                        <tr>
+                                            <th>Détail mise à disposition</th>
+                                            <th>Type</th>
+                                            <th>Val.Remp.</th>
+                                            <th>Valeur à Assurer</th>
+                                            <th>Contrib.</th>
+                                            <th>Unités</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="item in materiel">
+                                            <td>{{ item.nom }}</td>
+                                            <td>{{ item.item_type }}</td>
+                                            <td>{{ item.valeur }}€</td>
+                                            <td>{{ item.valeur * item.quantité }}€</td>
+                                            <td>{{ item.contrib }}€</td>
+                                            <td>{{ item.quantité }}</td>
+                                            <td>{{ item.totalPrice }}€</td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot class="blue">
+                                        <tr>
+                                            <td>TOTAL</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>7854,26€</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>1208,20€</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr v-else-if="materiel.length > 0">
+                            <td>Matériel (détails page suivante)</td>
+                            <td></td>
+                            <td></td>
+                            <td>10000,70€</td>
+                        </tr>
+                        <tr>
+                            <td>Adhésion morale année scolaire 2025/2026</td>
+                            <td></td>
+                            <td></td>
+                            <td>25€</td>
+                        </tr>
+                    </tbody>
+                    <tfoot class="blue">
+                        <tr>
+                            <td>TOTAL Général</td>
+                            <td></td>
+                            <td></td>
+                            <td>12080,20 €</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <p>En vous remerciant pour votre confiance.</p>
             </div>
-            <p class="context blue">Contribution mise à disposition de matériel Son et éclairage</p>
-            <p class="nom-devis">Facture n°20250601</p>
-        </header>
-        <div class="body">
-            <table>
+
+            <footer>
+                <p class="legal">
+                    Son des Cimes – 39 Imp. Du Pellas – 05350 Arvieux<br>
+                    Association loi 1901 reconnue d’intérêt général n° W051000990 - Code APE : 9329Z<br>
+                    Siret : 513 386 979 000 19 - &#9990; : 06 62 54 34 79 <br>
+                    sondescimes@gmail.com - http://sondescimes.lescigales.org<br>
+                    Non assujettie à la T.V.A.<br>
+                </p>
+                <img src="../assets/QRCode.png">
+            </footer>
+        </div>
+
+        <div class="page" v-if="materiel.length > 10">
+            <header>
+                <div class="infos">
+                    <img src="../assets/LOGO_SDC.png">
+                    <div class="general-info">
+                        <p class="date">A Arvieux le 20/06/2025</p>
+                        
+                    </div>
+                </div>
+            </header>
+
+            <table class="materiel">
                 <thead class="blue">
                     <tr>
-                        <th>Dénomination</th>
-                        <th>VLU</th>
+                        <th>Détail mise à disposition</th>
+                        <th>Type</th>
+                        <th>Val.Remp.</th>
+                        <th>Valeur à Assurer</th>
+                        <th>Contrib.</th>
                         <th>Unités</th>
                         <th>Total</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>Technicien</td>
-                        <td>330€</td>
-                        <td>2</td>
-                        <td>660€</td>
-                    </tr>
-                    <tr>
-                        <td>Transport</td>
-                        <td>0.70€</td>
-                        <td>20</td>
-                        <td>14€</td>
-                    </tr>
-                    <tr v-if="materiel.length < 10" class="Materiel">
-                        <td colspan="4">
-                            <table class="materiel">
-                                <thead class="blue">
-                                    <tr>
-                                        <th>Détail mise à disposition</th>
-                                        <th>Type</th>
-                                        <th>Val.Remp.</th>
-                                        <th>Valeur à Assurer</th>
-                                        <th>Contrib.</th>
-                                        <th>Unités</th>
-                                        <th>Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="item in materiel">
-                                        <td>{{ item.nom }}</td>
-                                        <td>{{ item.item_type }}</td>
-                                        <td>{{ item.valeur }}€</td>
-                                        <td>{{ item.valeur * item.quantité }}€</td>
-                                        <td>{{ item.contrib }}€</td>
-                                        <td>{{ item.quantité }}</td>
-                                        <td>{{ item.totalPrice }}€</td>
-                                    </tr>
-                                </tbody>
-                                <tfoot class="blue">
-                                    <tr>
-                                        <td>TOTAL</td>
-                                        <td></td>
-                                        <td></td>
-                                        <td>7854,26€</td>
-                                        <td></td>
-                                        <td></td>
-                                        <td>1208,20€</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </td>
-                    </tr>
-                    <tr v-else-if="materiel.length > 0">
-                        <td>Matériel (détails page suivante)</td>
-                        <td></td>
-                        <td></td>
-                        <td>10000,70€</td>
-                    </tr>
-                    <tr>
-                        <td>Adhésion morale année scolaire 2025/2026</td>
-                        <td></td>
-                        <td></td>
-                        <td>25€</td>
+                    <tr v-for="item in materiel">
+                        <td>{{ item.nom }}</td>
+                        <td>{{ item.item_type }}</td>
+                        <td>{{ item.valeur }}€</td>
+                        <td>{{ item.valeur * item.quantité }}€</td>
+                        <td>{{ item.contrib }}€</td>
+                        <td>{{ item.quantité }}</td>
+                        <td>{{ item.totalPrice }}€</td>
                     </tr>
                 </tbody>
                 <tfoot class="blue">
                     <tr>
-                        <td>TOTAL Général</td>
+                        <td>TOTAL</td>
                         <td></td>
                         <td></td>
-                        <td>12080,20 €</td>
+                        <td>7854,26€</td>
+                        <td></td>
+                        <td></td>
+                        <td>1208,20€</td>
                     </tr>
                 </tfoot>
-            </table>
-            <p>En vous remerciant pour votre confiance.</p>
+                </table>
+            
+            <footer>
+                <p class="legal">
+                    Son des Cimes – 39 Imp. Du Pellas – 05350 Arvieux<br>
+                    Association loi 1901 reconnue d’intérêt général n° W051000990 - Code APE : 9329Z<br>
+                    Siret : 513 386 979 000 19 - &#9990; : 06 62 54 34 79 <br>
+                    sondescimes@gmail.com - http://sondescimes.lescigales.org<br>
+                    Non assujettie à la T.V.A.<br>
+                </p>
+                <img src="../assets/QRCode.png">
+            </footer>
         </div>
-
-        <footer>
-            <p class="legal">
-                Son des Cimes – 39 Imp. Du Pellas – 05350 Arvieux<br>
-                Association loi 1901 reconnue d’intérêt général n° W051000990 - Code APE : 9329Z<br>
-                Siret : 513 386 979 000 19 - &#9990; : 06 62 54 34 79 <br>
-                sondescimes@gmail.com - http://sondescimes.lescigales.org<br>
-                Non assujettie à la T.V.A.<br>
-            </p>
-            <img src="../assets/QRCode.png">
-        </footer>
-    </div>
-
-    <div class="page" v-if="materiel.length > 10">
-        <header>
-            <div class="infos">
-                <img src="../assets/LOGO_SDC.png">
-                <div class="general-info">
-                    <p class="date">A Arvieux le 20/06/2025</p>
-                    
-                </div>
-            </div>
-        </header>
-
-        <table class="materiel">
-            <thead class="blue">
-                <tr>
-                    <th>Détail mise à disposition</th>
-                    <th>Type</th>
-                    <th>Val.Remp.</th>
-                    <th>Valeur à Assurer</th>
-                    <th>Contrib.</th>
-                    <th>Unités</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="item in materiel">
-                    <td>{{ item.nom }}</td>
-                    <td>{{ item.item_type }}</td>
-                    <td>{{ item.valeur }}€</td>
-                    <td>{{ item.valeur * item.quantité }}€</td>
-                    <td>{{ item.contrib }}€</td>
-                    <td>{{ item.quantité }}</td>
-                    <td>{{ item.totalPrice }}€</td>
-                </tr>
-            </tbody>
-            <tfoot class="blue">
-                <tr>
-                    <td>TOTAL</td>
-                    <td></td>
-                    <td></td>
-                    <td>7854,26€</td>
-                    <td></td>
-                    <td></td>
-                    <td>1208,20€</td>
-                </tr>
-            </tfoot>
-            </table>
-        
-        <footer>
-            <p class="legal">
-                Son des Cimes – 39 Imp. Du Pellas – 05350 Arvieux<br>
-                Association loi 1901 reconnue d’intérêt général n° W051000990 - Code APE : 9329Z<br>
-                Siret : 513 386 979 000 19 - &#9990; : 06 62 54 34 79 <br>
-                sondescimes@gmail.com - http://sondescimes.lescigales.org<br>
-                Non assujettie à la T.V.A.<br>
-            </p>
-            <img src="../assets/QRCode.png">
-        </footer>
     </div>
 </template>
 
 <style scoped>
+.all {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
 .page {
   width: 210mm;
   min-height: 297mm;
 
-  margin-bottom: 1rem;
   padding: 20mm;
   padding-top: 15mm;
   padding-bottom: 10mm;

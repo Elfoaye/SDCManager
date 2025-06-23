@@ -20,6 +20,7 @@
   --success: #1FB87E;
   --success-background: rgb(88, 206, 161);
   --warning: #F7BC00;
+  --warning-background: #eec439;
   --background-error: #ec3f3f;
   --error: #C62828;
   --disabled: #B0B0B0;
@@ -41,6 +42,7 @@
   --success-background: rgb(40, 136, 99);
   --success: #1da774;
   --warning: #b18700;
+  --warning-background: #e4c04b;
   --background-error: #ec3f3f;
   --error: #EF5350;
   --disabled: #555555;

@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { ref, computed } from 'vue';
 import { useBreadcrumb } from '../composables/breadcrumb';
 
-const props = defineProps(['setDevis']);
+const { setDevis } = defineProps(['setDevis']);
 
 const { setBreadcrumb } = useBreadcrumb();
 setBreadcrumb([
@@ -16,7 +16,8 @@ const columns = [
     { label: 'Nom', key: 'nom' },
     { label: 'Date', key: 'date' },
     { label: 'Client', key: 'client_nom' },
-    { label: 'Evenement', key: 'evenement' }
+    { label: 'Evenement', key: 'evenement' },
+    { label: '', key: '' }
 ]
 
 const listContent = ref([]);
@@ -65,10 +66,6 @@ function setSort(key) {
     sortAsc.value = false;
     sortProperty.value = key;
 }
-
-function setDevis(id) {
-    props.setDevis(id);
-}
 </script>
 
 <template>
@@ -91,14 +88,15 @@ function setDevis(id) {
                     <span v-if="sortProperty === col.key">{{ sortAsc ? '▲' : '▼' }}</span>
                 </button>
             </li>
-            <li class="new-item" @click="setDevis(0)">+ Nouveau devis</li>
+            <li class="new-item" @click="setDevis(0, true)">+ Nouveau devis</li>
             <ul>
-                <li v-for="item in sortedContent" @click="setDevis(item.id)" :data-id="item.id">
+                <li v-for="item in sortedContent" @click="setDevis(item.id, false)" :data-id="item.id">
                     <p>{{ item.id }}</p>
                     <p>{{ item.nom }}</p>
                     <p>{{ item.date }}</p>
                     <p>{{ item.client_nom }}</p>
                     <p>{{ item.evenement }}</p>
+                    <!-- <button @click="setDevis(item.id, true)">&#9998;</button> -->
                 </li>
             </ul>
         </div>
@@ -124,7 +122,7 @@ ul {
 
 li, li.head {
     display: grid;
-    grid-template-columns: 1fr 2fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr 2fr 1fr 1fr 1fr 1fr;
     padding: 0 0.5rem;
     margin: 0;
     gap: 1rem;

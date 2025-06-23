@@ -5,7 +5,6 @@ import { ref, computed ,onMounted, watch } from 'vue';
 import { useBreadcrumb } from '../composables/breadcrumb';
 import { useDevisStore } from '../composables/devisStore';
 import ListeSelectionDevis from '../components/ListeSelectionDevis.vue';
-import DisplayDevis from '../components/DisplayDevis.vue';
 
 const props = defineProps(['devis', 'setDevis']);
 
@@ -113,7 +112,7 @@ function setContextName() {
 
 function newDevis() {
     store.reset();
-    if(props.devis !== 0) props.setDevis(0);
+    if(props.devis !== 0) props.setDevis(0, true);
 
     setTechRate();
     store.utilitaries.transportRate = formulas.value.transport_km;
@@ -139,11 +138,6 @@ async function loadDevis(id) {
     }
 }
 
-async function saveDevis() {
-    saveMassage.value = await store.saveDevis();
-    setContextName();
-}
-
 function cancelDevis() {
     loadDevis(store.devisInfos.id);
 }
@@ -166,16 +160,9 @@ function confirmCancel() {
     confirm.value = null;
 }
 
-async function duplicateDevis() {
-    try {
-        const newId = await invoke("duplicate_devis", { devisId: store.devisInfos.id });
-        loadError.value = '';
-        loadDevis(newId);
-    } catch (err) {
-        console.error(err + " on duplicating devis " + id);
-        loadError.value = err;
-    }
-    
+async function endModif() {
+    await store.saveDevis();
+    props.setDevis(store.devisInfos.id, false);
 }
 
 onMounted(async() => {
@@ -356,25 +343,14 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
         <section class="total">
             <h2><span>Prix total : {{ finalCost.toFixed(2) }} €</span></h2>
         </section>
-        <section class="preview">
-            <DisplayDevis class=".preview-small"/>
-        </section>
+        
         <section class="submit">
             <div class="buttons">
-                <button @click="saveDevis" class="new">
-                    {{ store.devisInfos.id > 0 ? 'Mettre à jour' : 'Enregistrer' }}
+                <button @click="endModif" class="new">
+                    Terminer
                 </button>
                 <button @click="cancelDevis" class="cancel">
                     Annuler
-                </button>
-                <!-- <button>
-                    Télecharger
-                </button>
-                <button>
-                    Facturer
-                </button> -->
-                <button @click="duplicateDevis">
-                    Dupliquer
                 </button>
             </div>
             <p v-if="saveMassage" :class="saveMassage.result">{{ saveMassage.message }}</p>
@@ -524,25 +500,7 @@ li:not(.head):nth-child(even) {
     background-color: var(--background-alt);
 }
 
-.preview-small {
-  transform: scale(0.7);
-  transform-origin: top left;
-  width: 148mm;
-  height: auto;
-  overflow: hidden;
-  border: 1px solid #ccc;
-}
 
-.submit {
-    position: sticky;
-    bottom: -0.5rem;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    border-bottom: 0;
-    border-top: 1px solid var(--border-accent);
-    background-color: var(--background);
-}
 
 .buttons {
     display: flex;

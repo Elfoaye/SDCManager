@@ -9,6 +9,7 @@ import HeaderBar from './components/HeaderBar.vue';
 import PageAccueil from './pages/PageAccueil.vue'
 import PageMateriel from './pages/PageMateriel.vue';
 import PageEditerDevis from './pages/PageEditerDevis.vue';
+import PageConsulterDevis from './pages/PageConsulterDevis.vue';
 import PageParcourirDevis from './pages/PageParcourirDevis.vue';
 import PageAuth from './pages/PageAuth.vue';
 import PageAdmin from './pages/PageAdmin.vue';
@@ -44,9 +45,15 @@ async function setPage(value) {
     currentPage.value = value;
 }
 
-function setDevis(id) {
+function setDevis(id, modif) {
     currentDevis.value = id;
-    setPage('devmodif');
+    
+    console.log("Setting modif = " + modif + " on devis " + id );
+    if(modif || id === 0) {
+        setPage('devmodif');
+    } else {
+        setPage('devconsult');
+    } 
 }
 
 function onAdminLogOut() {
@@ -83,6 +90,11 @@ listen('log_in_admin', (event) => {
                 />
                 <PageParcourirDevis 
                     v-else-if="currentPage === 'devparcour'" 
+                    :setDevis="setDevis"
+                />
+                <PageConsulterDevis 
+                    v-else-if="currentPage === 'devconsult'" 
+                    :devis="currentDevis"
                     :setDevis="setDevis"
                 />
                 <PageEditerDevis 

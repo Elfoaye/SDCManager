@@ -108,6 +108,14 @@ button.new:hover {
     background-color: var(--success);
 }
 
+button.modif {
+    background-color: var(--warning-background);
+}
+
+button.modif:hover {
+    background-color: var(--warning);
+}
+
 button.cancel {
     background-color: var(--disabled);
 }
@@ -155,4 +163,18 @@ button.delete:hover {
 
 .error {
     color: var(--error);
+}
+
+.submit {
+    position: sticky;
+    bottom: -0.5rem;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 0;
+    border: 1px solid var(--border-accent);
+    border-bottom: 0;
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+    background-color: var(--background);
 }
