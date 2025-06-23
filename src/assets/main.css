@@ -164,3 +164,58 @@ button.delete:hover {
 .error {
     color: var(--error);
 }
+
+@media print {
+body, html {
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    background: white;
+}
+
+body * {
+    visibility: hidden;
+}
+
+.page, .page * {
+    visibility: visible;
+}
+
+.page {
+    box-sizing: border-box;
+    page-break-inside: avoid;
+    position: relative;
+    page-break-after: always;
+    break-after: page;
+    overflow: hidden;
+    border: 0;
+}
+
+@page {
+    size: A4 portrait;
+    margin: 0;
+}
+
+.no-print {
+    display: none !important;
+}
+
+.layout {
+    margin: 0;
+    padding: 0;
+}
+
+.app {
+    display: block;
+    padding: 0;
+    margin: 0;
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+
+.preview, .layout, .app {
+    overflow: visible !important;
+}
+}

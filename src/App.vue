@@ -70,11 +70,9 @@ listen('log_in_admin', (event) => {
 
 <template>
     <div class="app">
-        <HeaderBar 
-            :setPage="setPage"
-        />
+        <HeaderBar class="no-print" :setPage="setPage"/>
         <div class="layout">
-            <NavBar :setPage="setPage"/>
+            <NavBar class="no-print" :setPage="setPage"/>
 
             <div class="page">
                 <PageAuth 

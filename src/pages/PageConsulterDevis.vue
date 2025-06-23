@@ -43,7 +43,7 @@ onMounted(() => {
 
 <template>
     <div class="content"> 
-        <div v-if="confirm" class="confirm">
+        <div v-if="confirm" class="no-print confirm">
             <div class="pop-up">
                 <p>Êtes-vous sûr de vouloir dupliquer <span>{{ store.devisInfos.name }}</span> ?</p>
 
@@ -53,15 +53,15 @@ onMounted(() => {
                 </div>
             </div>
         </div>
-        <div class="title">
+        <div class="no-print title">
             <h1>Consulter le devis</h1>
         </div>
-        <h2>{{ store.devisInfos.id + ' ' + store.devisInfos.name }}</h2>
+        <h2 class="no-print">{{ store.devisInfos.id + ' ' + store.devisInfos.name }}</h2>
         <section class="preview">
             <DisplayDevis class="preview-small"/>
         </section>
 
-        <section class="submit">
+        <section class="no-print submit">
             <div class="buttons">
                 <button class="modif" @click="setDevis(store.devisInfos.id, true)">
                     Modifier

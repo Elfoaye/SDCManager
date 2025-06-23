@@ -5,6 +5,8 @@ import { useDevisStore } from '../composables/devisStore';
 const props = defineProps(['devis']);
 const store = useDevisStore();
 
+const ITEMS_PER_PAGE = 25;
+
 const materielAssur = computed(() => {
     return store.selectedItems.reduce((sum, item) => sum + item.valeur, 0);
 });
@@ -26,6 +28,14 @@ const finalCost = computed(() => {
     price -= store.utilitaries.discountEuro;
 
     return price;
+});
+
+const paginatedItems = computed(() => {
+  const pages = [];
+  for (let i = 0; i < store.selectedItems.length; i += ITEMS_PER_PAGE) {
+    pages.push(store.selectedItems.slice(i, i + ITEMS_PER_PAGE));
+  }
+  return pages;
 });
 </script>
 
@@ -136,7 +146,7 @@ const finalCost = computed(() => {
                             <td>{{ Number(store.utilitaries.discountEuro.toFixed(2)) }}€</td>
                         </tr>
                     </tbody>
-                    <tfoot class="blue">
+                    <tfoot class="summ blue">
                         <tr>
                             <td>TOTAL Général</td>
                             <td></td>
@@ -160,7 +170,11 @@ const finalCost = computed(() => {
             </footer>
         </div>
 
-        <div class="page" v-if="store.selectedItems.length > 10">
+        <div class="page" 
+            v-if="store.selectedItems.length > 10"
+            v-for="(pageItems, index) in paginatedItems" 
+            :key="index"
+        >
             <header>
                 <div class="infos">
                     <img src="../assets/LOGO_SDC.png">
@@ -185,7 +199,7 @@ const finalCost = computed(() => {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="item in store.selectedItems">
+                    <tr v-for="item in pageItems" :key="item.id">
                         <td>{{ item.nom }}</td>
                         <td>{{ item.item_type }}</td>
                         <td>{{ Number(item.valeur) }}€</td>
@@ -196,7 +210,7 @@ const finalCost = computed(() => {
                         <td>{{ Number(item.totalPrice.toFixed(2)) }}€</td>
                     </tr>
                 </tbody>
-                <tfoot class="blue">
+                <tfoot class="summ blue" v-if="index === paginatedItems.length - 1">
                     <tr>                   
                         <td>TOTAL</td>
                         <td></td>
@@ -233,7 +247,7 @@ const finalCost = computed(() => {
 
 .page {
   width: 210mm;
-  min-height: 297mm;
+  height: 297mm;
 
   padding: 20mm;
   padding-top: 15mm;
@@ -241,8 +255,11 @@ const finalCost = computed(() => {
 
   color: black;
   background: white;
-  box-sizing: border-box;
-  page-break-after: always;
+
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+  overflow: hidden;
+  position: relative;
+
   display: flex;
   flex-direction: column;
   font-size: 12px;
@@ -316,15 +333,15 @@ table {
 th, td {
   margin: 0;
   text-align: left;
+  border: 1px solid deepskyblue;
 }
 
 td {
     padding-left: 5px;
     padding-right: 5px;
-    border: 1px solid deepskyblue;
 }
 
-th, tfoot {
+th, tfoot.summ.blue {
     padding: 0;
     padding-left: 5px;
     font-size: 16px;
@@ -337,7 +354,6 @@ th, tfoot {
 .materiel th {
     font-size: 14px;
 }
-
 
 footer {
     display: flex;
