@@ -18,7 +18,7 @@ setBreadcrumb([
 ]);
 
 const confirm = ref(null);
-const devisRef = ref(null)
+const devisRef = ref(null);
 
 async function duplicateDevis() {
     try {
@@ -39,13 +39,22 @@ function confirmCancel() {
 }
 
 function generatePDF() {
-    const element = devisRef.value;
+    const element = devisRef.value.printRoot;
+    if (!element) {
+        console.warn("Element introuvable");
+        return;
+    }
+
     const opt = {
-        margin:       10,
-        filename:     `devis-${new Date().toISOString().slice(0,10)}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        margin: [0, 0, 0, 0],
+        filename: `devis-${store.devisInfos.id + store.devisInfos.name}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+            scale: 2,
+            windowWidth: 794,
+            windowHeight: 1123 
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     html2pdf().set(opt).from(element).save();
@@ -58,7 +67,7 @@ onMounted(() => {
 
 <template>
     <div class="content"> 
-        <div v-if="confirm" class="no-print confirm">
+        <div v-if="confirm" class="confirm">
             <div class="pop-up">
                 <p>Êtes-vous sûr de vouloir dupliquer <span>{{ store.devisInfos.name }}</span> ?</p>
 
@@ -68,15 +77,15 @@ onMounted(() => {
                 </div>
             </div>
         </div>
-        <div class="no-print title">
+        <div class="title">
             <h1>Consulter le devis</h1>
         </div>
-        <h2 class="no-print">{{ store.devisInfos.id + ' ' + store.devisInfos.name }}</h2>
+        <h2>{{ store.devisInfos.id + ' ' + store.devisInfos.name }}</h2>
         <section class="preview">
-            <DisplayDevis ref="devisRef" class="preview-small"/>
+            <DisplayDevis ref="devisRef"/>
         </section>
 
-        <section class="no-print submit">
+        <section class="submit">
             <div class="buttons">
                 <button class="modif" @click="setDevis(store.devisInfos.id, true)">
                     Modifier
@@ -126,12 +135,6 @@ onMounted(() => {
     display: flex;
     gap: 1rem;
 }
-
-.preview-small {
-    height: fit-content;
-    overflow: hidden;
-    border: 1px solid var(--border);
-} 
 
 h2 {
     margin-bottom: 1rem;

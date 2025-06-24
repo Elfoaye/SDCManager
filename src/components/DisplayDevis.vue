@@ -1,9 +1,11 @@
 <script setup>
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import { useDevisStore } from '../composables/devisStore';
 
 const props = defineProps(['devis']);
 const store = useDevisStore();
+const printRoot = ref(null);
+defineExpose({ printRoot });
 
 const ITEMS_PER_PAGE = 25;
 
@@ -40,7 +42,7 @@ const paginatedItems = computed(() => {
 </script>
 
 <template>
-    <div class="all">
+    <div ref="printRoot" class="all">
         <div class="page">
             <header>
                 <div class="infos">
@@ -246,23 +248,22 @@ const paginatedItems = computed(() => {
 }
 
 .page {
-  width: 210mm;
-  height: 297mm;
+    width: 641px; /* 210mm - margin */ 
+    height: 1027px; /* 297mm - margin */ 
 
-  padding: 20mm;
-  padding-top: 15mm;
-  padding-bottom: 10mm;
+    padding: 76px;
+    padding-top: 57px;
+    padding-bottom: 38px;
 
-  color: black;
-  background: white;
+    color: black;
+    background: white;
 
-  box-shadow: 0 0 5px rgba(0,0,0,0.1);
-  overflow: hidden;
-  position: relative;
+    overflow: hidden;
+    position: relative;
 
-  display: flex;
-  flex-direction: column;
-  font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    font-size: 12px;
 }
 
 header {
