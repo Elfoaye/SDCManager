@@ -1,16 +1,17 @@
-use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier, password_hash::SaltString};
+use crate::files_setup::{get_settings_json, set_settings_json};
+use argon2::{password_hash::SaltString, Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
+use once_cell::sync::Lazy;
 use rand::rngs::OsRng;
 use serde_json::json;
-use once_cell::sync::Lazy;
 use std::sync::Mutex;
-use tauri::{Emitter};
-use crate::files_setup::{get_settings_json, set_settings_json};
+use tauri::Emitter;
 
 static IS_ADMIN: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
 
 fn hash_password(password: &str) -> Result<String, String> {
     let salt = SaltString::generate(&mut OsRng);
-    let hash = Argon2::default().hash_password(password.as_bytes(), &salt)
+    let hash = Argon2::default()
+        .hash_password(password.as_bytes(), &salt)
         .map_err(|e| e.to_string())?
         .to_string();
     Ok(hash)
@@ -25,14 +26,14 @@ fn verify_password(password: &str, hashed: &str) -> Result<bool, String> {
 
 fn check_admin_password(password: &str, handle: &tauri::AppHandle) -> Result<bool, String> {
     let mut json = get_settings_json(&handle).map_err(|e| e.to_string())?;
-    let hash_str = json.get("data")
+    let hash_str = json
+        .get("data")
         .and_then(|d| d.get("admin_password_hash"))
         .and_then(|h| h.as_str());
-    
-    let hashed = if let Some(hash_value) = hash_str { 
+
+    let hashed = if let Some(hash_value) = hash_str {
         hash_value.to_string()
-    } 
-    else {
+    } else {
         let default_hash = hash_password("admin")?;
         json["data"]["admin_password_hash"] = json!(default_hash);
         set_settings_json(&json, &handle.clone())?;
@@ -43,13 +44,19 @@ fn check_admin_password(password: &str, handle: &tauri::AppHandle) -> Result<boo
 }
 
 #[tauri::command]
-pub fn update_admin_password(old_password: String, new_password: String, handle: tauri::AppHandle) -> Result<(), String> {
+pub fn update_admin_password(
+    old_password: String,
+    new_password: String,
+    handle: tauri::AppHandle,
+) -> Result<(), String> {
     if !check_admin_password(&old_password, &handle)? {
         return Err("Mot de passe actuel incorrect".into());
     }
 
     let mut json = get_settings_json(&handle).map_err(|e| e.to_string())?;
-    let data = json.get_mut("data").ok_or("Champ dataintrouvable ou invalide")?;
+    let data = json
+        .get_mut("data")
+        .ok_or("Champ dataintrouvable ou invalide")?;
     data["admin_password_hash"] = json!(hash_password(&new_password)?);
 
     set_settings_json(&json, &handle)?;
@@ -61,11 +68,11 @@ pub fn update_admin_password(old_password: String, new_password: String, handle:
 pub fn log_in_admin(password: String, handle: tauri::AppHandle) -> Result<(), String> {
     if !check_admin_password(&password, &handle)? {
         return Err("Mot de passe incorect".to_string());
-    } 
+    }
 
     *IS_ADMIN.lock().unwrap() = true;
     handle.emit("log_in_admin", true).unwrap();
-    
+
     Ok(())
 }
 

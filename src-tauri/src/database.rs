@@ -1,10 +1,10 @@
-use serde::{Deserialize, Serialize};
-use rusqlite::{Connection, Result, params, OptionalExtension};
+use crate::admin_auth::is_admin;
+use crate::files_setup::get_or_create_data_dir;
 use chrono::Local;
 use once_cell::sync::OnceCell;
+use rusqlite::{params, Connection, OptionalExtension, Result};
+use serde::{Deserialize, Serialize};
 use std::sync::{Mutex, MutexGuard};
-use crate::files_setup::{get_or_create_data_dir};
-use crate::admin_auth::{is_admin};
 
 #[derive(Serialize, Deserialize)]
 pub struct Item {
@@ -16,7 +16,7 @@ pub struct Item {
     valeur: f32,
     contrib: f32,
     nb_sorties: i32,
-    benef: f32
+    benef: f32,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -26,7 +26,7 @@ pub struct Client {
     evenement: String,
     adresse: String,
     tel: String,
-    mail: String
+    mail: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -42,7 +42,7 @@ pub struct Devis {
     taux_km: f32,
     adhesion: bool,
     promo: f32,
-    etat: String
+    etat: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -50,7 +50,7 @@ pub struct FullItem {
     item: Item,
     quantité: i32,
     durée: i32,
-    etat: String
+    etat: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -58,7 +58,7 @@ pub struct DevisExtra {
     id: i32,
     devis_id: i32,
     nom: String,
-    prix: f32
+    prix: f32,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -66,7 +66,7 @@ pub struct FullDevis {
     client: Client,
     devis: Devis,
     items: Vec<FullItem>,
-    extra: Vec<DevisExtra>
+    extra: Vec<DevisExtra>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -80,39 +80,43 @@ pub struct SummDevis {
 
 static DB_CONN: OnceCell<Mutex<Connection>> = OnceCell::new();
 
-fn get_database_connection(handle: tauri::AppHandle) -> Result<MutexGuard<'static, Connection>, String> {
-    DB_CONN.get_or_try_init(|| {
-        let path = get_or_create_data_dir(&handle)?.join("database.db");
+fn get_database_connection(
+    handle: tauri::AppHandle,
+) -> Result<MutexGuard<'static, Connection>, String> {
+    DB_CONN
+        .get_or_try_init(|| {
+            let path = get_or_create_data_dir(&handle)?.join("database.db");
 
-        Connection::open(path)
-            .map(Mutex::new)
-            .map_err(|e| e.to_string())
-    })?.lock().map_err(|e| e.to_string())
+            Connection::open(path)
+                .map(Mutex::new)
+                .map_err(|e| e.to_string())
+        })?
+        .lock()
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub fn get_materiel_data(handle: tauri::AppHandle) -> Result<Vec<Item>, String> {
     let conn = get_database_connection(handle)?;
 
-    let mut request = conn.prepare("SELECT * FROM Materiel")
+    let mut request = conn
+        .prepare("SELECT * FROM Materiel")
         .map_err(|e| e.to_string())?;
 
     let requested_items = request
-        .query_map(
-            [], 
-            |row| {
-                Ok(Item {
-                    id: row.get(0)?,
-                    nom: row.get(1)?,
-                    item_type: row.get(2)?,
-                    total: row.get(3)?,
-                    dispo: row.get(4)?,
-                    valeur: row.get(5)?,
-                    contrib: row.get(6)?,
-                    nb_sorties: row.get(7)?,
-                    benef: row.get(8)?
-                })
+        .query_map([], |row| {
+            Ok(Item {
+                id: row.get(0)?,
+                nom: row.get(1)?,
+                item_type: row.get(2)?,
+                total: row.get(3)?,
+                dispo: row.get(4)?,
+                valeur: row.get(5)?,
+                contrib: row.get(6)?,
+                nb_sorties: row.get(7)?,
+                benef: row.get(8)?,
             })
+        })
         .map_err(|e| e.to_string())?;
 
     let mut items = Vec::new();
@@ -128,8 +132,9 @@ pub fn get_item_data(id: i32, handle: tauri::AppHandle) -> Result<Item, String> 
     let conn = get_database_connection(handle)?;
 
     let item = conn
-        .query_row("SELECT * FROM Materiel where materiel_id = ?",
-            [id], 
+        .query_row(
+            "SELECT * FROM Materiel where materiel_id = ?",
+            [id],
             |row| {
                 Ok(Item {
                     id: row.get(0)?,
@@ -140,9 +145,10 @@ pub fn get_item_data(id: i32, handle: tauri::AppHandle) -> Result<Item, String> 
                     valeur: row.get(5)?,
                     contrib: row.get(6)?,
                     nb_sorties: row.get(7)?,
-                    benef: row.get(8)?
+                    benef: row.get(8)?,
                 })
-            })
+            },
+        )
         .map_err(|e| e.to_string())?;
 
     Ok(item)
@@ -153,7 +159,7 @@ pub fn update_item(item: Item, handle: tauri::AppHandle) -> Result<String, Strin
     if !is_admin() {
         return Err("Les droits Admin sont nécessaires pour cette action".to_string());
     }
-        
+
     let conn = get_database_connection(handle)?;
 
     conn.execute(
@@ -184,20 +190,27 @@ pub fn update_item(item: Item, handle: tauri::AppHandle) -> Result<String, Strin
     Ok("Objet modifié".to_string())
 }
 
-
 #[tauri::command]
-pub fn update_dispo(valeur: i32, old: i32, benef: f32, id: i32, handle: tauri::AppHandle) -> Result<String, String> {
+pub fn update_dispo(
+    valeur: i32,
+    old: i32,
+    benef: f32,
+    id: i32,
+    handle: tauri::AppHandle,
+) -> Result<String, String> {
     if valeur < 0 {
         return Err("Disponible ne peut pas être négatif".to_string());
     }
 
     let conn = get_database_connection(handle)?;
 
-    let total = conn.query_row(
-        "SELECT total FROM Materiel where materiel_id = ?",
-        params![id], 
-        |row|  row.get(0)
-    ).map_err(|e| e.to_string())?;
+    let total = conn
+        .query_row(
+            "SELECT total FROM Materiel where materiel_id = ?",
+            params![id],
+            |row| row.get(0),
+        )
+        .map_err(|e| e.to_string())?;
 
     if valeur > total {
         return Err("Disponible ne peut pas être superieur au total".to_string());
@@ -206,7 +219,7 @@ pub fn update_dispo(valeur: i32, old: i32, benef: f32, id: i32, handle: tauri::A
     let diff = old - valeur;
     let mut sql = String::from("UPDATE Materiel SET dispo = ?");
     let mut params: Vec<&dyn rusqlite::ToSql> = vec![&valeur];
-    
+
     if diff > 0 {
         sql.push_str(", nb_sorties = nb_sorties + ?");
         params.push(&diff);
@@ -219,7 +232,7 @@ pub fn update_dispo(valeur: i32, old: i32, benef: f32, id: i32, handle: tauri::A
 
     sql.push_str(" where materiel_id = ?");
     params.push(&id);
-    
+
     conn.execute(&sql, params.as_slice())
         .map_err(|e| e.to_string())?;
 
@@ -264,28 +277,27 @@ pub fn delete_item(id: i32, handle: tauri::AppHandle) -> Result<String, String> 
     if !is_admin() {
         return Err("Les droits Admin sont nécessaires pour cette action".to_string());
     }
-    
+
     let conn = get_database_connection(handle)?;
 
-    conn.execute(
-        "DELETE FROM Materiel where materiel_id = ?",
-        params![id])
-    .map_err(|e| e.to_string())?;
+    conn.execute("DELETE FROM Materiel where materiel_id = ?", params![id])
+        .map_err(|e| e.to_string())?;
 
     Ok("Objet supprimé".to_string())
 }
 
 fn generate_new_devis_id(conn: &Connection) -> Result<i32, rusqlite::Error> {
-
     let now = Local::now();
     let current_year = now.format("%Y").to_string();
     let current_month = now.format("%m").to_string();
 
-    let last_devis_id: Option<i32> = conn.query_row(
-        "SELECT devis_id FROM Devis ORDER BY devis_id DESC LIMIT 1",
-        [],
-        |row| row.get(0),
-    ).optional()?;
+    let last_devis_id: Option<i32> = conn
+        .query_row(
+            "SELECT devis_id FROM Devis ORDER BY devis_id DESC LIMIT 1",
+            [],
+            |row| row.get(0),
+        )
+        .optional()?;
 
     let new_numero = if let Some(last_id) = last_devis_id {
         let last_id_str = format!("{:08}", last_id);
@@ -313,11 +325,13 @@ fn generate_new_devis_id(conn: &Connection) -> Result<i32, rusqlite::Error> {
 pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64, String> {
     let mut conn = get_database_connection(handle)?;
 
-    let devis_exists: bool = conn.query_row(
-        "SELECT EXISTS(SELECT 1 FROM Devis WHERE devis_id = ?)",
-        [full_devis.devis.id],
-        |row| row.get(0)
-    ).unwrap_or(false);
+    let devis_exists: bool = conn
+        .query_row(
+            "SELECT EXISTS(SELECT 1 FROM Devis WHERE devis_id = ?)",
+            [full_devis.devis.id],
+            |row| row.get(0),
+        )
+        .unwrap_or(false);
 
     let devis_id = if full_devis.devis.id == 0 || !devis_exists {
         generate_new_devis_id(&conn).map_err(|e| e.to_string())?
@@ -327,17 +341,22 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
     let transaction = conn.transaction().map_err(|e| e.to_string())?;
 
     // Client
-    let maybe_client_id: Option<i64> = transaction.query_row(
-        "SELECT client_id FROM Client WHERE nom = ? AND evenement = ?",
-        params![full_devis.client.nom, full_devis.client.evenement],
-        |row| row.get(0)
-    ).optional().map_err(|e| e.to_string())?;
+    let maybe_client_id: Option<i64> = transaction
+        .query_row(
+            "SELECT client_id FROM Client WHERE nom = ? AND evenement = ?",
+            params![full_devis.client.nom, full_devis.client.evenement],
+            |row| row.get(0),
+        )
+        .optional()
+        .map_err(|e| e.to_string())?;
 
-    let client_id = 
-    if let Some(id) = maybe_client_id { // If exist get existing id
-        id
-    } else { // Insert and get new id
-        transaction.execute(
+    let client_id =
+        if let Some(id) = maybe_client_id {
+            // If exist get existing id
+            id
+        } else {
+            // Insert and get new id
+            transaction.execute(
             "INSERT INTO Client (nom, evenement, adresse, tel, mail) VALUES (?, ?, ?, ?, ?)",
             params![
                 full_devis.client.nom,
@@ -347,11 +366,12 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
                 full_devis.client.mail
             ],
         ).map_err(|e| e.to_string())?;
-        transaction.last_insert_rowid()
-    };
+            transaction.last_insert_rowid()
+        };
 
     // Devis
-    if devis_exists { // Update devis
+    if devis_exists {
+        // Update devis
         transaction.execute(
             "UPDATE Devis SET client_id = ?, nom = ?, date = ?, durée = ?, nb_tech = ?, taux_tech = ?, nb_km = ?, taux_km = ?, adhesion = ?, promo = ?, etat = ? WHERE devis_id = ?",
             params![
@@ -369,11 +389,16 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
                     devis_id
                 ],
         ).map_err(|e| e.to_string())?;
-        
+
         // Clean up linked elements
-        transaction.execute("DELETE FROM Devis_materiel WHERE devis_id = ?", [devis_id]).map_err(|e| e.to_string())?;
-        transaction.execute("DELETE FROM Devis_extra WHERE devis_id = ?", [devis_id]).map_err(|e| e.to_string())?;
-    } else { // Insert new devis
+        transaction
+            .execute("DELETE FROM Devis_materiel WHERE devis_id = ?", [devis_id])
+            .map_err(|e| e.to_string())?;
+        transaction
+            .execute("DELETE FROM Devis_extra WHERE devis_id = ?", [devis_id])
+            .map_err(|e| e.to_string())?;
+    } else {
+        // Insert new devis
         transaction.execute(
             "INSERT INTO Devis (devis_id, client_id, nom, date, durée, nb_tech, taux_tech, nb_km, taux_km, adhesion, promo, etat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             params![
@@ -394,35 +419,39 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
     }
 
     // Materiel
-    { // Scope limit for borrowing in transaction.prepare 
-        let mut requete_item = transaction.prepare(
-            "INSERT INTO Devis_materiel (devis_id, materiel_id, quantité, durée, etat) 
-            VALUES (?, ?, ?, ?, ?)"
-        ).map_err(|e| e.to_string())?;
+    {
+        // Scope limit for borrowing in transaction.prepare
+        let mut requete_item = transaction
+            .prepare(
+                "INSERT INTO Devis_materiel (devis_id, materiel_id, quantité, durée, etat) 
+            VALUES (?, ?, ?, ?, ?)",
+            )
+            .map_err(|e| e.to_string())?;
 
         for item in &full_devis.items {
-            requete_item.execute(params![
-                devis_id,
-                item.item.id,
-                item.quantité,
-                item.durée,
-                item.etat
-            ]).map_err(|e| e.to_string())?;
+            requete_item
+                .execute(params![
+                    devis_id,
+                    item.item.id,
+                    item.quantité,
+                    item.durée,
+                    item.etat
+                ])
+                .map_err(|e| e.to_string())?;
         }
     }
 
     // Extras
-    { // Scope limit for borrowing in transaction.prepare 
-        let mut requete_extra = transaction.prepare(
-            "INSERT INTO Devis_extra (devis_id, nom, prix) VALUES (?, ?, ?)"
-        ).map_err(|e| e.to_string())?;
+    {
+        // Scope limit for borrowing in transaction.prepare
+        let mut requete_extra = transaction
+            .prepare("INSERT INTO Devis_extra (devis_id, nom, prix) VALUES (?, ?, ?)")
+            .map_err(|e| e.to_string())?;
 
         for extra in &full_devis.extra {
-            requete_extra.execute(params![
-                devis_id,
-                extra.nom,
-                extra.prix
-            ]).map_err(|e| e.to_string())?;
+            requete_extra
+                .execute(params![devis_id, extra.nom, extra.prix])
+                .map_err(|e| e.to_string())?;
         }
     }
 
@@ -454,18 +483,22 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, 
         }),
     ).map_err(|e| e.to_string())?;
 
-    let client: Client = conn.query_row(
-        "SELECT client_id, nom, evenement, adresse, tel, mail FROM Client WHERE client_id = ?",
-        params![devis.client_id],
-        |row| Ok(Client {
-            id: row.get(0)?,
-            nom: row.get(1)?,
-            evenement: row.get(2)?,
-            adresse: row.get(3)?,
-            tel: row.get(4)?,
-            mail: row.get(5)?,
-        }),
-    ).map_err(|e| e.to_string())?;
+    let client: Client = conn
+        .query_row(
+            "SELECT client_id, nom, evenement, adresse, tel, mail FROM Client WHERE client_id = ?",
+            params![devis.client_id],
+            |row| {
+                Ok(Client {
+                    id: row.get(0)?,
+                    nom: row.get(1)?,
+                    evenement: row.get(2)?,
+                    adresse: row.get(3)?,
+                    tel: row.get(4)?,
+                    mail: row.get(5)?,
+                })
+            },
+        )
+        .map_err(|e| e.to_string())?;
 
     let mut stmt = conn.prepare("
         SELECT 
@@ -476,41 +509,45 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, 
         WHERE d.devis_id = ?
     ").map_err(|e| e.to_string())?;
 
-    let items_iter = stmt.query_map(params![devis_id], |row| {
-        Ok(FullItem {
-            item: Item {
-                id: row.get(0)?,
-                nom: row.get(1)?,
-                item_type: row.get(2)?,
-                total: row.get(3)?,
-                dispo: row.get(4)?,
-                valeur: row.get(5)?,
-                contrib: row.get(6)?,
-                nb_sorties: row.get(7)?,
-                benef: row.get(8)?,
-            },
-            quantité: row.get(9)?,
-            durée: row.get(10)?,
-            etat: row.get(11)?,
+    let items_iter = stmt
+        .query_map(params![devis_id], |row| {
+            Ok(FullItem {
+                item: Item {
+                    id: row.get(0)?,
+                    nom: row.get(1)?,
+                    item_type: row.get(2)?,
+                    total: row.get(3)?,
+                    dispo: row.get(4)?,
+                    valeur: row.get(5)?,
+                    contrib: row.get(6)?,
+                    nb_sorties: row.get(7)?,
+                    benef: row.get(8)?,
+                },
+                quantité: row.get(9)?,
+                durée: row.get(10)?,
+                etat: row.get(11)?,
+            })
         })
-    }).map_err(|e| e.to_string())?;
+        .map_err(|e| e.to_string())?;
 
     let mut items = Vec::new();
     for item_res in items_iter {
         items.push(item_res.map_err(|e| e.to_string())?);
     }
 
-    let mut stmt_extra = conn.prepare(
-        "SELECT d_extra_id, devis_id, nom, prix FROM Devis_extra WHERE devis_id = ?"
-    ).map_err(|e| e.to_string())?;
-    let extra_iter = stmt_extra.query_map(params![devis_id], |row| {
-        Ok(DevisExtra {
-            id: row.get(0)?,
-            devis_id: row.get(1)?,
-            nom: row.get(2)?,
-            prix: row.get(3)?,
+    let mut stmt_extra = conn
+        .prepare("SELECT d_extra_id, devis_id, nom, prix FROM Devis_extra WHERE devis_id = ?")
+        .map_err(|e| e.to_string())?;
+    let extra_iter = stmt_extra
+        .query_map(params![devis_id], |row| {
+            Ok(DevisExtra {
+                id: row.get(0)?,
+                devis_id: row.get(1)?,
+                nom: row.get(2)?,
+                prix: row.get(3)?,
+            })
         })
-    }).map_err(|e| e.to_string())?;
+        .map_err(|e| e.to_string())?;
 
     let mut extra = Vec::new();
     for extra_res in extra_iter {
@@ -530,8 +567,7 @@ pub fn delete_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<(), Strin
     let conn = get_database_connection(handle)?;
 
     // SQL delete items & extras on cascade
-    conn
-        .execute("DELETE FROM Devis WHERE devis_id = ?", [devis_id])
+    conn.execute("DELETE FROM Devis WHERE devis_id = ?", [devis_id])
         .map_err(|e| e.to_string())?;
 
     Ok(())
@@ -555,21 +591,25 @@ pub fn duplicate_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<i32, S
         params![new_devis_id, devis_id],
     ).map_err(|e| e.to_string())?;
 
-    transaction.execute(
-        "INSERT INTO Devis_materiel (devis_id, materiel_id, quantité, durée, etat)
+    transaction
+        .execute(
+            "INSERT INTO Devis_materiel (devis_id, materiel_id, quantité, durée, etat)
          SELECT ?, materiel_id, quantité, durée, etat
          FROM Devis_materiel
          WHERE devis_id = ?",
-        params![new_devis_id, devis_id],
-    ).map_err(|e| e.to_string())?;
+            params![new_devis_id, devis_id],
+        )
+        .map_err(|e| e.to_string())?;
 
-    transaction.execute(
-        "INSERT INTO Devis_extra (devis_id, nom, prix)
+    transaction
+        .execute(
+            "INSERT INTO Devis_extra (devis_id, nom, prix)
          SELECT ?, nom, prix
          FROM Devis_extra
          WHERE devis_id = ?",
-        params![new_devis_id, devis_id],
-    ).map_err(|e| e.to_string())?;
+            params![new_devis_id, devis_id],
+        )
+        .map_err(|e| e.to_string())?;
 
     transaction.commit().map_err(|e| e.to_string())?;
 
@@ -580,16 +620,18 @@ pub fn duplicate_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<i32, S
 pub fn get_devis_summaries(handle: tauri::AppHandle) -> Result<Vec<SummDevis>, String> {
     let conn = get_database_connection(handle)?;
 
-    let mut request = conn.prepare(
-        "SELECT 
+    let mut request = conn
+        .prepare(
+            "SELECT 
             d.devis_id, 
             d.nom, 
             d.date, 
             c.nom, 
             c.evenement
          FROM Devis d
-         JOIN Client c ON d.client_id = c.client_id"
-    ).map_err(|e| e.to_string())?;
+         JOIN Client c ON d.client_id = c.client_id",
+        )
+        .map_err(|e| e.to_string())?;
 
     let devis_iter = request
         .query_map([], |row| {
@@ -615,9 +657,9 @@ pub fn get_devis_summaries(handle: tauri::AppHandle) -> Result<Vec<SummDevis>, S
 pub fn get_client_infos(handle: tauri::AppHandle) -> Result<Vec<Client>, String> {
     let conn = get_database_connection(handle)?;
 
-    let mut request = conn.prepare(
-        "SELECT * FROM Client"
-    ).map_err(|e| e.to_string())?;
+    let mut request = conn
+        .prepare("SELECT * FROM Client")
+        .map_err(|e| e.to_string())?;
 
     let client_iter = request
         .query_map([], |row| {
@@ -627,7 +669,7 @@ pub fn get_client_infos(handle: tauri::AppHandle) -> Result<Vec<Client>, String>
                 evenement: row.get(2)?,
                 adresse: row.get(3)?,
                 tel: row.get(4)?,
-                mail: row.get(5)?
+                mail: row.get(5)?,
             })
         })
         .map_err(|e| e.to_string())?;

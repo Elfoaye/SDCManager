@@ -86,7 +86,7 @@ function confirmApplyChanges() {
 
     if(!verifFields()) {
         submitError.value = "Certains champs sont invalides";
-        isLoading = false;
+        isLoading.value = false;
         return;
     }
     
