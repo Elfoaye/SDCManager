@@ -40,7 +40,7 @@ function confirmCancel() {
     confirm.value = null;
 }
 
-async function generatePDF() {
+function generatePDF() {
     const element = devisRef.value.printRoot;
     if (!element) {
         console.warn("Element introuvable");
@@ -59,25 +59,32 @@ async function generatePDF() {
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    try {
-        const pdfBuffer = html2pdf().set(opt).from(element).outputPdf('arraybuffer');
+    console.log("Saving pdf");
+    html2pdf().set(opt).from(element).save();
+
+    // try {
+    //     const pdfBuffer = await html2pdf().set(opt).from(element).outputPdf('arraybuffer');
+    //     console.log('Type de pdfBuffer:', typeof pdfBuffer);
+    //     console.log('Instance de ArrayBuffer:', pdfBuffer instanceof ArrayBuffer);
+    //     console.log('Taille du buffer:', pdfBuffer?.byteLength);
         
-        const path = await save({
-            filters: [{ name: 'PDF Document', extensions: ['pdf'] }],
-            defaultPath: `${store.devisInfos.id + store.devisInfos.name}.pdf`
-        });
+    //     const path = await save({
+    //         filters: [{ name: 'PDF Document', extensions: ['pdf'] }],
+    //         defaultPath: `${store.devisInfos.id + store.devisInfos.name}.pdf`
+    //     });
 
-        if(!path) {
-            console.log('Sauvegarde annulée');
-            return;
-        }
+    //     if(!path) {
+    //         console.log('Sauvegarde annulée');
+    //         return;
+    //     }
 
-        await writeFile({ path, contents: new Uint8Array(pdfBuffer) });
+    //     await writeFile({ path: path, contents: new Uint8Array([72, 101, 108, 108, 111]) });
+    //     // await writeFile({ path, contents: new Uint8Array(pdfBuffer) });
 
-        console.log('PDF sauvegardé dans ', path);
-    } catch (err) {
-        console.error('Erreur lors de la génération ou sauvegarde du PDF :', err);
-    }
+    //     console.log('PDF sauvegardé dans ', path);
+    // } catch (err) {
+    //     console.error('Erreur lors de la génération ou sauvegarde du PDF :', err);
+    // }
 }
 
 onMounted(() => {
