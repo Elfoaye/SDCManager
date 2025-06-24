@@ -70,7 +70,7 @@ listen('log_in_admin', (event) => {
 
 <template>
     <div class="app">
-        <HeaderBar class="no-print" :setPage="setPage"/>
+        <HeaderBar :setPage="setPage"/>
         <div class="layout">
             <NavBar class="no-print" :setPage="setPage"/>
 

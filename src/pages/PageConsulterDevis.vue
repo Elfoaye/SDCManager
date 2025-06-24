@@ -3,6 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { ref, onMounted } from 'vue';
 import { useDevisStore } from '../composables/devisStore';
 import { useBreadcrumb } from '../composables/breadcrumb';
+import html2pdf from 'html2pdf.js'
 import DisplayDevis from '../components/DisplayDevis.vue';
 
 const { devis, setDevis } = defineProps(['devis', 'setDevis']);
@@ -17,6 +18,7 @@ setBreadcrumb([
 ]);
 
 const confirm = ref(null);
+const devisRef = ref(null)
 
 async function duplicateDevis() {
     try {
@@ -34,6 +36,19 @@ function confirmDuplicate() {
 
 function confirmCancel() {
     confirm.value = null;
+}
+
+function generatePDF() {
+    const element = devisRef.value;
+    const opt = {
+        margin:       10,
+        filename:     `devis-${new Date().toISOString().slice(0,10)}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save();
 }
 
 onMounted(() => {
@@ -58,7 +73,7 @@ onMounted(() => {
         </div>
         <h2 class="no-print">{{ store.devisInfos.id + ' ' + store.devisInfos.name }}</h2>
         <section class="preview">
-            <DisplayDevis class="preview-small"/>
+            <DisplayDevis ref="devisRef" class="preview-small"/>
         </section>
 
         <section class="no-print submit">
@@ -69,7 +84,7 @@ onMounted(() => {
                 <button class="new" @click="confirmDuplicate">
                     Dupliquer
                 </button>
-                <button>
+                <button @click="generatePDF">
                     Télecharger
                 </button>
                 <button>

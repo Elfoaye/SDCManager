@@ -25,7 +25,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div v-if="confirm" class="confirm">
+    <div v-if="confirm" class="confirm no-print">
         <div class="pop-up">
             <p>Êtes-vous sûr de vouloir quitter le <span>Mode Admin</span> ?</p>
 
@@ -35,7 +35,7 @@ onMounted(() => {
             </div>
         </div>
     </div>
-    <header>
+    <header class="no-print">
         <div class="topnav" :class="{ admin: isAdmin }">
             <img src="../assets/Logo.png">
 
