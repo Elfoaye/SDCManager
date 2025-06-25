@@ -293,7 +293,7 @@ fn generate_new_id(is_facture: bool, conn: &Connection) -> Result<i32, rusqlite:
     let current_year = now.format("%Y").to_string();
     let current_month = now.format("%m").to_string();
 
-    let mut last_devis_id: Option<i32>;
+    let last_devis_id: Option<i32>;
     if is_facture {
         last_devis_id = conn
         .query_row(
@@ -577,6 +577,110 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, 
         extra,
     })
 }
+
+#[tauri::command]
+pub fn load_facture(facture_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, String> {
+    let conn: MutexGuard<'static, Connection> = get_database_connection(handle)?;
+
+    let facture: Devis = conn.query_row(
+        "SELECT facture_id, client_id, nom, date, date_crea, durée, nb_tech, taux_tech, nb_km, taux_km, adhesion, promo, etat FROM Factures WHERE facture_id = ?",
+        params![facture_id],
+        |row| Ok(Devis {
+            id: row.get(0)?,
+            client_id: row.get(1)?,
+            nom: row.get(2)?,
+            date: row.get(3)?,
+            date_crea: row.get(4)?,
+            durée: row.get(5)?,
+            nb_tech: row.get(6)?,
+            taux_tech: row.get(7)?,
+            nb_km: row.get(8)?,
+            taux_km: row.get(9)?,
+            adhesion: row.get(10)?,
+            promo: row.get(11)?,
+            etat: row.get(12)?,
+        }),
+    ).map_err(|e| e.to_string())?;
+
+    let client: Client = conn
+        .query_row(
+            "SELECT client_id, nom, evenement, adresse, tel, mail FROM Client WHERE client_id = ?",
+            params![facture.client_id],
+            |row| {
+                Ok(Client {
+                    id: row.get(0)?,
+                    nom: row.get(1)?,
+                    evenement: row.get(2)?,
+                    adresse: row.get(3)?,
+                    tel: row.get(4)?,
+                    mail: row.get(5)?,
+                })
+            },
+        )
+        .map_err(|e| e.to_string())?;
+
+    let mut stmt = conn.prepare("
+        SELECT 
+            m.materiel_id, m.nom, m.item_type, m.total, m.dispo, m.valeur, m.contrib, m.nb_sorties, m.benef,
+            f.quantité, f.durée, f.etat
+        FROM Facture_materiel f
+        JOIN Materiel m ON f.materiel_id = m.materiel_id
+        WHERE f.facture_id = ?
+    ").map_err(|e| e.to_string())?;
+
+    let items_iter = stmt
+        .query_map(params![facture_id], |row| {
+            Ok(FullItem {
+                item: Item {
+                    id: row.get(0)?,
+                    nom: row.get(1)?,
+                    item_type: row.get(2)?,
+                    total: row.get(3)?,
+                    dispo: row.get(4)?,
+                    valeur: row.get(5)?,
+                    contrib: row.get(6)?,
+                    nb_sorties: row.get(7)?,
+                    benef: row.get(8)?,
+                },
+                quantité: row.get(9)?,
+                durée: row.get(10)?,
+                etat: row.get(11)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+    let mut items = Vec::new();
+    for item_res in items_iter {
+        items.push(item_res.map_err(|e| e.to_string())?);
+    }
+
+    let mut stmt_extra = conn
+        .prepare("SELECT f_extra_i_id, facture_id, nom, prix FROM Facture_extra WHERE facture_id = ?")
+        .map_err(|e| e.to_string())?;
+    let extra_iter = stmt_extra
+        .query_map(params![facture_id], |row| {
+            Ok(DevisExtra {
+                id: row.get(0)?,
+                devis_id: row.get(1)?,
+                nom: row.get(2)?,
+                prix: row.get(3)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+    let mut extra = Vec::new();
+    for extra_res in extra_iter {
+        extra.push(extra_res.map_err(|e| e.to_string())?);
+    }
+
+    Ok(FullDevis {
+        client,
+        devis: facture,
+        items,
+        extra,
+    })
+}
+
 
 #[tauri::command]
 pub fn delete_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<(), String> {

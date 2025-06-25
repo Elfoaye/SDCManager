@@ -21,7 +21,7 @@ loadTheme()
 const currentPage = ref(null);
 const lastPage = ref(null);
 const redirect = ref(null);
-const currentDevis = ref(0);
+const currentDocument = ref({id: 0, facture: false});
 
 const adminPages = ['modif','admin'];
 function isAdminProtected(value) {
@@ -45,13 +45,13 @@ async function setPage(value) {
     currentPage.value = value;
 }
 
-function setDevis(id, modif) {
-    currentDevis.value = id;
+function setDocument(document, modif) {
+    currentDocument.value = document;
 
-    if(modif || id === 0) {
-        setPage('devmodif');
-    } else {
+    if(document.facture || !modif || id >= 0) {
         setPage('devconsult');
+    } else {
+        setPage('devmodif');
     } 
 }
 
@@ -87,17 +87,17 @@ listen('log_in_admin', (event) => {
                 />
                 <PageParcourirDevis 
                     v-else-if="currentPage === 'devparcour'" 
-                    :setDevis="setDevis"
+                    :setDocument="setDocument"
                 />
                 <PageConsulterDevis 
                     v-else-if="currentPage === 'devconsult'" 
-                    :devis="currentDevis"
-                    :setDevis="setDevis"
+                    :document="currentDocument"
+                    :setDocument="setDocument"
                 />
                 <PageEditerDevis 
                     v-else-if="currentPage === 'devmodif'" 
-                    :devis="currentDevis"
-                    :setDevis="setDevis"
+                    :document="currentDocument"
+                    :setDocument="setDocument"
                 />
                 <PageParams v-else-if="currentPage === 'params'" />
                 <PageAdmin v-else-if="currentPage === 'admin'" />

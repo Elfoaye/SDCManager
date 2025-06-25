@@ -2,7 +2,6 @@
 import { ref, computed } from 'vue';
 import { useDevisStore } from '../composables/devisStore';
 
-const props = defineProps(['devis']);
 const store = useDevisStore();
 const printRoot = ref(null);
 defineExpose({ printRoot });

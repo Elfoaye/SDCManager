@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { ref, computed } from 'vue';
 import { useBreadcrumb } from '../composables/breadcrumb';
 
-const { setDevis } = defineProps(['setDevis']);
+const { setDocument } = defineProps(['setDocument']);
 
 const { setBreadcrumb } = useBreadcrumb();
 setBreadcrumb([
@@ -62,10 +62,6 @@ const sortedContent = computed(() => {
     });
 });
 
-const isFacture = (item) => computed(() => {
-    return item.etat.includes("facture");
-})
-
 function setSort(key) {
     if(sortProperty.value == key) {
         sortAsc.value = !sortAsc.value;
@@ -97,15 +93,15 @@ function setSort(key) {
                     <span v-if="sortProperty === col.key">{{ sortAsc ? '▲' : '▼' }}</span>
                 </button>
             </li>
-            <li class="new-item" @click="setDevis(0, true)">+ Nouveau devis</li>
+            <li class="new-item" @click="setDocument({id: 0, facture: false}, true)">+ Nouveau devis</li>
             <ul>
-                <li v-for="item in sortedContent" @click="setDevis(item.id, false)" :data-id="item.id">
+                <li v-for="item in sortedContent" @click="setDocument({id: item.id, facture: false}, false)" :data-id="item.id">
                     <p>{{ item.id }}</p>
                     <p>{{ item.nom }}</p>
                     <p>{{ item.date }}</p>
                     <p>{{ item.client_nom }}</p>
                     <p>{{ item.evenement }}</p>
-                    <button v-if="!isFacture" class="modif" @click.stop="setDevis(item.id, true)">&#9998;</button>
+                    <button v-if="!item.etat?.includes('facture')" class="modif" @click.stop="setDocument({id: item.id, facture: false}, true)">&#9998;</button>
                 </li>
             </ul>
         </div>

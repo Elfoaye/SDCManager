@@ -6,7 +6,7 @@ import { useBreadcrumb } from '../composables/breadcrumb';
 import { useDevisStore } from '../composables/devisStore';
 import ListeSelectionDevis from '../components/ListeSelectionDevis.vue';
 
-const props = defineProps(['devis', 'setDevis']);
+const props = defineProps(['document', 'setDocument']);
 
 const { setBreadcrumb } = useBreadcrumb();
 setBreadcrumb([
@@ -112,7 +112,7 @@ function setContextName() {
 
 function newDevis() {
     store.reset();
-    if(props.devis !== 0) props.setDevis(0, true);
+    if(props.document !== 0) props.setDocument({id: 0, facture: false}, true);
 
     setTechRate();
     store.utilitaries.transportRate = formulas.value.transport_km;
@@ -121,25 +121,29 @@ function newDevis() {
     setContextName();
 }
 
-async function loadDevis(id) {
-    if(id <= 0) {
+async function loadDocument(document) {
+    if(document.id <= 0) {
         newDevis();
         setContextName();
         return;
     }
 
+    if(document.facture) {
+        props.setDocument(document, false);
+    }
+
     try {
-        await store.loadDevis(id);
+        await store.loadDocument(document);
         loadError.value = '';
         setContextName();
     } catch (err) {
-        console.error(err + " on loading devis " + id);
+        console.error(err + " on loading document " + id);
         loadError.value = err;
     }
 }
 
 function cancelDevis() {
-    loadDevis(store.devisInfos.id);
+    loadDocument({id: store.devisInfos.id, facture: false});
 }
 
 async function deleteDevis() {
@@ -163,7 +167,7 @@ function confirmCancel() {
 async function endModif() {
     try {
         await store.saveDevis('devis');
-        props.setDevis(store.devisInfos.id, false);
+        props.setDocument({id: store.devisInfos.id, facture: false}, false);
     } catch(err) {
         console.error("Erreur lors de la sauvegarde du devis : ", err);
         saveMassage.value = err;
@@ -171,12 +175,15 @@ async function endModif() {
 }
 
 onMounted(async() => {
-    invoke('is_admin').then((value) => isAdmin.value = value);
-
+    isAdmin.value = await invoke('is_admin');
     formulas.value = await invoke('get_loc_formulas');
     saveMassage.value = null;
-    loadDevis(props.devis);
 
+    loadDocument(props.document);
+    if(store.isFacture) {
+        props.setDocument({id: store.devisInfos.id, facture: true}, false);
+    }
+    
     if(store.utilitaries.techRate === 0) {
         setTechRate();
     }

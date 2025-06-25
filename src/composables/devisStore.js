@@ -84,7 +84,7 @@ export const useDevisStore = defineStore('devis', () => {
 
         devisInfos.value.type = state;
 
-        const fullDevis = {
+        const fullDocument = {
             client: {
                 id: clientInfos.value.id,
                 nom: clientInfos.value.name,
@@ -133,7 +133,7 @@ export const useDevisStore = defineStore('devis', () => {
         };
 
         try {
-            devisInfos.value.id = await invoke('save_devis', { fullDevis: fullDevis });
+            devisInfos.value.id = await invoke('save_devis', { fullDocument: fullDocument });
             clients.value = await invoke('get_client_infos');
             return { result: 'success', message: "Devis sauvegardé" };
         } catch (err) {
@@ -141,29 +141,32 @@ export const useDevisStore = defineStore('devis', () => {
         }
     }
 
-    async function loadDevis(id) {
+    async function loadDocument(document) {
+        console.log("Loading document");
+        console.log(document);
         try {
-            const fullDevis = await invoke('load_devis', { devisId: id });
+            const fullDocument = document.facture ? await invoke('load_facture', { factureId: document.id }) :
+            await invoke('load_devis', { devisId: document.id });
 
             clientInfos.value = {
-                name: fullDevis.client.nom,
-                eventName: fullDevis.client.evenement,
-                adress: fullDevis.client.adresse,
-                phone: fullDevis.client.tel,
-                mail: fullDevis.client.mail,
-                id: fullDevis.client.id
+                name: fullDocument.client.nom,
+                eventName: fullDocument.client.evenement,
+                adress: fullDocument.client.adresse,
+                phone: fullDocument.client.tel,
+                mail: fullDocument.client.mail,
+                id: fullDocument.client.id
             };
 
             devisInfos.value = {
-                id: fullDevis.devis.id,
-                name: fullDevis.devis.nom,
-                date: fullDevis.devis.date,
-                writeDate: fullDevis.devis.date_crea,
-                duration: fullDevis.devis.durée,
-                type: fullDevis.devis.etat
+                id: fullDocument.devis.id,
+                name: fullDocument.devis.nom,
+                date: fullDocument.devis.date,
+                writeDate: fullDocument.devis.date_crea,
+                duration: fullDocument.devis.durée,
+                type: fullDocument.devis.etat
             };
 
-            selectedItems.value = fullDevis.items.map(fullItem => ({
+            selectedItems.value = fullDocument.items.map(fullItem => ({
                 ...fullItem.item,
                 quantity: fullItem.quantité,
                 duration: fullItem.durée,
@@ -171,21 +174,20 @@ export const useDevisStore = defineStore('devis', () => {
                 totalPrice: priceLoc(fullItem.item, fullItem.quantité, fullItem.durée)
             }));
 
-            extraItems.value = fullDevis.extra.map(extra => ({
+            extraItems.value = fullDocument.extra.map(extra => ({
                 name: extra.nom,
                 price: extra.prix
             }));
 
             utilitaries.value = {
-                techQty: fullDevis.devis.nb_tech,
-                techRate: fullDevis.devis.taux_tech,
-                techHourly: (fullDevis.devis.taux_tech < 100 && fullDevis.taux_tech > 0),
-                transportKm: fullDevis.devis.nb_km,
-                transportRate: fullDevis.devis.taux_km,
-                membership: fullDevis.devis.adhesion,
-                discountEuro: fullDevis.devis.promo
+                techQty: fullDocument.devis.nb_tech,
+                techRate: fullDocument.devis.taux_tech,
+                techHourly: (fullDocument.devis.taux_tech < 100 && fullDocument.taux_tech > 0),
+                transportKm: fullDocument.devis.nb_km,
+                transportRate: fullDocument.devis.taux_km,
+                membership: fullDocument.devis.adhesion,
+                discountEuro: fullDocument.devis.promo
             };   
-            console.log("Devis chargé");      
         } catch (err) {
             throw err;
         }
@@ -197,6 +199,7 @@ export const useDevisStore = defineStore('devis', () => {
             name: '',
             date: '',
             duration: 1,
+            type: ''
         };
         clientInfos.value = {
             id: 0,
@@ -220,5 +223,5 @@ export const useDevisStore = defineStore('devis', () => {
     }
 
     return { formulas, clients, devisInfos, clientInfos, selectedItems, 
-        extraItems, utilitaries, isFacture, setItem, saveDevis, loadDevis, reset};
+        extraItems, utilitaries, isFacture, setItem, saveDevis, loadDocument, reset};
 });

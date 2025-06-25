@@ -6,7 +6,7 @@ import { useBreadcrumb } from '../composables/breadcrumb';
 import html2pdf from 'html2pdf.js'
 import DisplayDevis from '../components/DisplayDevis.vue';
 
-const { devis, setDevis } = defineProps(['devis', 'setDevis']);
+const { document, setDocument } = defineProps(['document', 'setDocument']);
 
 const store = useDevisStore();
 
@@ -24,7 +24,7 @@ async function duplicateDevis() {
     try {
         const newId = await invoke("duplicate_devis", { devisId: store.devisInfos.id });
         confirm.value = false;
-        setDevis(newId, false);
+        setDocument({id: newId, facture: false}, false);
     } catch (err) {
         console.error(err + " on duplicating devis " + store.devisInfos.id);
     }
@@ -34,7 +34,7 @@ async function createFacture() {
     try {
         const newId = await invoke("facture_from_devis", { devisId: store.devisInfos.id });
         confirm.value = false;
-        setDevis(newId, false);
+        setDocument({id: newId, facture: true}, false);
     } catch (err) {
         console.error(err + " on facturing devis " + store.devisInfos.id);
     }
@@ -75,7 +75,8 @@ function generatePDF() {
 }
 
 onMounted(() => {
-    store.loadDevis(devis);
+    store.loadDocument(document);
+    console.table(store.devisInfos);
 });
 </script>
 
@@ -95,14 +96,14 @@ onMounted(() => {
         <div class="title">
             <h1>Consulter {{ store.isFacture ? 'la facture' :'le devis' }}</h1>
         </div>
-        <h2>{{ store.devisInfos.id + ' ' + store.devisInfos.name }}</h2>
+        <h2>{{ store.devisInfos.type + ' ' + store.devisInfos.id + ' ' + store.devisInfos.name }}</h2>
         <section class="preview">
             <DisplayDevis ref="devisRef"/>
         </section>
 
         <section class="submit">
             <div class="buttons">
-                <button v-if="store.isFacture" class="modif" @click="setDevis(store.devisInfos.id, true)">
+                <button v-if="!store.isFacture" class="modif" @click="setDocument({id: store.devisInfos.id, facture: false}, true)">
                     Modifier
                 </button>
                 <button class="new" @click="confirmDuplicate">
