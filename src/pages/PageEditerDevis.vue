@@ -122,14 +122,10 @@ function newDevis() {
 }
 
 async function loadDocument(document) {
-    if(document.id <= 0) {
+    if(document.facture || document.id <= 0) {
         newDevis();
         setContextName();
         return;
-    }
-
-    if(document.facture) {
-        props.setDocument(document, false);
     }
 
     try {
@@ -137,7 +133,7 @@ async function loadDocument(document) {
         loadError.value = '';
         setContextName();
     } catch (err) {
-        console.error(err + " on loading document " + id);
+        console.error(err + " on loading document " + document.id);
         loadError.value = err;
     }
 }
@@ -180,9 +176,6 @@ onMounted(async() => {
     saveMassage.value = null;
 
     loadDocument(props.document);
-    if(store.isFacture) {
-        props.setDocument({id: store.devisInfos.id, facture: true}, false);
-    }
     
     if(store.utilitaries.techRate === 0) {
         setTechRate();

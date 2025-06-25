@@ -95,7 +95,7 @@ function setSort(key) {
             </li>
             <li class="new-item" @click="setDocument({id: 0, facture: false}, true)">+ Nouveau devis</li>
             <ul>
-                <li v-for="item in sortedContent" @click="setDocument({id: item.id, facture: false}, false)" :data-id="item.id">
+                <li v-for="item in sortedContent" @click="setDocument({id: item.id, facture: (item.etat?.includes('facture'))}, false)" :data-id="item.id">
                     <p>{{ item.id }}</p>
                     <p>{{ item.nom }}</p>
                     <p>{{ item.date }}</p>

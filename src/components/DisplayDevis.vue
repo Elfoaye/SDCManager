@@ -57,7 +57,7 @@ const paginatedItems = computed(() => {
                     </div>
                 </div>
                 <p class="context blue">Contribution mise à disposition de matériel Son et éclairage</p>
-                <p class="nom-devis">Facture n°{{ store.devisInfos.id }}</p>
+                <p v-if="store.isFacture" class="nom-devis">Facture n°{{ store.devisInfos.id }}</p>
             </header>
             <div class="body">
                 <table>
@@ -80,13 +80,13 @@ const paginatedItems = computed(() => {
                             <td>Transport</td>
                             <td>{{ store.utilitaries.transportRate }}€</td>
                             <td>{{ store.utilitaries.transportKm }}</td>
-                            <td>{{ store.utilitaries.transportRate * store.utilitaries.transportKm }}€</td>
+                            <td>{{ Number((store.utilitaries.transportRate * store.utilitaries.transportKm).toFixed(2)) }}€</td>
                         </tr>
-                        <tr v-if="store.selectedItems.length > 10">
+                        <tr>
                             <td colspan="3">Matériel (détails page suivante)</td>
                             <td>{{ materielCost.toFixed(2) }}€</td>
                         </tr>
-                        <tr v-else-if="store.selectedItems.length > 0" class="Materiel">
+                        <!-- <tr v-else-if="store.selectedItems.length > 0" class="Materiel">
                             <td colspan="4">
                                 <table class="materiel">
                                     <thead class="blue">
@@ -127,7 +127,7 @@ const paginatedItems = computed(() => {
                                     </tfoot>
                                 </table>
                             </td>
-                        </tr>
+                        </tr> -->
                         <tr v-if="store.utilitaries.membership">
                             <td colspan="3">Adhésion morale</td>
                             <td>25€</td>
@@ -169,7 +169,6 @@ const paginatedItems = computed(() => {
         </div>
 
         <div class="page" 
-            v-if="store.selectedItems.length > 10"
             v-for="(pageItems, index) in paginatedItems" 
             :key="index"
         >
@@ -222,7 +221,7 @@ const paginatedItems = computed(() => {
                 </tfoot>
             </table>
 
-            <div v-if="index === paginatedItems.length - 1" class="rib">
+            <div v-if="store.isFacture && index === paginatedItems.length - 1" class="rib">
                 <h3>Relevé d'identité bancaire / Bank details statement</h3>
                 <p>IBAN : <span>{{ IBAN }}</span></p>
                 <p>BIC : <span>CCBPFRPPGRE</span></p>

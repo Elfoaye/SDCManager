@@ -655,7 +655,7 @@ pub fn load_facture(facture_id: i32, handle: tauri::AppHandle) -> Result<FullDev
     }
 
     let mut stmt_extra = conn
-        .prepare("SELECT f_extra_i_id, facture_id, nom, prix FROM Facture_extra WHERE facture_id = ?")
+        .prepare("SELECT f_extra_id, facture_id, nom, prix FROM Facture_extra WHERE facture_id = ?")
         .map_err(|e| e.to_string())?;
     let extra_iter = stmt_extra
         .query_map(params![facture_id], |row| {

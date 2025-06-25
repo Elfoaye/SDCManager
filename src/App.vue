@@ -48,11 +48,11 @@ async function setPage(value) {
 function setDocument(document, modif) {
     currentDocument.value = document;
 
-    if(document.facture || !modif || id >= 0) {
-        setPage('devconsult');
-    } else {
+    if(document.id === 0 || modif) {
         setPage('devmodif');
-    } 
+    } else {
+        setPage('devconsult');
+    }
 }
 
 function onAdminLogOut() {

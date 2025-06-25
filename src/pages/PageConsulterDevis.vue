@@ -74,9 +74,8 @@ function generatePDF() {
     html2pdf().set(opt).from(element).save();
 }
 
-onMounted(() => {
-    store.loadDocument(document);
-    console.table(store.devisInfos);
+onMounted(async () => {
+    await store.loadDocument(document);
 });
 </script>
 
@@ -106,13 +105,13 @@ onMounted(() => {
                 <button v-if="!store.isFacture" class="modif" @click="setDocument({id: store.devisInfos.id, facture: false}, true)">
                     Modifier
                 </button>
-                <button class="new" @click="confirmDuplicate">
-                    Dupliquer
-                </button>
-                <button @click="generatePDF">
+                <button class="new" @click="generatePDF">
                     Télecharger
                 </button>
-                <button @click="confirmFacture">
+                <button v-if="!store.isFacture" @click="confirmDuplicate">
+                    Dupliquer
+                </button>
+                <button v-if="!store.isFacture" @click="confirmFacture">
                     Facturer
                 </button>
             </div>
@@ -153,6 +152,7 @@ onMounted(() => {
 }
 
 h2 {
+    text-transform: capitalize;
     margin-bottom: 1rem;
 }
 
