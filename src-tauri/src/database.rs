@@ -35,6 +35,7 @@ pub struct Devis {
     client_id: i32,
     nom: String,
     date: String,
+    date_crea: String,
     durée: i32,
     nb_tech: i32,
     taux_tech: f32,
@@ -373,11 +374,12 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
     if devis_exists {
         // Update devis
         transaction.execute(
-            "UPDATE Devis SET client_id = ?, nom = ?, date = ?, durée = ?, nb_tech = ?, taux_tech = ?, nb_km = ?, taux_km = ?, adhesion = ?, promo = ?, etat = ? WHERE devis_id = ?",
+            "UPDATE Devis SET client_id = ?, nom = ?, date = ?, date_crea = ?, durée = ?, nb_tech = ?, taux_tech = ?, nb_km = ?, taux_km = ?, adhesion = ?, promo = ?, etat = ? WHERE devis_id = ?",
             params![
                     client_id,
                     full_devis.devis.nom,
                     full_devis.devis.date,
+                    full_devis.devis.date_crea,
                     full_devis.devis.durée,
                     full_devis.devis.nb_tech,
                     full_devis.devis.taux_tech,
@@ -400,12 +402,13 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
     } else {
         // Insert new devis
         transaction.execute(
-            "INSERT INTO Devis (devis_id, client_id, nom, date, durée, nb_tech, taux_tech, nb_km, taux_km, adhesion, promo, etat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO Devis (devis_id, client_id, nom, date, date_crea, durée, nb_tech, taux_tech, nb_km, taux_km, adhesion, promo, etat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             params![
                 devis_id,
                 client_id,
                 full_devis.devis.nom,
                 full_devis.devis.date,
+                full_devis.devis.date_crea,
                 full_devis.devis.durée,
                 full_devis.devis.nb_tech,
                 full_devis.devis.taux_tech,
@@ -465,21 +468,22 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, 
     let conn = get_database_connection(handle)?;
 
     let devis: Devis = conn.query_row(
-        "SELECT devis_id, client_id, nom, date, durée, nb_tech, taux_tech, nb_km, taux_km, adhesion, promo, etat FROM Devis WHERE devis_id = ?",
+        "SELECT devis_id, client_id, nom, date, date_crea, durée, nb_tech, taux_tech, nb_km, taux_km, adhesion, promo, etat FROM Devis WHERE devis_id = ?",
         params![devis_id],
         |row| Ok(Devis {
             id: row.get(0)?,
             client_id: row.get(1)?,
             nom: row.get(2)?,
             date: row.get(3)?,
-            durée: row.get(4)?,
-            nb_tech: row.get(5)?,
-            taux_tech: row.get(6)?,
-            nb_km: row.get(7)?,
-            taux_km: row.get(8)?,
-            adhesion: row.get(9)?,
-            promo: row.get(10)?,
-            etat: row.get(11)?,
+            date_crea: row.get(4)?,
+            durée: row.get(5)?,
+            nb_tech: row.get(6)?,
+            taux_tech: row.get(7)?,
+            nb_km: row.get(8)?,
+            taux_km: row.get(9)?,
+            adhesion: row.get(10)?,
+            promo: row.get(11)?,
+            etat: row.get(12)?,
         }),
     ).map_err(|e| e.to_string())?;
 
@@ -582,10 +586,10 @@ pub fn duplicate_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<i32, S
 
     transaction.execute(
         "INSERT INTO Devis (
-            devis_id, client_id, nom, date, durée, nb_tech, taux_tech, nb_km, taux_km, adhesion, promo, etat
+            devis_id, client_id, nom, date, date_crea, durée, nb_tech, taux_tech, nb_km, taux_km, adhesion, promo, etat
         )
         SELECT 
-            ?, client_id, nom || ' (copie)', date, durée, nb_tech, taux_tech, nb_km, taux_km, adhesion, promo, etat
+            ?, client_id, nom || ' (copie)', date, date_crea, durée, nb_tech, taux_tech, nb_km, taux_km, adhesion, promo, etat
         FROM Devis
         WHERE devis_id = ?",
         params![new_devis_id, devis_id],

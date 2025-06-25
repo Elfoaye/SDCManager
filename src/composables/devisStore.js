@@ -13,6 +13,7 @@ export const useDevisStore = defineStore('devis', () => {
         id: 0,
         name: '',
         date: '',
+        writeDate: '',
         duration: 1,
     });
 
@@ -70,6 +71,12 @@ export const useDevisStore = defineStore('devis', () => {
     }
 
     async function saveDevis() {
+        const today = new Date();
+
+        const day = String(today.getDate()).padStart(2, '0');
+        const month = String(today.getMonth() + 1).padStart(2, '0'); // Les mois commencent à 0
+        const year = today.getFullYear();
+
         const fullDevis = {
             client: {
                 id: clientInfos.value.id,
@@ -84,6 +91,7 @@ export const useDevisStore = defineStore('devis', () => {
                 client_id: clientInfos.value.id,
                 nom: devisInfos.value.name,
                 date: devisInfos.value.date,
+                date_crea: `${day}/${month}/${year}`,
                 durée: devisInfos.value.duration,
                 nb_tech: utilitaries.value.techQty,
                 taux_tech: utilitaries.value.techRate,
@@ -143,6 +151,7 @@ export const useDevisStore = defineStore('devis', () => {
                 id: fullDevis.devis.id,
                 name: fullDevis.devis.nom,
                 date: fullDevis.devis.date,
+                writeDate: fullDevis.devis.date_crea,
                 duration: fullDevis.devis.durée
             };
 
@@ -167,7 +176,8 @@ export const useDevisStore = defineStore('devis', () => {
                 transportRate: fullDevis.devis.taux_km,
                 membership: fullDevis.devis.adhesion,
                 discountEuro: fullDevis.devis.promo
-            };         
+            };   
+            console.log("Devis chargé");      
         } catch (err) {
             throw err;
         }

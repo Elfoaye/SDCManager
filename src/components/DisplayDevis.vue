@@ -7,7 +7,9 @@ const store = useDevisStore();
 const printRoot = ref(null);
 defineExpose({ printRoot });
 
-const ITEMS_PER_PAGE = 25;
+const ITEMS_PER_PAGE = 20;
+
+const IBAN = 'FR76' + '\u200B' + '1680' + '\u200B' + '7001' + '\u200B' + '3131' + '\u200B' + '7631' + '\u200B' + '1521' + '\u200B' + '577';
 
 const materielAssur = computed(() => {
     return store.selectedItems.reduce((sum, item) => sum + item.valeur, 0);
@@ -48,15 +50,15 @@ const paginatedItems = computed(() => {
                 <div class="infos">
                     <img src="../assets/LOGO_SDC.png">
                     <div class="general-info">
-                        <p class="date">A Arvieux le {{ store.devisInfos.date }}</p>
+                        <p class="date">A Arvieux le {{ store.devisInfos.writeDate }}</p>
                         <div class="adress">
                             <p>{{ store.clientInfos.name }}</p>
-                            <p>{{ store.clientInfos.adress }}</p>
+                            <p style="white-space: pre-line;">{{ store.clientInfos.adress }}</p>
                         </div>  
                     </div>
                 </div>
                 <p class="context blue">Contribution mise à disposition de matériel Son et éclairage</p>
-                <p class="nom-devis">Devis n°{{ store.devisInfos.id }}</p>
+                <p class="nom-devis">Facture n°{{ store.devisInfos.id }}</p>
             </header>
             <div class="body">
                 <table>
@@ -82,9 +84,7 @@ const paginatedItems = computed(() => {
                             <td>{{ store.utilitaries.transportRate * store.utilitaries.transportKm }}€</td>
                         </tr>
                         <tr v-if="store.selectedItems.length > 10">
-                            <td>Matériel (détails page suivante)</td>
-                            <td></td>
-                            <td></td>
+                            <td colspan="3">Matériel (détails page suivante)</td>
                             <td>{{ materielCost.toFixed(2) }}€</td>
                         </tr>
                         <tr v-else-if="store.selectedItems.length > 0" class="Materiel">
@@ -130,21 +130,15 @@ const paginatedItems = computed(() => {
                             </td>
                         </tr>
                         <tr v-if="store.utilitaries.membership">
-                            <td>Adhésion morale année scolaire 2025/2026</td>
-                            <td></td>
-                            <td></td>
+                            <td colspan="3">Adhésion morale</td>
                             <td>25€</td>
                         </tr>
                         <tr v-for="extra in store.extraItems">
-                            <td>{{ extra.name }}</td>
-                            <td></td>
-                            <td></td>
+                            <td colspan="3">{{ extra.name }}</td>
                             <td>{{ Number(extra.price.toFixed(2)) }}€</td>
                         </tr>
                         <tr v-if="store.utilitaries.discountEuro > 0">
-                            <td>Geste commercial</td>
-                            <td></td>
-                            <td></td>
+                            <td colspan="3">Geste commercial</td>
                             <td>{{ Number(store.utilitaries.discountEuro.toFixed(2)) }}€</td>
                         </tr>
                     </tbody>
@@ -168,7 +162,10 @@ const paginatedItems = computed(() => {
                     sondescimes@gmail.com - http://sondescimes.lescigales.org<br>
                     Non assujettie à la T.V.A.<br>
                 </p>
-                <img src="../assets/QRCode.png">
+                <div class="number">
+                    <img src="../assets/QRCode.png">
+                    <p>1</p>
+                </div>
             </footer>
         </div>
 
@@ -181,7 +178,7 @@ const paginatedItems = computed(() => {
                 <div class="infos">
                     <img src="../assets/LOGO_SDC.png">
                     <div class="general-info">
-                        <p class="date">A Arvieux le 20/06/2025</p>
+                        <p class="date">A Arvieux le {{ store.devisInfos.writeDate }}</p>
                         
                     </div>
                 </div>
@@ -225,6 +222,17 @@ const paginatedItems = computed(() => {
                     </tr>
                 </tfoot>
             </table>
+
+            <div v-if="index === paginatedItems.length - 1" class="rib">
+                <h3>Relevé d'identité bancaire / Bank details statement</h3>
+                <p>IBAN : <span>{{ IBAN }}</span></p>
+                <p>BIC : <span>CCBPFRPPGRE</span></p>
+                <p>Code Banque : <span>16807</span></p>
+                <p>Code Guichet : <span>00131</span></p>
+                <p>N° du compte : <span>31763115215</span></p>
+                <p>Clé RIB : <span>77</span></p>
+                <p>Domiciliation : <span>BPAURA GUILLESTRE</span></p>
+            </div>
             
             <footer>
                 <p class="legal">
@@ -234,7 +242,10 @@ const paginatedItems = computed(() => {
                     sondescimes@gmail.com - http://sondescimes.lescigales.org<br>
                     Non assujettie à la T.V.A.<br>
                 </p>
-                <img src="../assets/QRCode.png">
+                <div class="number">
+                    <img src="../assets/QRCode.png">
+                    <p>{{ index + 2 }}</p>
+                </div>
             </footer>
         </div>
     </div>
@@ -249,11 +260,11 @@ const paginatedItems = computed(() => {
 
 .page {
     width: 641px; /* 210mm - margin */ 
-    height: 1027px; /* 297mm - margin */ 
+    height: 1028px; /* 297mm - margin */ 
 
     padding: 76px;
     padding-top: 57px;
-    padding-bottom: 38px;
+    padding-bottom: 20px;
 
     color: black;
     background: white;
@@ -356,6 +367,27 @@ th, tfoot.summ.blue {
     font-size: 14px;
 }
 
+.rib {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 30px;
+    gap: 0 20px;
+    border: solid 1px dimgray;
+}
+
+.rib h3 {
+    width: 100%;
+    font-size: 14px;
+    padding-left: 5px;
+    background-color: dimgray;
+    color: white;
+}
+
+.rib p {
+    padding-left: 5px;
+    color: dimgray;
+}
+
 footer {
     display: flex;
     justify-content: end;
@@ -372,6 +404,17 @@ footer p {
 
 footer img {
     object-fit: contain;
-    height: 100px;
+    height: 90px;
+}
+
+.number {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.number p {
+    color: black;
+    margin: 0;
 }
 </style>

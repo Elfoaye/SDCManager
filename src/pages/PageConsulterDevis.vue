@@ -1,7 +1,5 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
-import { save } from '@tauri-apps/plugin-dialog';
-import { writeFile } from '@tauri-apps/plugin-fs';
 import { ref, onMounted } from 'vue';
 import { useDevisStore } from '../composables/devisStore';
 import { useBreadcrumb } from '../composables/breadcrumb';
@@ -59,32 +57,7 @@ function generatePDF() {
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    console.log("Saving pdf");
     html2pdf().set(opt).from(element).save();
-
-    // try {
-    //     const pdfBuffer = await html2pdf().set(opt).from(element).outputPdf('arraybuffer');
-    //     console.log('Type de pdfBuffer:', typeof pdfBuffer);
-    //     console.log('Instance de ArrayBuffer:', pdfBuffer instanceof ArrayBuffer);
-    //     console.log('Taille du buffer:', pdfBuffer?.byteLength);
-        
-    //     const path = await save({
-    //         filters: [{ name: 'PDF Document', extensions: ['pdf'] }],
-    //         defaultPath: `${store.devisInfos.id + store.devisInfos.name}.pdf`
-    //     });
-
-    //     if(!path) {
-    //         console.log('Sauvegarde annulée');
-    //         return;
-    //     }
-
-    //     await writeFile({ path: path, contents: new Uint8Array([72, 101, 108, 108, 111]) });
-    //     // await writeFile({ path, contents: new Uint8Array(pdfBuffer) });
-
-    //     console.log('PDF sauvegardé dans ', path);
-    // } catch (err) {
-    //     console.error('Erreur lors de la génération ou sauvegarde du PDF :', err);
-    // }
 }
 
 onMounted(() => {

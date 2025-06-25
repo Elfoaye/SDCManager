@@ -161,8 +161,13 @@ function confirmCancel() {
 }
 
 async function endModif() {
-    await store.saveDevis();
-    props.setDevis(store.devisInfos.id, false);
+    try {
+        await store.saveDevis();
+        props.setDevis(store.devisInfos.id, false);
+    } catch(err) {
+        console.error("Erreur lors de la sauvegarde du devis : ", err);
+        saveMassage.value = err;
+    }
 }
 
 onMounted(async() => {
