@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 export const useDevisStore = defineStore('devis', () => {
     const formulas = ref(null);
@@ -15,6 +15,7 @@ export const useDevisStore = defineStore('devis', () => {
         date: '',
         writeDate: '',
         duration: 1,
+        type: ''
     });
 
     const clientInfos = ref({
@@ -38,6 +39,8 @@ export const useDevisStore = defineStore('devis', () => {
 
     const selectedItems = ref([]);
     const extraItems = ref([]);
+
+    const isFacture = computed(() => devisInfos.value.type.includes('facture'));
 
     function priceLoc(item, quantity, duration) {
         if(!item || !formulas.value || quantity <= 0 || duration <= 0) return 0;
@@ -70,12 +73,16 @@ export const useDevisStore = defineStore('devis', () => {
         }
     }
 
-    async function saveDevis() {
+    async function saveDevis(state) {
+        if(isFacture.value) return { result: 'error', message: 'Impossible de sauvegarder une facture en temps que devis' };
+
         const today = new Date();
 
         const day = String(today.getDate()).padStart(2, '0');
         const month = String(today.getMonth() + 1).padStart(2, '0'); // Les mois commencent à 0
         const year = today.getFullYear();
+
+        devisInfos.value.type = state;
 
         const fullDevis = {
             client: {
@@ -99,7 +106,7 @@ export const useDevisStore = defineStore('devis', () => {
                 taux_km: utilitaries.value.transportRate,
                 adhesion: utilitaries.value.membership,
                 promo: utilitaries.value.discountEuro,
-                etat: "devis"
+                etat: state
             },
             items: selectedItems.value.map(item => ({
                 item: {
@@ -115,7 +122,7 @@ export const useDevisStore = defineStore('devis', () => {
                 },
                 quantité: item.quantity,
                 durée: item.duration,
-                etat: "devis"
+                etat: state
             })),
             extra: extraItems.value.map(extra => ({
                 id: 0,
@@ -152,7 +159,8 @@ export const useDevisStore = defineStore('devis', () => {
                 name: fullDevis.devis.nom,
                 date: fullDevis.devis.date,
                 writeDate: fullDevis.devis.date_crea,
-                duration: fullDevis.devis.durée
+                duration: fullDevis.devis.durée,
+                type: fullDevis.devis.etat
             };
 
             selectedItems.value = fullDevis.items.map(fullItem => ({
@@ -212,5 +220,5 @@ export const useDevisStore = defineStore('devis', () => {
     }
 
     return { formulas, clients, devisInfos, clientInfos, selectedItems, 
-        extraItems, utilitaries, setItem, saveDevis, loadDevis, reset};
+        extraItems, utilitaries, isFacture, setItem, saveDevis, loadDevis, reset};
 });

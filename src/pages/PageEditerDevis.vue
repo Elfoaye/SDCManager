@@ -162,7 +162,7 @@ function confirmCancel() {
 
 async function endModif() {
     try {
-        await store.saveDevis();
+        await store.saveDevis('devis');
         props.setDevis(store.devisInfos.id, false);
     } catch(err) {
         console.error("Erreur lors de la sauvegarde du devis : ", err);

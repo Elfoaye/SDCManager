@@ -21,7 +21,12 @@ const columns = [
 ]
 
 const listContent = ref([]);
-invoke('get_devis_summaries').then((data) => listContent.value = data);
+Promise.all([
+    invoke('get_devis_summaries'),
+    invoke('get_factures_summaries')
+]).then(([devis, factures]) => {
+    listContent.value = [...devis, ...factures];
+});
 
 const sortProperty = ref(null);
 const sortAsc = ref(true);
@@ -56,6 +61,10 @@ const sortedContent = computed(() => {
         }
     });
 });
+
+const isFacture = (item) => computed(() => {
+    return item.etat.includes("facture");
+})
 
 function setSort(key) {
     if(sortProperty.value == key) {
@@ -96,7 +105,7 @@ function setSort(key) {
                     <p>{{ item.date }}</p>
                     <p>{{ item.client_nom }}</p>
                     <p>{{ item.evenement }}</p>
-                    <button class="modif" @click.stop="setDevis(item.id, true)">&#9998;</button>
+                    <button v-if="!isFacture" class="modif" @click.stop="setDevis(item.id, true)">&#9998;</button>
                 </li>
             </ul>
         </div>

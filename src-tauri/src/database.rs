@@ -77,6 +77,7 @@ pub struct SummDevis {
     date: String,
     client_nom: String,
     evenement: String,
+    etat: String
 }
 
 static DB_CONN: OnceCell<Mutex<Connection>> = OnceCell::new();
@@ -287,18 +288,29 @@ pub fn delete_item(id: i32, handle: tauri::AppHandle) -> Result<String, String> 
     Ok("Objet supprimé".to_string())
 }
 
-fn generate_new_devis_id(conn: &Connection) -> Result<i32, rusqlite::Error> {
+fn generate_new_id(is_facture: bool, conn: &Connection) -> Result<i32, rusqlite::Error> {
     let now = Local::now();
     let current_year = now.format("%Y").to_string();
     let current_month = now.format("%m").to_string();
 
-    let last_devis_id: Option<i32> = conn
+    let mut last_devis_id: Option<i32>;
+    if is_facture {
+        last_devis_id = conn
+        .query_row(
+            "SELECT facture_id FROM Factures ORDER BY facture_id DESC LIMIT 1",
+            [],
+            |row| row.get(0),
+        )
+        .optional()?;
+    } else {
+        last_devis_id = conn
         .query_row(
             "SELECT devis_id FROM Devis ORDER BY devis_id DESC LIMIT 1",
             [],
             |row| row.get(0),
         )
         .optional()?;
+    }
 
     let new_numero = if let Some(last_id) = last_devis_id {
         let last_id_str = format!("{:08}", last_id);
@@ -335,7 +347,7 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
         .unwrap_or(false);
 
     let devis_id = if full_devis.devis.id == 0 || !devis_exists {
-        generate_new_devis_id(&conn).map_err(|e| e.to_string())?
+        generate_new_id(false, &conn).map_err(|e| e.to_string())?
     } else {
         full_devis.devis.id
     };
@@ -582,7 +594,7 @@ pub fn duplicate_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<i32, S
     let mut conn = get_database_connection(handle)?;
     let transaction = conn.transaction().map_err(|e| e.to_string())?;
 
-    let new_devis_id = generate_new_devis_id(&transaction).map_err(|e| e.to_string())?;
+    let new_devis_id = generate_new_id(false, &transaction).map_err(|e| e.to_string())?;
 
     transaction.execute(
         "INSERT INTO Devis (
@@ -621,6 +633,49 @@ pub fn duplicate_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<i32, S
 }
 
 #[tauri::command]
+pub fn facture_from_devis(devis_id: i64, handle: tauri::AppHandle) -> Result<i32, String> {
+    let mut conn = get_database_connection(handle)?;
+    let transaction = conn.transaction().map_err(|e| e.to_string())?;
+
+    let facture_id = generate_new_id(true, &transaction).map_err(|e| e.to_string())?;
+
+    transaction.execute(
+        "INSERT INTO Factures (
+            facture_id, client_id, nom, date, date_crea, durée, nb_tech, taux_tech,
+            nb_km, taux_km, adhesion, promo, etat
+        )
+        SELECT
+            ?1, client_id, nom, date, date_crea, durée, nb_tech, taux_tech,
+            nb_km, taux_km, adhesion, promo, 'facture'
+        FROM Devis WHERE devis_id = ?2",
+        params![facture_id, devis_id],
+    ).map_err(|e| e.to_string())?;
+
+    transaction.execute(
+        "INSERT INTO Facture_materiel (
+            facture_id, materiel_id, quantité, durée, etat
+        )
+        SELECT
+            ?1, materiel_id, quantité, durée, etat
+        FROM Devis_materiel WHERE devis_id = ?2",
+        params![facture_id, devis_id],
+    ).map_err(|e| e.to_string())?;
+
+    transaction.execute(
+        "INSERT INTO Facture_extra (
+            facture_id, nom, prix
+        )
+        SELECT
+            ?1, nom, prix
+        FROM Devis_extra WHERE devis_id = ?2",
+        params![facture_id, devis_id],
+    ).map_err(|e| e.to_string())?;
+
+    transaction.commit().map_err(|e| e.to_string())?;
+    Ok(facture_id)
+}
+
+#[tauri::command]
 pub fn get_devis_summaries(handle: tauri::AppHandle) -> Result<Vec<SummDevis>, String> {
     let conn = get_database_connection(handle)?;
 
@@ -631,7 +686,8 @@ pub fn get_devis_summaries(handle: tauri::AppHandle) -> Result<Vec<SummDevis>, S
             d.nom, 
             d.date, 
             c.nom, 
-            c.evenement
+            c.evenement,
+            d.etat
          FROM Devis d
          JOIN Client c ON d.client_id = c.client_id",
         )
@@ -645,6 +701,46 @@ pub fn get_devis_summaries(handle: tauri::AppHandle) -> Result<Vec<SummDevis>, S
                 date: row.get(2)?,
                 client_nom: row.get(3)?,
                 evenement: row.get(4)?,
+                etat: row.get(5)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+    let mut result = Vec::new();
+    for devis in devis_iter {
+        result.push(devis.map_err(|e| e.to_string())?);
+    }
+
+    Ok(result)
+}
+
+#[tauri::command]
+pub fn get_factures_summaries(handle: tauri::AppHandle) -> Result<Vec<SummDevis>, String> {
+    let conn = get_database_connection(handle)?;
+
+    let mut request = conn
+        .prepare(
+            "SELECT 
+            f.facture_id, 
+            f.nom, 
+            f.date, 
+            c.nom, 
+            c.evenement,
+            f.etat
+         FROM Factures f
+         JOIN Client c ON f.client_id = c.client_id",
+        )
+        .map_err(|e| e.to_string())?;
+
+    let devis_iter = request
+        .query_map([], |row| {
+            Ok(SummDevis {
+                id: row.get(0)?,
+                nom: row.get(1)?,
+                date: row.get(2)?,
+                client_nom: row.get(3)?,
+                evenement: row.get(4)?,
+                etat: row.get(5)?,
             })
         })
         .map_err(|e| e.to_string())?;

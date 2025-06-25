@@ -30,8 +30,22 @@ async function duplicateDevis() {
     }
 }
 
+async function createFacture() {
+    try {
+        const newId = await invoke("facture_from_devis", { devisId: store.devisInfos.id });
+        confirm.value = false;
+        setDevis(newId, false);
+    } catch (err) {
+        console.error(err + " on facturing devis " + store.devisInfos.id);
+    }
+}
+
 function confirmDuplicate() {
-    confirm.value = 'delete';
+    confirm.value = 'duplicate';
+}
+
+function confirmFacture() {
+    confirm.value = 'facture';
 }
 
 function confirmCancel() {
@@ -69,16 +83,17 @@ onMounted(() => {
     <div class="content"> 
         <div v-if="confirm" class="confirm">
             <div class="pop-up">
-                <p>Êtes-vous sûr de vouloir dupliquer <span>{{ store.devisInfos.name }}</span> ?</p>
+                <p>Êtes-vous sûr de vouloir {{ confirm === 'duplicate' ? 'dupliquer' : 'créer une facture depuis' }} <span>{{ store.devisInfos.name }}</span> ?</p>
 
                 <div class="confirm-buttons">
-                    <button @click="duplicateDevis" class="new" >Dupliquer</button>
+                    <button v-if="confirm === 'duplicate'" @click="duplicateDevis" class="new" >Dupliquer</button>
+                    <button v-else @click="createFacture" class="new" >Facturer</button>
                     <button @click="confirmCancel" class="cancel">Annuler</button>
                 </div>
             </div>
         </div>
         <div class="title">
-            <h1>Consulter le devis</h1>
+            <h1>Consulter {{ store.isFacture ? 'la facture' :'le devis' }}</h1>
         </div>
         <h2>{{ store.devisInfos.id + ' ' + store.devisInfos.name }}</h2>
         <section class="preview">
@@ -87,7 +102,7 @@ onMounted(() => {
 
         <section class="submit">
             <div class="buttons">
-                <button class="modif" @click="setDevis(store.devisInfos.id, true)">
+                <button v-if="store.isFacture" class="modif" @click="setDevis(store.devisInfos.id, true)">
                     Modifier
                 </button>
                 <button class="new" @click="confirmDuplicate">
@@ -96,7 +111,7 @@ onMounted(() => {
                 <button @click="generatePDF">
                     Télecharger
                 </button>
-                <button>
+                <button @click="confirmFacture">
                     Facturer
                 </button>
             </div>
