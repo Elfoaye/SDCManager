@@ -84,7 +84,7 @@ export const useDevisStore = defineStore('devis', () => {
 
         devisInfos.value.type = state;
 
-        const fullDocument = {
+        const fullDevis = {
             client: {
                 id: clientInfos.value.id,
                 nom: clientInfos.value.name,
@@ -133,10 +133,11 @@ export const useDevisStore = defineStore('devis', () => {
         };
 
         try {
-            devisInfos.value.id = await invoke('save_devis', { fullDocument: fullDocument });
+            devisInfos.value.id = await invoke('save_devis', { fullDevis: fullDevis });
             clients.value = await invoke('get_client_infos');
             return { result: 'success', message: "Devis sauvegardé" };
         } catch (err) {
+            console.error("Failed to save devis : ", err);
             return { result: 'error', message: err.toString() };
         }
     }
