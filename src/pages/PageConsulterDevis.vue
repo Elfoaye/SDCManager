@@ -1,14 +1,20 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import { ref, onMounted } from 'vue';
 import { useDevisStore } from '../composables/devisStore';
 import { useBreadcrumb } from '../composables/breadcrumb';
 import html2pdf from 'html2pdf.js'
 import DisplayDevis from '../components/DisplayDevis.vue';
 
-const { document, setDocument } = defineProps(['document', 'setDocument']);
+const { document, setDocument, setPage } = defineProps(['document', 'setDocument', 'setPage']);
 
 const store = useDevisStore();
+
+const isAdmin = ref(false);
+listen('log_in_admin', (event) => {
+    isAdmin.value = event.payload;
+});
 
 const { setBreadcrumb } = useBreadcrumb();
 setBreadcrumb([
@@ -40,12 +46,26 @@ async function createFacture() {
     }
 }
 
-function confirmDuplicate() {
-    confirm.value = 'duplicate';
+async function deleteDocument() {
+    if(!isAdmin) return;
+
+    try {
+        if(store.isFacture) {
+            await invoke("delete_facture", { factureId: store.devisInfos.id });
+        } else {
+            await invoke("delete_devis", { devisId: store.devisInfos.id });
+        }
+        confirm.value = null;
+        setPage('devparcour')
+    } catch (err) {
+        console.error(err + " on deleting document " + store.devisInfos.id);
+    }
 }
 
-function confirmFacture() {
-    confirm.value = 'facture';
+function setConfirm(value) {
+    if(!(store.devisInfos.id > 0)) return;
+
+    confirm.value = value;
 }
 
 function confirmCancel() {
@@ -75,6 +95,7 @@ function generatePDF() {
 }
 
 onMounted(async () => {
+    isAdmin.value = await invoke('is_admin');
     await store.loadDocument(document);
 });
 </script>
@@ -83,10 +104,16 @@ onMounted(async () => {
     <div class="content"> 
         <div v-if="confirm" class="confirm">
             <div class="pop-up">
-                <p>Êtes-vous sûr de vouloir {{ confirm === 'duplicate' ? 'dupliquer' : 'créer une facture depuis' }} <span>{{ store.devisInfos.name }}</span> ?</p>
+                <p>Êtes-vous sûr de vouloir 
+                    {{ confirm === 'duplicate' ? 'dupliquer' : 
+                                    'delete' ? 'supprimer' : 
+                                    'créer une facture depuis' }} 
+                    <span>{{ store.devisInfos.name }}</span> ?
+                </p>
 
                 <div class="confirm-buttons">
                     <button v-if="confirm === 'duplicate'" @click="duplicateDevis" class="new" >Dupliquer</button>
+                    <button v-else-if="confirm === 'delete'" @click="deleteDocument" class="delete" >Supprimer</button>
                     <button v-else @click="createFacture" class="new" >Facturer</button>
                     <button @click="confirmCancel" class="cancel">Annuler</button>
                 </div>
@@ -108,11 +135,14 @@ onMounted(async () => {
                 <button class="new" @click="generatePDF">
                     Télecharger
                 </button>
-                <button v-if="!store.isFacture" @click="confirmDuplicate">
+                <button v-if="!store.isFacture" @click="setConfirm('duplicate')">
                     Dupliquer
                 </button>
-                <button v-if="!store.isFacture" @click="confirmFacture">
+                <button v-if="!store.isFacture" @click="setConfirm('facture')">
                     Facturer
+                </button>
+                <button v-if="isAdmin" @click="setConfirm('delete')" class="delete">
+                    Supprimer
                 </button>
             </div>
         </section>

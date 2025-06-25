@@ -1,6 +1,5 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
-import { listen } from '@tauri-apps/api/event';
 import { ref, computed ,onMounted, watch } from 'vue';
 import { useBreadcrumb } from '../composables/breadcrumb';
 import { useDevisStore } from '../composables/devisStore';
@@ -14,11 +13,6 @@ setBreadcrumb([
     { label: 'Devis & Factures', page: 'devparcour' },
     { label: 'Éditer', page: 'devmodif' }
 ]);
-
-const isAdmin = ref(false);
-listen('log_in_admin', (event) => {
-    isAdmin.value = event.payload;
-});
 
 const store = useDevisStore();
 const tempExtrafield = ref({
@@ -142,24 +136,6 @@ function cancelDevis() {
     loadDocument({id: store.devisInfos.id, facture: false});
 }
 
-async function deleteDevis() {
-    if(!(store.devisInfos.id > 0)) return;
-
-    await invoke("delete_devis", { devisId: store.devisInfos.id });
-    confirm.value = null;
-    newDevis();
-}
-
-function confirmDelete() {
-    if(!(store.devisInfos.id > 0)) return;
-
-    confirm.value = 'delete';
-}
-
-function confirmCancel() {
-    confirm.value = null;
-}
-
 async function endModif() {
     try {
         await store.saveDevis('devis');
@@ -171,7 +147,6 @@ async function endModif() {
 }
 
 onMounted(async() => {
-    isAdmin.value = await invoke('is_admin');
     formulas.value = await invoke('get_loc_formulas');
     saveMassage.value = null;
 
@@ -205,16 +180,6 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
 
 <template>
     <div class="content">
-        <div v-if="confirm" class="confirm">
-            <div class="pop-up">
-                <p>Êtes-vous sûr de vouloir supprimer <span>{{ contextName }}</span> ?</p>
-
-                <div class="confirm-buttons">
-                    <button @click="deleteDevis" class="delete" >Supprimer</button>
-                    <button @click="confirmCancel" class="cancel">Annuler</button>
-                </div>
-            </div>
-        </div>
         <div class="title" :class="{ new: store.devisInfos.id === 0 }">
             <h1 v-if="store.devisInfos.id > 0">Éditer le devis</h1>
             <h1 v-else>Nouveau devis</h1>
@@ -222,7 +187,6 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
         <p v-if="loadError" class="error">{{ loadError }}</p>
         <div class="context" v-if="contextName">
             <h2>{{ contextName }}</h2>
-            <button v-if="isAdmin" @click="confirmDelete" class="delete">Supprimer</button>
         </div>
         <h2>Informations générales</h2>
         <section class="infos">

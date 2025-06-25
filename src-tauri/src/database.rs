@@ -684,10 +684,29 @@ pub fn load_facture(facture_id: i32, handle: tauri::AppHandle) -> Result<FullDev
 
 #[tauri::command]
 pub fn delete_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<(), String> {
+    if !is_admin() {
+        return Err("Les droits Admin sont nécessaires pour cette action".to_string());
+    }
+
     let conn = get_database_connection(handle)?;
 
     // SQL delete items & extras on cascade
     conn.execute("DELETE FROM Devis WHERE devis_id = ?", [devis_id])
+        .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn delete_facture(facture_id: i32, handle: tauri::AppHandle) -> Result<(), String> {
+    if !is_admin() {
+        return Err("Les droits Admin sont nécessaires pour cette action".to_string());
+    }
+    
+    let conn = get_database_connection(handle)?;
+
+    // SQL delete items & extras on cascade
+    conn.execute("DELETE FROM Factures WHERE facture_id = ?", [facture_id])
         .map_err(|e| e.to_string())?;
 
     Ok(())

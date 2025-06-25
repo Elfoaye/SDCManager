@@ -93,6 +93,7 @@ listen('log_in_admin', (event) => {
                     v-else-if="currentPage === 'devconsult'" 
                     :document="currentDocument"
                     :setDocument="setDocument"
+                    :setPage="setPage"
                 />
                 <PageEditerDevis 
                     v-else-if="currentPage === 'devmodif'" 

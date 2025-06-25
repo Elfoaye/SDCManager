@@ -138,7 +138,7 @@ const paginatedItems = computed(() => {
                         </tr>
                         <tr v-if="store.utilitaries.discountEuro > 0">
                             <td colspan="3">Geste commercial</td>
-                            <td>{{ Number(store.utilitaries.discountEuro.toFixed(2)) }}€</td>
+                            <td>- {{ Number(store.utilitaries.discountEuro.toFixed(2)) }}€</td>
                         </tr>
                     </tbody>
                     <tfoot class="summ blue">
