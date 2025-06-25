@@ -12,6 +12,7 @@ setBreadcrumb([
 ]);
 
 const columns = [
+    { label: 'Type', key: 'etat'},
     { label: 'ID', key: 'id' },
     { label: 'Nom', key: 'nom' },
     { label: 'Date', key: 'date' },
@@ -96,6 +97,7 @@ function setSort(key) {
             <li class="new-item" @click="setDocument({id: 0, facture: false}, true)">+ Nouveau devis</li>
             <ul>
                 <li v-for="item in sortedContent" @click="setDocument({id: item.id, facture: (item.etat?.includes('facture'))}, false)" :data-id="item.id">
+                    <p class="state">{{ item.etat }}</p>
                     <p>{{ item.id }}</p>
                     <p>{{ item.nom }}</p>
                     <p>{{ item.date }}</p>
@@ -137,7 +139,7 @@ ul {
 
 li, li.head {
     display: grid;
-    grid-template-columns: 2fr 3fr 2fr 2fr 3fr 1fr;
+    grid-template-columns: 1fr 2fr 3fr 2fr 2fr 3fr 1fr;
     padding: 0 0.5rem;
     margin: 0;
     gap: 1rem;
@@ -220,5 +222,9 @@ li.new-item {
 
 li.new-item:hover {
     background-color: var(--success) !important;
+}
+
+li p.state {
+    text-transform: capitalize;
 }
 </style>
