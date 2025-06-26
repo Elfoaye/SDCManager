@@ -295,9 +295,9 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
         <h2>Autre</h2>
         <section class="bonus">
             <div class="other">
-                <label>Nom : 
-                    <input v-model="tempExtrafield.name"/>
-                </label>
+                <label>Nom : </label>
+                <textarea v-model="tempExtrafield.name"></textarea>
+                
                 <label>Prix (€) : 
                     <input type="number" v-model="tempExtrafield.price"/>
                 </label>

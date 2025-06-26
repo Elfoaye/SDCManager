@@ -1,14 +1,13 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useDevisStore } from '../composables/devisStore';
+import SecretRib from './SecretRib.vue';
 
 const store = useDevisStore();
 const printRoot = ref(null);
 defineExpose({ printRoot });
 
 const ITEMS_PER_PAGE = 20;
-
-const IBAN = 'FR76' + '\u200B' + '1680' + '\u200B' + '7001' + '\u200B' + '3131' + '\u200B' + '7631' + '\u200B' + '1521' + '\u200B' + '577';
 
 const materielAssur = computed(() => {
     return store.selectedItems.reduce((sum, item) => sum + item.valeur, 0);
@@ -40,6 +39,8 @@ const paginatedItems = computed(() => {
   }
   return pages;
 });
+
+const techTransport = computed(() => (store.utilitaries.techQty > 0)  || (store.utilitaries.transportKm > 0))
 </script>
 
 <template>
@@ -56,102 +57,65 @@ const paginatedItems = computed(() => {
                         </div>  
                     </div>
                 </div>
-                <p class="context blue">Contribution mise à disposition de matériel Son et éclairage</p>
+                <p class="context blue">Contribution mise à disposition de matériel son et éclairage</p>
                 <p v-if="store.isFacture" class="nom-devis">Facture n°{{ store.devisInfos.id }}</p>
+                <p v-else class="nom-devis">Devis {{ store.devisInfos.name }}</p>
             </header>
             <div class="body">
                 <table>
                     <thead class="blue">
                         <tr>
-                            <th>Dénomination</th>
-                            <th>VLU</th>
-                            <th>Unités</th>
+                            <th :colspan="{ '3': !techTransport }">Dénomination</th>
+                            <th v-if="techTransport">VLU</th>
+                            <th v-if="techTransport">Unités</th>
                             <th>Total</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
+                        <tr v-if="store.utilitaries.techQty > 0">
                             <td>Technicien/jour</td>
                             <td>{{ store.utilitaries.techRate }}€</td>
                             <td>{{ store.utilitaries.techQty }}</td>
                             <td>{{ store.utilitaries.techRate * store.utilitaries.techQty }}€</td>
                         </tr>
-                        <tr>
+                        <tr v-if="store.utilitaries.transportKm > 0">
                             <td>Transport</td>
                             <td>{{ store.utilitaries.transportRate }}€</td>
                             <td>{{ store.utilitaries.transportKm }}</td>
                             <td>{{ Number((store.utilitaries.transportRate * store.utilitaries.transportKm).toFixed(2)) }}€</td>
                         </tr>
                         <tr>
-                            <td colspan="3">Matériel (détails page suivante)</td>
+                            <td>Matériel (détails page suivante)</td>
+                            <td colspan="2">Valeur à assurer : <span>{{ Number(materielAssur.toFixed(2)) }}€</span></td>
                             <td>{{ materielCost.toFixed(2) }}€</td>
                         </tr>
-                        <!-- <tr v-else-if="store.selectedItems.length > 0" class="Materiel">
-                            <td colspan="4">
-                                <table class="materiel">
-                                    <thead class="blue">
-                                        <tr>
-                                            <th>Détail mise à disposition</th>
-                                            <th>Type</th>
-                                            <th>Val.Remp.</th>
-                                            <th>Valeur à Assurer</th>
-                                            <th>Contrib.</th>
-                                            <th>Unités</th>
-                                            <th>Durée</th>
-                                            <th>Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="item in store.selectedItems">
-                                            <td>{{ item.nom }}</td>
-                                            <td>{{ item.item_type }}</td>
-                                            <td>{{ Number(item.valeur.toFixed(2)) }}€</td>
-                                            <td>{{ Number((item.valeur * item.quantity).toFixed(2)) }}€</td>
-                                            <td>{{ Number(item.contrib.toFixed(2)) }}€</td>
-                                            <td>{{ item.quantity }}</td>
-                                            <td>{{ item.duration }}</td>
-                                            <td>{{ Number(item.totalPrice.toFixed(2)) }}€</td>
-                                        </tr>
-                                    </tbody>
-                                    <tfoot class="blue">
-                                        <tr>                   
-                                            <td>TOTAL</td>
-                                            <td></td>
-                                            <td></td>
-                                            <td>{{ Number(materielAssur.toFixed(2)) }}€</td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td>{{ Number(materielCost.toFixed(2)) }}€</td>                        
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </td>
-                        </tr> -->
                         <tr v-if="store.utilitaries.membership">
                             <td colspan="3">Adhésion morale</td>
                             <td>25€</td>
                         </tr>
                         <tr v-for="extra in store.extraItems">
-                            <td colspan="3">{{ extra.name }}</td>
+                            <td colspan="3" style="white-space: pre-line;">{{ extra.name }}</td>
                             <td>{{ Number(extra.price.toFixed(2)) }}€</td>
                         </tr>
-                        <tr v-if="store.utilitaries.discountEuro > 0">
-                            <td colspan="3">Geste commercial</td>
+                        <tr v-if="store.utilitaries.discountEuro > 0" class="before-remise summ blue">
+                            <td colspan="3">TOTAL avant remise</td>
+                            <td>{{ (finalCost + store.utilitaries.discountEuro).toFixed(2) }}€</td>
+                        </tr>
+                        <tr v-if="store.utilitaries.discountEuro > 0" class="remise">
+                            <td colspan="3">Remise</td>
                             <td>- {{ Number(store.utilitaries.discountEuro.toFixed(2)) }}€</td>
                         </tr>
                     </tbody>
                     <tfoot class="summ blue">
                         <tr>
-                            <td>TOTAL Général</td>
-                            <td></td>
-                            <td></td>
+                            <td colspan="3">TOTAL Général</td>
                             <td>{{ finalCost.toFixed(2) }}€</td>
                         </tr>
                     </tfoot>
                 </table>
                 <p>En vous remerciant pour votre confiance.</p>
             </div>
+            <SecretRib v-if="store.isFacture" />
 
             <footer>
                 <p class="legal">
@@ -209,29 +173,13 @@ const paginatedItems = computed(() => {
                 </tbody>
                 <tfoot class="summ blue" v-if="index === paginatedItems.length - 1">
                     <tr>                   
-                        <td>TOTAL</td>
-                        <td></td>
-                        <td></td>
+                        <td colspan="3">TOTAL</td>
                         <td>{{ Number(materielAssur.toFixed(2)) }}€</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
+                        <td colspan="3"></td>
                         <td>{{ Number(materielCost.toFixed(2)) }}€</td>                        
                     </tr>
                 </tfoot>
-            </table>
-
-            <div v-if="store.isFacture && index === paginatedItems.length - 1" class="rib">
-                <h3>Relevé d'identité bancaire / Bank details statement</h3>
-                <p>IBAN : <span>{{ IBAN }}</span></p>
-                <p>BIC : <span>CCBPFRPPGRE</span></p>
-                <p>Code Banque : <span>16807</span></p>
-                <p>Code Guichet : <span>00131</span></p>
-                <p>N° du compte : <span>31763115215</span></p>
-                <p>Clé RIB : <span>77</span></p>
-                <p>Domiciliation : <span>BPAURA GUILLESTRE</span></p>
-            </div>
-            
+            </table>         
             <footer>
                 <p class="legal">
                     Son des Cimes – 39 Imp. Du Pellas – 05350 Arvieux<br>
@@ -321,7 +269,11 @@ header {
 
 .blue {
     color: white;
-    background-color: deepskyblue;
+    background-color: rgb(17,145,148);
+}
+
+.blue th, .blue td {
+    border: 1px solid white;
 }
 
 .context {
@@ -338,23 +290,32 @@ header {
 table {
     border-collapse: collapse;
     width: 100%;
+    color: rgb(17,145,148);
+    border: 2px solid rgb(17,145,148);
 }
 
 th, td {
   margin: 0;
   text-align: left;
-  border: 1px solid deepskyblue;
 }
 
 td {
     padding-left: 5px;
     padding-right: 5px;
+    border: 1px solid rgb(17,145,148);
 }
 
-th, tfoot.summ.blue {
-    padding: 0;
-    padding-left: 5px;
+th, tfoot.summ.blue td {
+    padding: 5px;
     font-size: 16px;
+}
+
+.before-remise {
+    font-size: 14px;
+}
+
+.remise {
+    color: red;
 }
 
 .materiel td {
@@ -363,27 +324,6 @@ th, tfoot.summ.blue {
 
 .materiel th {
     font-size: 14px;
-}
-
-.rib {
-    display: flex;
-    flex-wrap: wrap;
-    margin-top: 30px;
-    gap: 0 20px;
-    border: solid 1px dimgray;
-}
-
-.rib h3 {
-    width: 100%;
-    font-size: 14px;
-    padding-left: 5px;
-    background-color: dimgray;
-    color: white;
-}
-
-.rib p {
-    padding-left: 5px;
-    color: dimgray;
 }
 
 footer {
