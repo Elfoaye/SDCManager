@@ -101,55 +101,63 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="content"> 
-        <div v-if="confirm" class="confirm">
-            <div class="pop-up">
-                <p>Êtes-vous sûr de vouloir 
-                    {{ confirm === 'duplicate' ? 'dupliquer' : 
-                                    'delete' ? 'supprimer' : 
-                                    'créer une facture depuis' }} 
-                    <span>{{ store.devisInfos.name }}</span> ?
-                </p>
+    <div class="all">
+        <div class="content"> 
+            <div v-if="confirm" class="confirm">
+                <div class="pop-up">
+                    <p>Êtes-vous sûr de vouloir 
+                        {{ confirm === 'duplicate' ? 'dupliquer' : 
+                                        'delete' ? 'supprimer' : 
+                                        'créer une facture depuis' }} 
+                        <span>{{ store.devisInfos.name }}</span> ?
+                    </p>
 
-                <div class="confirm-buttons">
-                    <button v-if="confirm === 'duplicate'" @click="duplicateDevis" class="new" >Dupliquer</button>
-                    <button v-else-if="confirm === 'delete'" @click="deleteDocument" class="delete" >Supprimer</button>
-                    <button v-else @click="createFacture" class="new" >Facturer</button>
-                    <button @click="confirmCancel" class="cancel">Annuler</button>
+                    <div class="confirm-buttons">
+                        <button v-if="confirm === 'duplicate'" @click="duplicateDevis" class="new" >Dupliquer</button>
+                        <button v-else-if="confirm === 'delete'" @click="deleteDocument" class="delete" >Supprimer</button>
+                        <button v-else @click="createFacture" class="new" >Facturer</button>
+                        <button @click="confirmCancel" class="cancel">Annuler</button>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="title">
-            <h1>Consulter {{ store.isFacture ? 'la facture' :'le devis' }}</h1>
-        </div>
-        <h2>{{ store.devisInfos.type + ' ' + store.devisInfos.id + ' ' + store.devisInfos.name }}</h2>
-        <section class="preview">
-            <DisplayDevis ref="devisRef"/>
-        </section>
-
-        <section class="submit">
-            <div class="buttons">
-                <button v-if="!store.isFacture" class="modif" @click="setDocument({id: store.devisInfos.id, facture: false}, true)">
-                    Modifier
-                </button>
-                <button class="new" @click="generatePDF">
-                    Télecharger
-                </button>
-                <button v-if="!store.isFacture" @click="setConfirm('duplicate')">
-                    Dupliquer
-                </button>
-                <button v-if="!store.isFacture" @click="setConfirm('facture')">
-                    Facturer
-                </button>
-                <button v-if="isAdmin" @click="setConfirm('delete')" class="delete">
-                    Supprimer
-                </button>
+            <div class="title">
+                <h1>Consulter {{ store.isFacture ? 'la facture' :'le devis' }}</h1>
             </div>
-        </section>
-    </div>
+            <h2>{{ store.devisInfos.type + ' ' + store.devisInfos.id + ' ' + store.devisInfos.name }}</h2>
+            <section class="preview">
+                <DisplayDevis ref="devisRef"/>
+            </section>
+        </div>
+        <section class="submit">
+                <div class="buttons">
+                    <button v-if="!store.isFacture" class="modif" @click="setDocument({id: store.devisInfos.id, facture: false}, true)">
+                        Modifier
+                    </button>
+                    <button class="new" @click="generatePDF">
+                        Télecharger
+                    </button>
+                    <button v-if="!store.isFacture" @click="setConfirm('duplicate')">
+                        Dupliquer
+                    </button>
+                    <button v-if="!store.isFacture" @click="setConfirm('facture')">
+                        Facturer
+                    </button>
+                    <button v-if="isAdmin" @click="setConfirm('delete')" class="delete">
+                        Supprimer
+                    </button>
+                </div>
+            </section>
+        </div>
 </template>
 
 <style scoped>
+.all {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
 .confirm {
     position: absolute;
     top: 0;
@@ -199,15 +207,14 @@ h2 {
     position: sticky;
     bottom: -0.5rem;
     margin: 0;
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     border-bottom: 0;
     border: 1px solid var(--border-accent);
-    border-bottom: 0;
-    border-top-left-radius: 0.5rem;
-    border-top-right-radius: 0.5rem;
     background-color: var(--background);
+    
 }
 
 .buttons {

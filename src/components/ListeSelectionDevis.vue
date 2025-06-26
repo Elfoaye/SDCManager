@@ -124,7 +124,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="content">
+    <div class="list-content">
         <div class="search">
             <input v-model="filterSearch" class="searchbar" type="text" placeholder="Chercher par nom, catégorie..."/>
         </div>
@@ -155,6 +155,14 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.list-content {
+    flex-grow: 2;
+    display: flex;
+    flex-direction: column;
+    width: 95%;
+    max-width: 60rem;
+}
+
 .searchbar {
     width: 50%;
     padding: 1rem;

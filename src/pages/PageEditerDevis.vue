@@ -188,146 +188,178 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
         <div class="context" v-if="contextName">
             <h2>{{ contextName }}</h2>
         </div>
-        <h2>Informations générales</h2>
-        <section class="infos">
-            <div class="line tech">
-                <label>Nom du devis :
-                    <input v-model="store.devisInfos.name"/>
-                </label>
-                <label>Date de début :
-                    <input v-model="store.devisInfos.date"/>
-                </label>
-                <label>Durée (Jours) :
-                    <input type="number" v-model="store.devisInfos.duration" min="1"/>
-                </label>
-            </div>
-        </section>
-        <h2>Client</h2>
-        <section class="infos">
-            <div class="line">
-                <label>Nom du client :
-                    <input v-model="store.clientInfos.name" list="client-names" @input="onNameInput"/>
-                    <datalist id="client-names">
-                        <option v-for="name in uniqueClientNames" :key="name">{{ name }}</option>
-                    </datalist>
-                </label>
-                <label>Nom de l'evenement :
-                    <input v-model="store.clientInfos.eventName" list="event-names" @input="onEventInput"/>
-                    <datalist id="event-names">
-                        <option v-for="event in matchingEvents" :key="event">{{ event }}</option>
-                    </datalist>
-                </label>
-                <label>Addresse du client :
-                    <textarea v-model="store.clientInfos.adress"></textarea>
-                </label>
-            </div>
-            <div class="line">
-                <label>Mail du client :
-                    <input v-model="store.clientInfos.mail"/>
-                </label>
-                <label>Telephone du client :
-                    <input v-model="store.clientInfos.phone"/>
-                </label>
-            </div>
-        </section>
-        <h2>Utilitaires</h2>
-        <section class="base">
-            <div class="line tech">
-                <label>Techniciens :
-                    <input type="number" v-model="store.utilitaries.techQty" min="0"/>
-                </label>
-                <div class="rate">
-                    <label>Prix unitaire :
-                        <input type="number" v-model="store.utilitaries.techRate" min="0"/>
-                    </label>
-                    <label class="inline">Par Heure ?
-                        <input type="checkbox" v-model="store.utilitaries.techHourly"/>
-                    </label>
-                </div>
-                <label>Total : 
-                    <span>{{ (store.utilitaries.techQty * store.utilitaries.techRate).toFixed(2) }} €</span>
-                </label>
-            </div>
-            <div class="line transport">
-                <label>Transport (km):
-                    <input type="number" v-model="store.utilitaries.transportKm" min="0"/>
-                </label>
-                <label>Prix unitaire :
-                    <input type="number" v-model="store.utilitaries.transportRate" min="0"/>
-                </label>
-                <label>Total : 
-                    <span>{{ (store.utilitaries.transportKm * store.utilitaries.transportRate).toFixed(2) }} €</span>
-                </label>
-            </div>
-            <div class="line">
-                <label class="inline">Adhésion ?
-                    <input type="checkbox" v-model="store.utilitaries.membership"/>
-                </label>
-            </div>
-        </section>
-        <h2>Materiel</h2>
-        <section class="materiel">
-            <ListeSelectionDevis class="select-list" />
-
-            <div v-if="store.selectedItems.length > 0">
-                <h3>Materiel selectionné : </h3>
-                <ul >
-                    <li v-for="item in store.selectedItems" :data-id="item.id">
-                        <p>{{ item.nom }}</p>
-                        <p>{{ item.contrib.toFixed(2) }} €</p>
-                        <p>{{ item.quantity }}</p>
-                        <p>{{ item.duration }}</p>
-                        <p>{{ item.totalPrice.toFixed(2) }} €</p>
-                    </li>
-                </ul>
-            </div>
-            <div v-if="store.extraItems.length > 0">
-                <h3>Extras :</h3>
-                <ul v-if="store.extraItems.length > 0">
-                    <li v-for="item in store.extraItems" :data-id="item.id">
-                        <p style="white-space: pre-line;">{{ item.name }}</p>
-                        <p>{{ item.price.toFixed(2) }} €</p>
-                        <button class="extra-button" @click="removeExtraField(item)">Supprimer</button>
-                    </li>
-                </ul>
-            </div>
-        </section>
-        <h2>Autre</h2>
-        <section class="bonus">
-            <div class="other">
-                <label>Nom : </label>
-                <textarea v-model="tempExtrafield.name"></textarea>
+        <div class="content-parts">
+            <div class="part">
+                <section class="infos">
+                    <h2>Informations générales</h2>
+                    <div class="line tech">
+                        <label>Nom du devis :
+                            <input v-model="store.devisInfos.name"/>
+                        </label>
+                        <label>Date de début :
+                            <input v-model="store.devisInfos.date"/>
+                        </label>
+                        <label>Durée (Jours) :
+                            <input type="number" v-model="store.devisInfos.duration" min="1"/>
+                        </label>
+                    </div>
+                </section>
+                <section class="infos">
+                    <h2>Client</h2>
+                    <div class="line">
+                        <label>Nom du client :
+                            <input v-model="store.clientInfos.name" list="client-names" @input="onNameInput"/>
+                            <datalist id="client-names">
+                                <option v-for="name in uniqueClientNames" :key="name">{{ name }}</option>
+                            </datalist>
+                        </label>
+                        <label>Nom de l'evenement :
+                            <input v-model="store.clientInfos.eventName" list="event-names" @input="onEventInput"/>
+                            <datalist id="event-names">
+                                <option v-for="event in matchingEvents" :key="event">{{ event }}</option>
+                            </datalist>
+                        </label>
+                        <label>Addresse du client :
+                            <textarea v-model="store.clientInfos.adress"></textarea>
+                        </label>
+                    </div>
+                    <div class="line">
+                        <label>Mail du client :
+                            <input v-model="store.clientInfos.mail"/>
+                        </label>
+                        <label>Telephone du client :
+                            <input v-model="store.clientInfos.phone"/>
+                        </label>
+                    </div>
+                </section>
+                <section class="base">
+                    <h2>Utilitaires</h2>
+                    <div class="line tech">
+                        <label>Techniciens :
+                            <input type="number" v-model="store.utilitaries.techQty" min="0"/>
+                        </label>
+                        <div class="rate">
+                            <label>Prix unitaire :
+                                <input type="number" v-model="store.utilitaries.techRate" min="0"/>
+                            </label>
+                            <label class="inline">Par Heure ?
+                                <input type="checkbox" v-model="store.utilitaries.techHourly"/>
+                            </label>
+                        </div>
+                        <label>Total : 
+                            <span>{{ (store.utilitaries.techQty * store.utilitaries.techRate).toFixed(2) }} €</span>
+                        </label>
+                    </div>
+                    <div class="line transport">
+                        <label>Transport (km):
+                            <input type="number" v-model="store.utilitaries.transportKm" min="0"/>
+                        </label>
+                        <label>Prix unitaire :
+                            <input type="number" v-model="store.utilitaries.transportRate" min="0"/>
+                        </label>
+                        <label>Total : 
+                            <span>{{ (store.utilitaries.transportKm * store.utilitaries.transportRate).toFixed(2) }} €</span>
+                        </label>
+                    </div>
+                    <div class="line">
+                        <label class="inline">Adhésion ?
+                            <input type="checkbox" v-model="store.utilitaries.membership"/>
+                        </label>
+                    </div>
+                </section>
                 
-                <label>Prix (€) : 
-                    <input type="number" v-model="tempExtrafield.price"/>
-                </label>
-                <button class="extra-button" @click="addExtrafield">Ajouter</button>
+                <section class="bonus">
+                    <h2>Autre</h2>
+                    <div class="other">
+                        <label>Nom : </label>
+                        <textarea v-model="tempExtrafield.name"></textarea>
+                        
+                        <label>Prix (€) : 
+                            <input type="number" v-model="tempExtrafield.price"/>
+                        </label>
+                        <button class="extra-button" @click="addExtrafield">Ajouter</button>
+                    </div>
+                    <div class="free">
+                        <label>Geste commercial (€) : 
+                            <input type="number" v-model="store.utilitaries.discountEuro"/>
+                        </label>
+                    </div>
+                    <div v-if="store.extraItems.length > 0">
+                        <h3>Extras :</h3>
+                        <ul  v-if="store.extraItems.length > 0">
+                            <li class="extra" v-for="item in store.extraItems" :data-id="item.id">
+                                <p style="white-space: pre-line;">{{ item.name }}</p>
+                                <p>{{ item.price.toFixed(2) }} €</p>
+                                <button class="extra-button" @click="removeExtraField(item)">Supprimer</button>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
             </div>
-            <div class="free">
-                <label>Geste commercial (€) : 
-                    <input type="number" v-model="store.utilitaries.discountEuro"/>
-                </label>
+            <div class="part">
+                <section class="materiel">
+                    <h2>Materiel</h2>
+                    <ListeSelectionDevis class="select-list" />
+
+                    <div v-if="store.selectedItems.length > 0">
+                        <h3>Materiel selectionné : </h3>
+                        <ul >
+                            <li v-for="item in store.selectedItems" :data-id="item.id">
+                                <p>{{ item.nom }}</p>
+                                <p>{{ item.contrib.toFixed(2) }} €</p>
+                                <p>{{ item.quantity }}</p>
+                                <p>{{ item.duration }}</p>
+                                <p>{{ item.totalPrice.toFixed(2) }} €</p>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
             </div>
-        </section>
-        <section class="total">
-            <h2><span>Prix total : {{ finalCost.toFixed(2) }} €</span></h2>
-        </section>
-        
-        <section class="submit">
-            <div class="buttons">
-                <button @click="endModif" class="new">
-                    Terminer
-                </button>
-                <button @click="cancelDevis" class="cancel">
-                    Annuler
-                </button>
-            </div>
-            <p v-if="saveMassage" :class="saveMassage.result">{{ saveMassage.message }}</p>
-        </section>
+        </div>
+            <section class="total">
+                <h2><span>Prix total : {{ finalCost.toFixed(2) }} €</span></h2>
+            </section>
+            
+            <section class="submit">
+                <div class="buttons">
+                    <button @click="endModif" class="new">
+                        Terminer
+                    </button>
+                    <button @click="cancelDevis" class="cancel">
+                        Annuler
+                    </button>
+                </div>
+                <p v-if="saveMassage" :class="saveMassage.result">{{ saveMassage.message }}</p>
+            </section>
     </div>
 </template>
 
 <style scoped>
+.content {
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
+    gap: 1rem 5rem;
+}
+
+.content-parts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+}
+
+.part {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 60rem;
+}
+
+.title {
+    width: 60rem;
+}
+
 .confirm {
     position: absolute;
     top: 0;
@@ -369,15 +401,20 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
 
 .context {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 1rem;
+    justify-self: flex-start;
+    margin: 0;
 }
 
 section {
     padding: 1rem;
     margin-bottom: 1rem;
-    border-bottom: 1px solid var(--border);
+    margin-left: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+}
+
+section h2 {
+    margin-bottom: 1rem;
 }
 
 section.base {
@@ -469,11 +506,24 @@ li {
     border-bottom: 1px solid var(--border);
 }
 
+li.extra {
+    grid-template-columns: 3fr 1fr 1fr;
+}
+
 li:not(.head):nth-child(even) {
     background-color: var(--background-alt);
 }
 
+.total {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 60rem;
+}
+
 .submit {
+    width: 100%;
     position: sticky;
     bottom: -0.5rem;
     margin: 0;
@@ -483,8 +533,6 @@ li:not(.head):nth-child(even) {
     border-bottom: 0;
     border: 1px solid var(--border-accent);
     border-bottom: 0;
-    border-top-left-radius: 0.5rem;
-    border-top-right-radius: 0.5rem;
     background-color: var(--background);
 }
 
