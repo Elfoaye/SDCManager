@@ -124,29 +124,29 @@ onMounted(async () => {
                 <h1>Consulter {{ store.isFacture ? 'la facture' :'le devis' }}</h1>
             </div>
             <h2>{{ store.devisInfos.type + ' ' + store.devisInfos.id + ' ' + store.devisInfos.name }}</h2>
-            <section class="preview">
+        </div>
+        <section class="preview">
                 <DisplayDevis ref="devisRef"/>
             </section>
-        </div>
         <section class="submit">
-                <div class="buttons">
-                    <button v-if="!store.isFacture" class="modif" @click="setDocument({id: store.devisInfos.id, facture: false}, true)">
-                        Modifier
-                    </button>
-                    <button class="new" @click="generatePDF">
-                        Télecharger
-                    </button>
-                    <button v-if="!store.isFacture" @click="setConfirm('duplicate')">
-                        Dupliquer
-                    </button>
-                    <button v-if="!store.isFacture" @click="setConfirm('facture')">
-                        Facturer
-                    </button>
-                    <button v-if="isAdmin" @click="setConfirm('delete')" class="delete">
-                        Supprimer
-                    </button>
-                </div>
-            </section>
+            <div class="buttons">
+                <button v-if="!store.isFacture" class="modif" @click="setDocument({id: store.devisInfos.id, facture: false}, true)">
+                    Modifier
+                </button>
+                <button class="new" @click="generatePDF">
+                    Télecharger
+                </button>
+                <button v-if="!store.isFacture" @click="setConfirm('duplicate')">
+                    Dupliquer
+                </button>
+                <button v-if="!store.isFacture" @click="setConfirm('facture')">
+                    Facturer
+                </button>
+                <button v-if="isAdmin" @click="setConfirm('delete')" class="delete">
+                    Supprimer
+                </button>
+            </div>
+        </section>
         </div>
 </template>
 
@@ -197,16 +197,14 @@ h2 {
 .preview {
     display: flex;
     justify-content: center;
-}
-
-.submit {
-    padding: 1rem;
+    width: 100%;
 }
 
 .submit {
     position: sticky;
     bottom: -0.5rem;
     margin: 0;
+    padding: 1rem;
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -219,6 +217,8 @@ h2 {
 
 .buttons {
     display: flex;
+    justify-content: center;
     gap: 1rem;
+    max-width: 100%;
 }
 </style>

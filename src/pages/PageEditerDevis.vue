@@ -469,8 +469,8 @@ label.inline {
     gap: 1rem;
 }
 
-.extra_button {
-    max-height: 2rem;
+.extra-button {
+    max-height: 3rem;
 }
 
 .free {
@@ -508,6 +508,7 @@ li {
 
 li.extra {
     grid-template-columns: 3fr 1fr 1fr;
+    align-items: center;
 }
 
 li:not(.head):nth-child(even) {

@@ -49,7 +49,7 @@ const denomColumnSize = computed(() => {
 </script>
 
 <template>
-    <div ref="printRoot" class="all">
+    <div ref="printRoot" class="all-pages">
         <div class="page">
             <header>
                 <div class="infos">
@@ -207,9 +207,11 @@ const denomColumnSize = computed(() => {
 </template>
 
 <style scoped>
-.all {
+.all-pages {
     display: flex;
-    flex-direction: column;
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 100%;
     gap: 1rem;
 }
 

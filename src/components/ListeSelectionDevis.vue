@@ -159,8 +159,11 @@ onMounted(() => {
     flex-grow: 2;
     display: flex;
     flex-direction: column;
+    padding: 1rem;
     width: 95%;
     max-width: 60rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
 }
 
 .searchbar {
