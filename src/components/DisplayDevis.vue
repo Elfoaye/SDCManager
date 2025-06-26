@@ -40,7 +40,12 @@ const paginatedItems = computed(() => {
   return pages;
 });
 
-const techTransport = computed(() => (store.utilitaries.techQty > 0)  || (store.utilitaries.transportKm > 0))
+const techTransport = computed(() => (store.utilitaries.techQty > 0)  || (store.utilitaries.transportKm > 0));
+
+const denomColumnSize = computed(() => {
+    if(techTransport.value) return 1;
+    return
+});
 </script>
 
 <template>
@@ -52,8 +57,11 @@ const techTransport = computed(() => (store.utilitaries.techQty > 0)  || (store.
                     <div class="general-info">
                         <p class="date">A Arvieux le {{ store.devisInfos.writeDate }}</p>
                         <div class="adress">
-                            <p>{{ store.clientInfos.name }}</p>
-                            <p style="white-space: pre-line;">{{ store.clientInfos.adress }}</p>
+                            <p class="adress-title">Raison Sociale et Adresse de facturation :</p>
+                            <div class="adress-content">
+                                <p>{{ store.clientInfos.name }}</p>
+                                <p style="white-space: pre-line;">{{ store.clientInfos.adress }}</p>
+                            </div>
                         </div>  
                     </div>
                 </div>
@@ -65,7 +73,8 @@ const techTransport = computed(() => (store.utilitaries.techQty > 0)  || (store.
                 <table>
                     <thead class="blue">
                         <tr>
-                            <th :colspan="{ '3': !techTransport }">Dénomination</th>
+                            <th v-if="techTransport">Dénomination</th>
+                            <th v-else colspan="3">Dénomination</th>
                             <th v-if="techTransport">VLU</th>
                             <th v-if="techTransport">Unités</th>
                             <th>Total</th>
@@ -84,7 +93,7 @@ const techTransport = computed(() => (store.utilitaries.techQty > 0)  || (store.
                             <td>{{ store.utilitaries.transportKm }}</td>
                             <td>{{ Number((store.utilitaries.transportRate * store.utilitaries.transportKm).toFixed(2)) }}€</td>
                         </tr>
-                        <tr>
+                        <tr v-if="store.selectedItems.length > 0">
                             <td>Matériel (détails page suivante)</td>
                             <td colspan="2">Valeur à assurer : <span>{{ Number(materielAssur.toFixed(2)) }}€</span></td>
                             <td>{{ materielCost.toFixed(2) }}€</td>
@@ -212,7 +221,7 @@ const techTransport = computed(() => (store.utilitaries.techQty > 0)  || (store.
     padding-top: 57px;
     padding-bottom: 20px;
 
-    color: black;
+    color: rgb(17,145,148);
     background: white;
 
     overflow: hidden;
@@ -249,16 +258,18 @@ header {
 }
 
 .date {
-    color: gray;
-    font-weight: 500;
+    font-size: 14px;
+    margin: 5px 15px;
 }
 
 .adress {
     text-align: left;
     font-size: 14px;
+    font-weight: 700;
     padding: 12px;
-    width: 230px;
-    height: 100px;
+    width: 270px;
+    height: 120px;
+    color: black;
     border: 1px solid black;
     border-radius: 20px;
 }
@@ -267,13 +278,16 @@ header {
     margin: 0;
 }
 
-.blue {
-    color: white;
-    background-color: rgb(17,145,148);
+.adress-title {
+    font-size: 14px;
+    font-weight: 400;
 }
 
-.blue th, .blue td {
-    border: 1px solid white;
+.adress-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 5px;
 }
 
 .context {
@@ -288,10 +302,9 @@ header {
 }
 
 table {
+    box-sizing: border-box;
     border-collapse: collapse;
     width: 100%;
-    color: rgb(17,145,148);
-    border: 2px solid rgb(17,145,148);
 }
 
 th, td {
@@ -299,15 +312,40 @@ th, td {
   text-align: left;
 }
 
-td {
+tbody td {
     padding-left: 5px;
     padding-right: 5px;
     border: 1px solid rgb(17,145,148);
 }
 
+tbody tr.blue td {
+    border: 0;
+    border-left: 1px solid white;
+}
+
+tbody tr.blue td:first-child {
+    border-left: 1px solid rgb(17,145,148);
+}
+
+
 th, tfoot.summ.blue td {
     padding: 5px;
     font-size: 16px;
+}
+
+.blue {
+    color: white;
+    background-color: rgb(17,145,148);
+}
+
+.blue th + th,
+.blue td + td {
+    border-left: 1px solid white;
+}
+
+.blue th:last-child,
+.blue td:last-child {
+    border-right: 1px solid rgb(17,145,148);
 }
 
 .before-remise {

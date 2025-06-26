@@ -285,9 +285,9 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
                 <h3>Extras :</h3>
                 <ul v-if="store.extraItems.length > 0">
                     <li v-for="item in store.extraItems" :data-id="item.id">
-                        <p>{{ item.name }}</p>
+                        <p style="white-space: pre-line;">{{ item.name }}</p>
                         <p>{{ item.price.toFixed(2) }} €</p>
-                        <button @click="removeExtraField(item)">Supprimer</button>
+                        <button class="extra-button" @click="removeExtraField(item)">Supprimer</button>
                     </li>
                 </ul>
             </div>
@@ -301,7 +301,7 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
                 <label>Prix (€) : 
                     <input type="number" v-model="tempExtrafield.price"/>
                 </label>
-                <button @click="addExtrafield">Ajouter</button>
+                <button class="extra-button" @click="addExtrafield">Ajouter</button>
             </div>
             <div class="free">
                 <label>Geste commercial (€) : 
@@ -430,6 +430,10 @@ label.inline {
 .other {
     display: flex;
     gap: 1rem;
+}
+
+.extra_button {
+    max-height: 2rem;
 }
 
 .free {
