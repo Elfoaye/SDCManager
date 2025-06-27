@@ -247,7 +247,7 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
                             <label>Prix unitaire :
                                 <input type="number" v-model="store.utilitaries.techRate" min="0"/>
                             </label>
-                            <label class="inline">Par Heure ?
+                            <label class="inline check">Par Heure ?
                                 <input type="checkbox" v-model="store.utilitaries.techHourly"/>
                             </label>
                         </div>
@@ -266,8 +266,8 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
                             <span>{{ (store.utilitaries.transportKm * store.utilitaries.transportRate).toFixed(2) }} €</span>
                         </label>
                     </div>
-                    <div class="line">
-                        <label class="inline">Adhésion ?
+                    <div class="line membership">
+                        <label class="inline check">Adhésion ?
                             <input type="checkbox" v-model="store.utilitaries.membership"/>
                         </label>
                     </div>
@@ -447,11 +447,17 @@ h3 {
     display: flex;
     align-items: start;
     gap: 1rem;
-    max-width: 100%;
+    width: 100%;
 }
 
 .line input {
+    flex: 1;
     width: 95%;
+}
+
+.line.tech, .line.transport {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
 }
 
 .line label {
@@ -461,10 +467,22 @@ h3 {
 }
 
 label.inline {
+    display: flex;
     flex-direction: row;
-    display: inline-flex;
+    justify-content: left;
     align-items: center;
+    max-width: fit-content;
     gap: 0.5rem;
+}
+
+.membership {
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+label.check:hover,
+label.check input:hover  {
+    cursor: pointer;
 }
 
 textarea {
@@ -489,6 +507,7 @@ textarea {
 
 .other {
     display: flex;
+    align-items: flex-start;
     flex-wrap: wrap;
     max-width: 100%;
     gap: 1rem;
