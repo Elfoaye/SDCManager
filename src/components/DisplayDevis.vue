@@ -8,7 +8,7 @@ const store = useDevisStore();
 const printRoot = ref(null);
 defineExpose({ printRoot });
 
-const LINES_FIRST_PAGE = 10;
+const LINES_FIRST_PAGE = 15;
 const LINES_PER_PAGE = 30;
 
 const materielAssur = computed(() => {
@@ -44,7 +44,7 @@ const paginatedItems = computed(() => {
     let currentLines = 0;
 
     for (const item of store.selectedItems) {
-        const lines = Math.ceil(item.nom.length / 30) || 1;
+        const lines = Math.ceil(item.nom.length / 27) || 1;
 
         if (currentLines + lines > LINES_PER_PAGE) {
         pages.push(currentPage);
@@ -64,21 +64,30 @@ const paginatedItems = computed(() => {
 });
 
 const paginatedExtras = computed(() => {
+    let totalLines = 0;
+    for (const extra of store.extraItems) {
+        const lineBreaks = extra.name.split("\n").length - 1;
+        const charLines = Math.ceil(extra.name.replace(/\n/g, "").length / 110);
+        totalLines += (charLines + lineBreaks) || 1;
+    }
+
+    if(totalLines < LINES_FIRST_PAGE) {
+        return { pages: store.extraItems, overflow: false };
+    }
+
     const pages = [];
     let currentPage = [];
-    let currentLimit = LINES_FIRST_PAGE;
     let currentLines = 0;
 
     for (const extra of store.extraItems) {
         const lineBreaks = extra.name.split("\n").length - 1;
-        const charLines = Math.ceil(extra.name.replace(/\n/g, "").length / 30);
+        const charLines = Math.ceil(extra.name.replace(/\n/g, "").length / 110);
         const lines = charLines + lineBreaks || 1;
 
-        if (currentLines + lines > currentLimit) {
+        if (currentLines + lines > LINES_PER_PAGE) {
             pages.push(currentPage);
             currentPage = [];
             currentLines = 0;
-            currentLimit = LINES_PER_PAGE;
         }
 
         currentPage.push(extra);
@@ -89,7 +98,7 @@ const paginatedExtras = computed(() => {
         pages.push(currentPage);
     }
 
-    return pages;
+    return { pages, overflow: true };
 });
 
 const techTransport = computed(() => (store.utilitaries.techQty > 0)  || (store.utilitaries.transportKm > 0));
@@ -167,7 +176,7 @@ const yearMembership = computed(() => {
                             <td colspan="2">Valeur à assurer : <span>{{ Number(materielAssur.toFixed(2)) }}€</span></td>
                             <td>{{ materielCost.toFixed(2) }}€</td>
                         </tr>
-                        <tr v-if="paginatedExtras.length === 1" v-for="extra in store.extraItems">
+                        <tr v-if="!paginatedExtras.overflow" v-for="extra in store.extraItems">
                             <td colspan="3" style="white-space: pre-line;">{{ extra.name }}</td>
                             <td>{{ Number(extra.price.toFixed(2)) }}€</td>
                         </tr>
@@ -215,11 +224,11 @@ const yearMembership = computed(() => {
         </div>
 
         <DevisPageTemplate 
-            v-if="paginatedExtras.length > 1"
-            v-for="(extraPage, eIndex) in paginatedExtras"
+            v-if="paginatedExtras.overflow"
+            v-for="(extraPage, eIndex) in paginatedExtras.pages"
             :key="'extra-' + eIndex"
             :writeDate="store.devisInfos.writeDate"
-            :pageNumber="eIndex + 1"
+            :pageNumber="eIndex + 2"
         >
             <table class="materiel">
                 <thead class="blue">
@@ -229,12 +238,12 @@ const yearMembership = computed(() => {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(extra, i) in extraPage" :key="'extra-' + i">
+                    <tr v-for="extra in extraPage">
                         <td colspan="3" style="white-space: pre-line">{{ extra.name }}</td>
                         <td>{{ Number(extra.price).toFixed(2) }}€</td>
                     </tr>
                 </tbody>
-                <tfoot class="summ blue" v-if="eIndex === paginatedExtras.length - 1">
+                <tfoot class="summ blue" v-if="eIndex === paginatedExtras.pages.length - 1">
                     <tr>
                         <td colspan="3">TOTAL Autres</td>
                         <td>{{ Number(extraCost.toFixed(2)) }}€</td>
@@ -246,7 +255,7 @@ const yearMembership = computed(() => {
             v-for="(pageItems, index) in paginatedItems"
             :key="'materiel-' + index"
             :writeDate="store.devisInfos.writeDate"
-            :pageNumber="paginatedExtras.length + index"
+            :pageNumber="(paginatedExtras.overflow ? paginatedExtras.pages.length + 2 : 2) + index"
             >
             <table class="materiel">
                 <thead class="blue">

@@ -28,7 +28,7 @@ defineProps({
         </p>
         <div class="number">
             <img src="../assets/QRCode.png" />
-            <p>{{ pageNumber + 1 }}</p>
+            <p>{{ pageNumber }}</p>
         </div>
         </footer>
     </div>
