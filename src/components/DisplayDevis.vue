@@ -42,9 +42,26 @@ const paginatedItems = computed(() => {
 
 const techTransport = computed(() => (store.utilitaries.techQty > 0)  || (store.utilitaries.transportKm > 0));
 
-const denomColumnSize = computed(() => {
-    if(techTransport.value) return 1;
-    return
+const yearMembership = computed(() => {
+    const dateStr = store.devisInfos.date;
+
+    if (!dateStr || typeof dateStr !== "string") return null;
+
+    const [year, month, day] = dateStr.split("-").map(Number);
+
+    if (
+        Number.isNaN(day) || Number.isNaN(month) || Number.isNaN(year) ||
+        day < 1 || day > 31 ||
+        month < 1 || month > 12 ||
+        year < 1000 || year > 9999
+    ) {
+        return null;
+    }
+
+    if(month > 8) {
+        return `${year}/${year + 1}`
+    }
+    return `${year - 1}/${year}`
 });
 </script>
 
@@ -99,8 +116,8 @@ const denomColumnSize = computed(() => {
                             <td>{{ materielCost.toFixed(2) }}€</td>
                         </tr>
                         <tr v-if="store.utilitaries.membership">
-                            <td colspan="3">Adhésion morale</td>
-                            <td>25€</td>
+                            <td colspan="3">Adhésion morale année scolaire {{ yearMembership }}</td>
+                            <td>{{ store.formulas.membership }}€</td>
                         </tr>
                         <tr v-for="extra in store.extraItems">
                             <td colspan="3" style="white-space: pre-line;">{{ extra.name }}</td>
@@ -266,7 +283,7 @@ header {
 
 .adress {
     text-align: left;
-    font-size: 14px;
+    font-size: clamp(12px, 100%, 14px);
     font-weight: 700;
     padding: 12px;
     width: 270px;

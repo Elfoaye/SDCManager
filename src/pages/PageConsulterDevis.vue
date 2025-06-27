@@ -1,7 +1,7 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useDevisStore } from '../composables/devisStore';
 import { useBreadcrumb } from '../composables/breadcrumb';
 import html2pdf from 'html2pdf.js'
@@ -25,6 +25,12 @@ setBreadcrumb([
 
 const confirm = ref(null);
 const devisRef = ref(null);
+
+const confirmMessage = computed(() => {
+    if(confirm.value === 'duplicate') return 'dupliquer'; 
+    if(confirm.value === 'facture') return 'créer une facture depuis';
+    return 'suprimer';
+});
 
 async function duplicateDevis() {
     try {
@@ -106,9 +112,7 @@ onMounted(async () => {
             <div v-if="confirm" class="confirm">
                 <div class="pop-up">
                     <p>Êtes-vous sûr de vouloir 
-                        {{ confirm === 'duplicate' ? 'dupliquer' : 
-                                        'delete' ? 'supprimer' : 
-                                        'créer une facture depuis' }} 
+                        {{ confirmMessage }} 
                         <span>{{ store.devisInfos.name }}</span> ?
                     </p>
 

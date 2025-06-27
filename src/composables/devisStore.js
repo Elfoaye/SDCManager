@@ -187,6 +187,8 @@ export const useDevisStore = defineStore('devis', () => {
                 membership: fullDocument.devis.adhesion,
                 discountEuro: fullDocument.devis.promo
             };   
+
+            formulas.value = await invoke('get_loc_formulas');
         } catch (err) {
             throw err;
         }

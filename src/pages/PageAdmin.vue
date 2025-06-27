@@ -100,17 +100,17 @@ async function applyChanges() {
                 <div class="formulas">
                     <div class="pack">
                         <label>Contribution de base :
-                            <input v-model="formulas.contrib_first_day" type="number" />
+                            <input v-model="formulas.contrib_first_day" type="number" step="0.01"/>
                         </label>
                         <p>({{ Number((formulas.contrib_first_day*100).toFixed(2)) }}% de la valeur de l'objet)</p>
                         <label>Contribution suivante :
-                            <input v-model="formulas.contrib_following" type="number" />
+                            <input v-model="formulas.contrib_following" type="number" step="0.1"/>
                         </label>
                         <p>({{ Number((formulas.contrib_following*100).toFixed(2)) }}% de la contribution de base par jour supplémentaire)</p>
                     </div>
                     <div class="pack">
                         <label>Transport au kilomètre :
-                            <input v-model="formulas.transport_km" type="number" />
+                            <input v-model="formulas.transport_km" type="number" step="0.1"/>
                         </label>
                         <label>Technicien/Journée :
                             <input v-model="formulas.tech_day" type="number" />

@@ -24,10 +24,13 @@ const formulas = ref(null);
 const contextName = ref('');
 const saveMassage = ref({ result: 'success', message: '' });
 const loadError = ref('');
-const confirm = ref(null);
 
 function addExtrafield(){
-    if(tempExtrafield.value.name === '' || tempExtrafield.value.price === '') return;
+    if(tempExtrafield.value.name === '') return;
+
+    if (tempExtrafield.value.price === '') {
+        tempExtrafield.value.price = 0;
+    }
 
     store.extraItems.push(tempExtrafield.value);
     tempExtrafield.value = {name: '', price: ''};
@@ -196,8 +199,8 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
                         <label>Nom du devis :
                             <input v-model="store.devisInfos.name"/>
                         </label>
-                        <label>Date de début :
-                            <input v-model="store.devisInfos.date"/>
+                        <label>Date de début:
+                            <input type="date" v-model="store.devisInfos.date"/>
                         </label>
                         <label>Durée (Jours) :
                             <input type="number" v-model="store.devisInfos.duration" min="1"/>
@@ -213,7 +216,7 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
                                 <option v-for="name in uniqueClientNames" :key="name">{{ name }}</option>
                             </datalist>
                         </label>
-                        <label>Nom de l'evenement :
+                        <label>Evenement :
                             <input v-model="store.clientInfos.eventName" list="event-names" @input="onEventInput"/>
                             <datalist id="event-names">
                                 <option v-for="event in matchingEvents" :key="event">{{ event }}</option>
@@ -231,6 +234,7 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
                             <input v-model="store.clientInfos.phone"/>
                         </label>
                     </div>
+                    <p class="note">note: Seuls le nom et l'adresse apparaissent sur le document, l'evenement sert à retrouver l'adresse plus facilement</p>
                 </section>
                 <section class="base">
                     <h2>Utilitaires</h2>
@@ -255,7 +259,7 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
                             <input type="number" v-model="store.utilitaries.transportKm" min="0"/>
                         </label>
                         <label>Prix unitaire :
-                            <input type="number" v-model="store.utilitaries.transportRate" min="0"/>
+                            <input type="number" v-model="store.utilitaries.transportRate" min="0" step="0.1"/>
                         </label>
                         <label>Total : 
                             <span>{{ (store.utilitaries.transportKm * store.utilitaries.transportRate).toFixed(2) }} €</span>
@@ -271,8 +275,9 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
                 <section class="bonus">
                     <h2>Autre</h2>
                     <div class="other">
-                        <label>Nom : </label>
-                        <textarea v-model="tempExtrafield.name"></textarea>
+                        <label>Nom : 
+                            <textarea v-model="tempExtrafield.name"></textarea>
+                        </label>
                         
                         <label>Prix (€) : 
                             <input type="number" v-model="tempExtrafield.price"/>
@@ -344,6 +349,7 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
 
 .content-parts {
     display: flex;
+    gap: 1rem;
     flex-wrap: wrap;
     justify-content: center;
     width: 100%;
@@ -354,10 +360,12 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
     flex-direction: column;
     width: 100%;
     max-width: 60rem;
+    gap: 1rem;
 }
 
 .title {
     width: 60rem;
+    max-width: 95%;
 }
 
 .confirm {
@@ -407,8 +415,6 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
 
 section {
     padding: 1rem;
-    margin-bottom: 1rem;
-    margin-left: 1rem;
     border: 1px solid var(--border);
     border-radius: 0.5rem;
 }
@@ -421,24 +427,32 @@ section.base {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    
 }
 
 h3 {
     margin-top: 2rem;
 }
 
+.note {
+    color: var(--border);
+    font-size: 10;
+}
+
 .line {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    display: flex;
     align-items: start;
     gap: 1rem;
-    width: 100%;
+    max-width: 100%;
+}
+
+.line input {
+    width: 95%;
 }
 
 .line label {
     display: flex;
     flex-direction: column;
+    width: 100%;
 }
 
 label.inline {
@@ -446,6 +460,10 @@ label.inline {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+textarea {
+    max-width: 100%;
 }
 
 .rate {
@@ -466,7 +484,15 @@ label.inline {
 
 .other {
     display: flex;
+    flex-wrap: wrap;
+    max-width: 100%;
     gap: 1rem;
+}
+
+.other label {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
 }
 
 .extra-button {
@@ -519,8 +545,8 @@ li:not(.head):nth-child(even) {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100%;
-    max-width: 60rem;
+    width: 60rem;
+    max-width: 95%;
 }
 
 .submit {
