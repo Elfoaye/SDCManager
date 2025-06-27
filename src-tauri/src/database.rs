@@ -365,7 +365,16 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
 
     let client_id =
         if let Some(id) = maybe_client_id {
-            // If exist get existing id
+            // If exist ubdate data and get existing id
+                transaction.execute(
+                "UPDATE Client SET adresse = ?, tel = ?, mail = ? WHERE client_id = ?",
+                params![
+                    full_devis.client.adresse,
+                    full_devis.client.tel,
+                    full_devis.client.mail,
+                    id
+                ],
+            ).map_err(|e| e.to_string())?;
             id
         } else {
             // Insert and get new id

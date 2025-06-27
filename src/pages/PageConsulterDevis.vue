@@ -1,7 +1,7 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useDevisStore } from '../composables/devisStore';
 import { useBreadcrumb } from '../composables/breadcrumb';
 import html2pdf from 'html2pdf.js'
@@ -62,7 +62,7 @@ async function deleteDocument() {
             await invoke("delete_devis", { devisId: store.devisInfos.id });
         }
         confirm.value = null;
-        setPage('devparcour')
+        setPage('devparcour');
     } catch (err) {
         console.error(err + " on deleting document " + store.devisInfos.id);
     }
@@ -103,6 +103,14 @@ function generatePDF() {
 onMounted(async () => {
     isAdmin.value = await invoke('is_admin');
     await store.loadDocument(document);
+});
+
+watch(() => document, (newDoc) => {
+    if (!newDoc || newDoc.id <= 0) {
+        return;
+    }
+
+    store.loadDocument(newDoc);
 });
 </script>
 

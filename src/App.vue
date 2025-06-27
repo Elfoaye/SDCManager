@@ -46,7 +46,6 @@ async function setPage(value) {
 }
 
 function setDocument(document, modif) {
-    console.log(document,modif);
     currentDocument.value = document;
 
     if(document.id === 0 || modif) {

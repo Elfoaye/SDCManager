@@ -24,6 +24,7 @@ const formulas = ref(null);
 const contextName = ref('');
 const saveMassage = ref({ result: 'success', message: '' });
 const loadError = ref('');
+const displaySelected = ref(true);
 
 function addExtrafield(){
     if(tempExtrafield.value.name === '') return;
@@ -307,8 +308,12 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
                     <ListeSelectionDevis class="select-list" />
 
                     <div v-if="store.selectedItems.length > 0">
-                        <h3>Materiel selectionné : </h3>
-                        <ul >
+                        <h3 class="toggle-materiel" @click="displaySelected = !displaySelected">
+                            <span v-if="displaySelected">&#9660;</span>
+                            <span v-else>&#9654;</span>
+                            Materiel selectionné
+                        </h3>
+                        <ul v-if="displaySelected">
                             <li v-for="item in store.selectedItems" :data-id="item.id">
                                 <p>{{ item.nom }}</p>
                                 <p>{{ item.contrib.toFixed(2) }} €</p>
@@ -510,6 +515,19 @@ textarea {
     display: grid;
     grid-template-columns: 1fr 1fr;
     align-items: start;
+}
+
+.toggle-materiel {
+    padding: 1rem;
+    border-radius: 0.5rem;
+
+    transition: all 0.2s;
+}
+
+.toggle-materiel:hover {
+    cursor: pointer;
+    background-color: var(--disabled);
+    transition: all 0.2s;
 }
 
 ul {

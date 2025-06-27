@@ -2,12 +2,14 @@
 import { ref, computed } from 'vue';
 import { useDevisStore } from '../composables/devisStore';
 import SecretRib from './SecretRib.vue';
+import DevisPageTemplate from './DevisPageTemplate.vue';
 
 const store = useDevisStore();
 const printRoot = ref(null);
 defineExpose({ printRoot });
 
-const ITEMS_PER_PAGE = 20;
+const LINES_FIRST_PAGE = 10;
+const LINES_PER_PAGE = 30;
 
 const materielAssur = computed(() => {
     return store.selectedItems.reduce((sum, item) => sum + item.valeur, 0);
@@ -15,6 +17,10 @@ const materielAssur = computed(() => {
 
 const materielCost = computed(() => {
     return store.selectedItems.reduce((sum, item) => sum + item.totalPrice, 0);
+});
+
+const extraCost = computed(() => {
+    return store.extraItems.reduce((sum, item) => sum + item.price, 0);
 });
 
 const finalCost = computed(() => {
@@ -33,11 +39,57 @@ const finalCost = computed(() => {
 });
 
 const paginatedItems = computed(() => {
-  const pages = [];
-  for (let i = 0; i < store.selectedItems.length; i += ITEMS_PER_PAGE) {
-    pages.push(store.selectedItems.slice(i, i + ITEMS_PER_PAGE));
-  }
-  return pages;
+    const pages = [];
+    let currentPage = [];
+    let currentLines = 0;
+
+    for (const item of store.selectedItems) {
+        const lines = Math.ceil(item.nom.length / 30) || 1;
+
+        if (currentLines + lines > LINES_PER_PAGE) {
+        pages.push(currentPage);
+        currentPage = [];
+        currentLines = 0;
+        }
+
+        currentPage.push(item);
+        currentLines += lines;
+    }
+
+    if (currentPage.length > 0) {
+        pages.push(currentPage);
+    }
+
+    return pages;
+});
+
+const paginatedExtras = computed(() => {
+    const pages = [];
+    let currentPage = [];
+    let currentLimit = LINES_FIRST_PAGE;
+    let currentLines = 0;
+
+    for (const extra of store.extraItems) {
+        const lineBreaks = extra.name.split("\n").length - 1;
+        const charLines = Math.ceil(extra.name.replace(/\n/g, "").length / 30);
+        const lines = charLines + lineBreaks || 1;
+
+        if (currentLines + lines > currentLimit) {
+            pages.push(currentPage);
+            currentPage = [];
+            currentLines = 0;
+            currentLimit = LINES_PER_PAGE;
+        }
+
+        currentPage.push(extra);
+        currentLines += lines;
+    }
+
+    if (currentPage.length > 0) {
+        pages.push(currentPage);
+    }
+
+    return pages;
 });
 
 const techTransport = computed(() => (store.utilitaries.techQty > 0)  || (store.utilitaries.transportKm > 0));
@@ -111,17 +163,21 @@ const yearMembership = computed(() => {
                             <td>{{ Number((store.utilitaries.transportRate * store.utilitaries.transportKm).toFixed(2)) }}€</td>
                         </tr>
                         <tr v-if="store.selectedItems.length > 0">
-                            <td>Matériel (détails page suivante)</td>
+                            <td>Matériel (détail pages suivantes)</td>
                             <td colspan="2">Valeur à assurer : <span>{{ Number(materielAssur.toFixed(2)) }}€</span></td>
                             <td>{{ materielCost.toFixed(2) }}€</td>
+                        </tr>
+                        <tr v-if="paginatedExtras.length === 1" v-for="extra in store.extraItems">
+                            <td colspan="3" style="white-space: pre-line;">{{ extra.name }}</td>
+                            <td>{{ Number(extra.price.toFixed(2)) }}€</td>
+                        </tr>
+                        <tr v-else>
+                            <td colspan="3">Autres (détail pages suivantes)</td>
+                            <td>{{ extraCost }}€</td>
                         </tr>
                         <tr v-if="store.utilitaries.membership">
                             <td colspan="3">Adhésion morale année scolaire {{ yearMembership }}</td>
                             <td>{{ store.formulas.membership }}€</td>
-                        </tr>
-                        <tr v-for="extra in store.extraItems">
-                            <td colspan="3" style="white-space: pre-line;">{{ extra.name }}</td>
-                            <td>{{ Number(extra.price.toFixed(2)) }}€</td>
                         </tr>
                         <tr v-if="store.utilitaries.discountEuro > 0" class="before-remise summ blue">
                             <td colspan="3">TOTAL avant remise</td>
@@ -158,68 +214,75 @@ const yearMembership = computed(() => {
             </footer>
         </div>
 
-        <div class="page" 
-            v-for="(pageItems, index) in paginatedItems" 
-            :key="index"
+        <DevisPageTemplate 
+            v-if="paginatedExtras.length > 1"
+            v-for="(extraPage, eIndex) in paginatedExtras"
+            :key="'extra-' + eIndex"
+            :writeDate="store.devisInfos.writeDate"
+            :pageNumber="eIndex + 1"
         >
-            <header>
-                <div class="infos">
-                    <img src="../assets/LOGO_SDC.png">
-                    <div class="general-info">
-                        <p class="date">A Arvieux le {{ store.devisInfos.writeDate }}</p>
-                        
-                    </div>
-                </div>
-            </header>
-
             <table class="materiel">
                 <thead class="blue">
                     <tr>
-                        <th>Détail mise à disposition</th>
-                        <th>Type</th>
-                        <th>Val.Remp.</th>
-                        <th>Valeur à Assurer</th>
-                        <th>Contrib.</th>
-                        <th>Unités</th>
-                        <th>Durée</th>
-                        <th>Total</th>
+                        <th colspan="3">Nom</th>
+                        <th>Prix</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="item in pageItems" :key="item.id">
-                        <td>{{ item.nom }}</td>
-                        <td>{{ item.item_type }}</td>
-                        <td>{{ Number(item.valeur) }}€</td>
-                        <td>{{ Number((item.valeur * item.quantity).toFixed(2)) }}€</td>
-                        <td>{{ Number(item.contrib.toFixed(2)) }}€</td>
-                        <td>{{ item.quantity }}</td>
-                        <td>{{ item.duration }}</td>
-                        <td>{{ Number(item.totalPrice.toFixed(2)) }}€</td>
+                    <tr v-for="(extra, i) in extraPage" :key="'extra-' + i">
+                        <td colspan="3" style="white-space: pre-line">{{ extra.name }}</td>
+                        <td>{{ Number(extra.price).toFixed(2) }}€</td>
                     </tr>
                 </tbody>
-                <tfoot class="summ blue" v-if="index === paginatedItems.length - 1">
-                    <tr>                   
-                        <td colspan="3">TOTAL</td>
-                        <td>{{ Number(materielAssur.toFixed(2)) }}€</td>
-                        <td colspan="3"></td>
-                        <td>{{ Number(materielCost.toFixed(2)) }}€</td>                        
+                <tfoot class="summ blue" v-if="eIndex === paginatedExtras.length - 1">
+                    <tr>
+                        <td colspan="3">TOTAL Autres</td>
+                        <td>{{ Number(extraCost.toFixed(2)) }}€</td>
                     </tr>
                 </tfoot>
-            </table>         
-            <footer>
-                <p class="legal">
-                    Son des Cimes – 39 Imp. Du Pellas – 05350 Arvieux<br>
-                    Association loi 1901 reconnue d’intérêt général n° W051000990 - Code APE : 9329Z<br>
-                    Siret : 513 386 979 000 19 - &#9990; : 06 62 54 34 79 <br>
-                    sondescimes@gmail.com - http://sondescimes.lescigales.org<br>
-                    Non assujettie à la T.V.A.<br>
-                </p>
-                <div class="number">
-                    <img src="../assets/QRCode.png">
-                    <p>{{ index + 2 }}</p>
-                </div>
-            </footer>
-        </div>
+            </table>
+        </DevisPageTemplate>
+        <DevisPageTemplate
+            v-for="(pageItems, index) in paginatedItems"
+            :key="'materiel-' + index"
+            :writeDate="store.devisInfos.writeDate"
+            :pageNumber="paginatedExtras.length + index"
+            >
+            <table class="materiel">
+                <thead class="blue">
+                <tr>
+                    <th>Détail mise à disposition</th>
+                    <th>Type</th>
+                    <th>Val.Remp.</th>
+                    <th>Valeur à Assurer</th>
+                    <th>Contrib.</th>
+                    <th>Unités</th>
+                    <th>Durée</th>
+                    <th>Total</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="item in pageItems" :key="item.id">
+                    <td>{{ item.nom }}</td>
+                    <td>{{ item.item_type }}</td>
+                    <td>{{ Number(item.valeur) }}€</td>
+                    <td>{{ Number((item.valeur * item.quantity).toFixed(2)) }}€</td>
+                    <td>{{ Number(item.contrib.toFixed(2)) }}€</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.duration }}</td>
+                    <td>{{ Number(item.totalPrice.toFixed(2)) }}€</td>
+                </tr>
+                </tbody>
+                <tfoot class="summ blue" v-if="index === paginatedItems.length - 1">
+                <tr>
+                    <td colspan="3">TOTAL</td>
+                    <td>{{ Number(materielAssur.toFixed(2)) }}€</td>
+                    <td colspan="3"></td>
+                    <td>{{ Number(materielCost.toFixed(2)) }}€</td>
+                </tr>
+                </tfoot>
+            </table>
+        </DevisPageTemplate>
     </div>
 </template>
 
@@ -232,7 +295,7 @@ const yearMembership = computed(() => {
     gap: 1rem;
 }
 
-.page {
+::v-deep(.page) {
     width: 641px; /* 210mm - margin */ 
     height: 1028px; /* 297mm - margin */ 
 
@@ -251,32 +314,32 @@ const yearMembership = computed(() => {
     font-size: 12px;
 }
 
-header {
+::v-deep(header) {
     display: flex;
     flex-direction: column;
     margin-bottom: 1rem;
 }
 
-.infos {
+::v-deep(.infos) {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 1rem;
 }
 
-.infos img {
+::v-deep(.infos img) {
   height: 180px;
   object-fit: contain;
 }
 
-.general-info {
+::v-deep(.general-info) {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     text-align: right;
 }
 
-.date {
+::v-deep(.date) {
     font-size: 14px;
     margin: 5px 15px;
 }
@@ -383,7 +446,7 @@ th, tfoot.summ.blue td {
     font-size: 14px;
 }
 
-footer {
+::v-deep(footer) {
     display: flex;
     justify-content: end;
     align-items: center;
@@ -392,23 +455,23 @@ footer {
     height: fit-content;
 }
 
-footer p {
+::v-deep(footer p) {
     text-align: center;
     color: gray;
 }
 
-footer img {
+::v-deep(footer img) {
     object-fit: contain;
     height: 90px;
 }
 
-.number {
+::v-deep(.number) {
     display: flex;
     flex-direction: column;
     gap: 0;
 }
 
-.number p {
+::v-deep(.number p) {
     color: black;
     margin: 0;
 }
