@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useDevisStore } from '../composables/devisStore';
-import SecretRib from './SecretRib.vue';
+import SecretRib from './Releve.vue';
 import DevisPageTemplate from './DevisPageTemplate.vue';
 
 const store = useDevisStore();
