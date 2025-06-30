@@ -154,15 +154,21 @@ async function endModif() {
     }
 }
 
-function checkDispo(item) {
+async function checkDispo(item) {
     if(!store.devisInfos.date || !item.duration || !item.quantity)
         return true;
 
-    if(false) { // Call back end function thet return number dispo
-        notDispoItems.value.push({item, dispo}); //store item and number dispo
-    }
+    try {
+        const dispo = await invoke('get_item_dispo', { id: item.id, date: store.devisInfos.date, duration: item.durée})
+        if(item.quantity > dispo) { // Call back end function thet return number dispo
+            notDispoItems.value.push({item, dispo}); //store item and number dispo
+        }
 
-    console.log("Checked dipo on " + item.nom);
+        console.log("Checked dipo on " + item.nom);
+    } catch (err) {
+        console.error("Error while checking dispo of " + item.nom, err);
+    }
+    
 }
 
 function checkAllSelected() {

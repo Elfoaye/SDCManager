@@ -4,6 +4,7 @@ use once_cell::sync::OnceCell;
 use rusqlite::{params, Connection, Result};
 use serde::{Deserialize, Serialize};
 use std::sync::{Mutex, MutexGuard};
+use chrono::NaiveDate;
 
 #[derive(Serialize, Deserialize)]
 pub struct Item {
@@ -168,5 +169,32 @@ pub fn delete_item(id: i32, handle: tauri::AppHandle) -> Result<String, String> 
         .map_err(|e| e.to_string())?;
 
     Ok("Objet supprimé".to_string())
+}
+
+#[tauri::command]
+pub fn get_item_dispo(id: i32, date: String, duration: i32, handle: tauri::AppHandle) -> Result<i32, String> {
+    NaiveDate::parse_from_str(&date, "%Y-%m-%d").map_err(|e| format!("Date invalide: {}", e))?;
+
+    let conn = get_database_connection(handle)?;
+
+    let total: i32 = conn.query_row(
+        "SELECT total FROM Materiel WHERE materiel_id = ?",
+        params![id],
+        |row| row.get(0),
+    ).map_err(|e| format!("Erreur lors de la récupération du total: {}", e))?;
+
+    let used: i32 = conn.query_row(
+        "SELECT COALESCE(SUM(fm.quantité), 0)
+        FROM Facture_materiel fm
+        JOIN Factures f ON f.facture_id = fm.facture_id
+        WHERE fm.item_id = ?1
+          AND DATE(f.date) <= DATE(?2, '+' || ?3 || ' days')
+          AND DATE(f.date, '+' || fm.durée || ' days') > DATE(?2)
+        ",
+        params![id, date, duration],
+        |row| row.get(0),
+    ).map_err(|e| format!("Erreur lors de la récupération des réservations: {}", e))?;
+
+    Ok((total - used).max(0))
 }
 
