@@ -3,19 +3,20 @@ import { invoke } from '@tauri-apps/api/core';
 import { ref, computed, onMounted } from 'vue';
 import { useDevisStore } from '../composables/devisStore'
 
+const emit = defineEmits(['item-updated'])
 const store = useDevisStore();
 
 const listContent = ref([]);
 const types = ref([]);
 
 const columns = [
-  { label: 'Nom', key: 'nom' },
-  { label: 'Catégorie', key: 'item_type' },
-  { label: 'Total', key: 'total' },
-  { label: 'Contrib/Jour', key: 'contrib' },
-  { label: 'Quantité', key: 'quantit' },
-  { label: 'Durée', key: 'duration' },
-  { label: 'Prix', key: 'price' },
+    { label: 'Nom', key: 'nom' },
+    { label: 'Catégorie', key: 'item_type' },
+    { label: 'Total', key: 'total' },
+    { label: 'Contrib/Jour', key: 'contrib' },
+    { label: 'Quantité', key: 'quantit' },
+    { label: 'Durée', key: 'duration' },
+    { label: 'Prix', key: 'price' },
 ]
 
 const sortProperty = ref(null);
@@ -102,19 +103,16 @@ function setSort(key) {
 function handleQuantityInput(item, quantity, duration) {
     if(!item) return;
 
-    const currentItem = store.selectedItems.find(i => i.id === item.id);
-
     if(quantity) {
         const newQuant = Math.max(0, Math.min(parseInt(quantity.target.value, 10), item.total));
-        const newDur = currentItem ? currentItem.duration : store.devisInfos.duration;
 
         store.setItem(item, newQuant, 'unset');
     } else if (duration) {
         const newDur = Math.max(0, parseInt(duration.target.value, 10));
-        const newQuant = currentItem ? currentItem.quantity : 1;
 
         store.setItem(item, 'unset', newDur);
     }
+    emit('item-updated', item);
 }
 
 onMounted(() => {

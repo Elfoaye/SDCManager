@@ -20,10 +20,14 @@ const tempExtrafield = ref({
     price: ''
 });
 
-const formulas = ref(null);
-const contextName = ref('');
 const saveMassage = ref({ result: 'success', message: '' });
 const loadError = ref('');
+
+const notDispoItems = ref([]);
+
+const formulas = ref(null);
+const contextName = ref('');
+
 const displaySelected = ref(true);
 
 function addExtrafield(){
@@ -150,6 +154,33 @@ async function endModif() {
     }
 }
 
+function checkDispo(item) {
+    if(!store.devisInfos.date || !item.duration || !item.quantity)
+        return true;
+
+    if(false) { // Call back end function thet return number dispo
+        notDispoItems.value.push({item, dispo}); //store item and number dispo
+    }
+
+    console.log("Checked dipo on " + item.nom);
+}
+
+function checkAllSelected() {
+    for(item in store.selectedItems) {
+        checkDispo(item);
+    }
+}
+
+function adjustNotDispo() {
+    for(item in notDispoItems.value) {
+        store.setItem(item, notDispoItems.value.dispo, 'unset')
+    }
+}
+
+function clearNotDispo() {
+    notDispoItems.value = []
+}
+
 onMounted(async() => {
     formulas.value = await invoke('get_loc_formulas');
     saveMassage.value = null;
@@ -169,7 +200,7 @@ watch(() => store.utilitaries.techHourly, () => {
 });
 
 let lastValidDuration = store.devisInfos.duration;
-watch(() => store.devisInfos.duration, (newVal, oldVal) => {
+watch(() => store.devisInfos.duration, (newVal) => {
     if (!newVal || newVal <= 0) return;
 
     store.selectedItems.forEach(item => {
@@ -180,10 +211,28 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
 
     lastValidDuration = newVal;
 });
+
+watch(() => [store.devisInfos.date, store.devisInfos.duration], () => {
+    if (store.selectedItems.length > 0) {
+        checkAllSelected();
+    }
+});
 </script>
 
 <template>
     <div class="content">
+        <div v-if="notDispoItems.length > 0" class="confirm">
+            <div class="pop-up">
+                <p>Les objets suivants nes sont pas disponible sur la periode sélectinnée :</p>
+                <p v-for="item in notDispoItems"></p>
+                <p>Voulez-vous ajuster la quantité ?</p>
+
+                <div class="confirm-buttons">
+                    <button @click="adjustNotDispo" class="new" >Ajuster</button>
+                    <button @click="clearNotDispo" class="cancel">Ignorer</button>
+                </div>
+            </div>
+        </div>
         <div class="title" :class="{ new: store.devisInfos.id === 0 }">
             <h1 v-if="store.devisInfos.id > 0">Éditer le devis</h1>
             <h1 v-else>Nouveau devis</h1>
@@ -305,7 +354,12 @@ watch(() => store.devisInfos.duration, (newVal, oldVal) => {
             <div class="part">
                 <section class="materiel">
                     <h2>Materiel</h2>
-                    <ListeSelectionDevis class="select-list" />
+                    <ListeSelectionDevis 
+                        v-if="store.devisInfos.date && store.devisInfos.duration" 
+                        class="select-list" 
+                        @item-updated="checkDispo"
+                        />
+                    <p v-else>Entrez une date de début et une durée au devis pour ajouter du materiel</p>
 
                     <div v-if="store.selectedItems.length > 0">
                         <h3 class="toggle-materiel" @click="displaySelected = !displaySelected">
