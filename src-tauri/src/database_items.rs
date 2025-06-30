@@ -11,7 +11,6 @@ pub struct Item {
     pub nom: String,
     pub item_type: String,
     pub total: i32,
-    pub dispo: i32,
     pub valeur: f32,
     pub contrib: f32,
     pub nb_sorties: i32,
@@ -50,11 +49,10 @@ pub fn get_materiel_data(handle: tauri::AppHandle) -> Result<Vec<Item>, String> 
                 nom: row.get(1)?,
                 item_type: row.get(2)?,
                 total: row.get(3)?,
-                dispo: row.get(4)?,
-                valeur: row.get(5)?,
-                contrib: row.get(6)?,
-                nb_sorties: row.get(7)?,
-                benef: row.get(8)?,
+                valeur: row.get(4)?,
+                contrib: row.get(5)?,
+                nb_sorties: row.get(6)?,
+                benef: row.get(7)?,
             })
         })
         .map_err(|e| e.to_string())?;
@@ -81,11 +79,10 @@ pub fn get_item_data(id: i32, handle: tauri::AppHandle) -> Result<Item, String> 
                     nom: row.get(1)?,
                     item_type: row.get(2)?,
                     total: row.get(3)?,
-                    dispo: row.get(4)?,
-                    valeur: row.get(5)?,
-                    contrib: row.get(6)?,
-                    nb_sorties: row.get(7)?,
-                    benef: row.get(8)?,
+                    valeur: row.get(4)?,
+                    contrib: row.get(5)?,
+                    nb_sorties: row.get(6)?,
+                    benef: row.get(7)?,
                 })
             },
         )
@@ -107,17 +104,15 @@ pub fn update_item(item: Item, handle: tauri::AppHandle) -> Result<String, Strin
             nom = ?1,
             item_type = ?2,
             total = ?3,
-            dispo = ?4,
-            valeur = ?5,
-            contrib = ?6,
-            nb_sorties = ?7,
-            benef = ?8
-        where materiel_id = ?9",
+            valeur = ?4,
+            contrib = ?5,
+            nb_sorties = ?6,
+            benef = ?7
+        where materiel_id = ?8",
         rusqlite::params![
             item.nom,
             item.item_type,
             item.total,
-            item.dispo,
             item.valeur,
             item.contrib,
             item.nb_sorties,
@@ -128,55 +123,6 @@ pub fn update_item(item: Item, handle: tauri::AppHandle) -> Result<String, Strin
     .map_err(|e| e.to_string())?;
 
     Ok("Objet modifié".to_string())
-}
-
-#[tauri::command]
-pub fn update_dispo(
-    valeur: i32,
-    old: i32,
-    benef: f32,
-    id: i32,
-    handle: tauri::AppHandle,
-) -> Result<String, String> {
-    if valeur < 0 {
-        return Err("Disponible ne peut pas être négatif".to_string());
-    }
-
-    let conn = get_database_connection(handle)?;
-
-    let total = conn
-        .query_row(
-            "SELECT total FROM Materiel where materiel_id = ?",
-            params![id],
-            |row| row.get(0),
-        )
-        .map_err(|e| e.to_string())?;
-
-    if valeur > total {
-        return Err("Disponible ne peut pas être superieur au total".to_string());
-    }
-
-    let diff = old - valeur;
-    let mut sql = String::from("UPDATE Materiel SET dispo = ?");
-    let mut params: Vec<&dyn rusqlite::ToSql> = vec![&valeur];
-
-    if diff > 0 {
-        sql.push_str(", nb_sorties = nb_sorties + ?");
-        params.push(&diff);
-    }
-
-    if benef > 0.0 {
-        sql.push_str(", benef = benef + ?");
-        params.push(&benef);
-    }
-
-    sql.push_str(" where materiel_id = ?");
-    params.push(&id);
-
-    conn.execute(&sql, params.as_slice())
-        .map_err(|e| e.to_string())?;
-
-    Ok("Valeur modifiée".to_string())
 }
 
 #[tauri::command]
@@ -192,14 +138,12 @@ pub fn add_item(item: Item, handle: tauri::AppHandle) -> Result<i64, String> {
             nom,
             item_type,
             total,
-            dispo,
             valeur,
             contrib )
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        VALUES (?1, ?2, ?3, ?4, ?5)",
         params![
             item.nom,
             item.item_type,
-            item.total,
             item.total,
             item.valeur,
             item.contrib

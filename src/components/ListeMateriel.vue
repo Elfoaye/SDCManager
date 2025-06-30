@@ -11,7 +11,6 @@ const { setBreadcrumb } = useBreadcrumb();
 const columns = [
   { label: 'Nom', key: 'nom' },
   { label: 'Catégorie', key: 'item_type' },
-  { label: 'Disponible', key: 'dispo' },
   { label: 'Total', key: 'total' },
   { label: 'Contrib/Jour', key: 'contrib' },
   { label: 'Valeur', key: 'valeur' }
@@ -29,16 +28,12 @@ const sortAsc = ref(true);
 //List filters
 const filterSearch = ref('');
 const filterType = ref([]);
-const filterBorrow = ref('');
-const filterDispo = ref('');
 
 const filteredContent = computed(() => {
     const query = String(filterSearch.value).trim().toLowerCase();
 
     return listContent.value.filter(item =>  {
         if ((filterType.value.length > 0 && !filterType.value.includes(item.item_type)) || // Filters
-            (filterBorrow.value === 'borrowed' && item.dispo === item.total || filterBorrow.value === 'available' && item.dispo < item.total) || // Borrowed
-            (filterDispo.value === 'notdispo' && item.dispo > 0 || filterDispo.value === 'dispo' && item.dispo === 0) || // Dispo
             (query && !(String(item.nom).toLowerCase().includes(query) || String(item.item_type).toLowerCase().includes(query)))) // Search bar
             return false;
 
@@ -65,8 +60,6 @@ const sortedContent = computed(() => {
 function resetFilters() {
     filterSearch.value = '';
     filterType.value = [];
-    filterBorrow.value = '';
-    filterDispo.value = '';
 }
 
 async function updateData() {
@@ -113,22 +106,6 @@ function setSort(key) {
     sortProperty.value = key;
 }
 
-function setFilterBorrow(value) {
-    if(filterBorrow.value === value) {
-        filterBorrow.value = null;
-    } else {
-        filterBorrow.value = value;
-    }
-}
-
-function setFilterDispo(value) {
-    if(filterDispo.value === value) {
-        filterDispo.value = null;
-    } else {
-        filterDispo.value = value;
-    }
-}
-
 defineExpose({ updateData, updateItem, listContent });
 
 watch(() => props.modif, () => {
@@ -169,23 +146,6 @@ watch(() => props.modif, () => {
                     deselectLabel="Retirer">
                 </Multiselect>
             </section>
-            
-            <div class="filter-borrow">
-                <button :class="{ selected: filterBorrow === 'borrowed' }" @click="setFilterBorrow('borrowed')">
-                    Emprunté
-                </button>
-                <button :class="{ selected: filterBorrow === 'available' }" @click="setFilterBorrow('available')">
-                    Non emprunté
-                </button>
-            </div>
-            <div class="filter-dispo">
-                <button :class="{ selected: filterDispo === 'dispo' }" @click="setFilterDispo('dispo')">
-                    Disponible
-                </button>
-                <button :class="{ selected: filterDispo === 'notdispo' }" @click="setFilterDispo('notdispo')">
-                    Non disponible
-                </button>
-            </div>
         </div>
 
         <li class="head">
@@ -204,7 +164,6 @@ watch(() => props.modif, () => {
             <li v-for="item in sortedContent" @click="setItem(item)" :class="{ selected : isSelected(item) }" :data-id="item.id">
                 <p>{{ item.nom }}</p>
                 <p>{{ item.item_type }}</p>
-                <p>{{ item.dispo }}</p>
                 <p>{{ item.total }}</p>
                 <p>{{ item.contrib.toFixed(2) }} €</p>
                 <p>{{ item.valeur.toFixed(2) }} €</p>
@@ -272,27 +231,6 @@ button {
 .type {
     grid-column: span 6;
 }
-.filter-borrow,
-.filter-dispo {
-    grid-column: span 3;
-    max-width: 90%;
-    justify-self: center;
-    display: flex;
-    margin: 0.5rem;
-    padding: 0.5rem;
-    gap: 1rem;
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-}
-
-.filter-borrow button,
-.filter-dispo button {
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin: 0;
-}
 
 .filters {
     display: grid;
@@ -353,7 +291,7 @@ ul {
 
 li, li.head {
     display: grid;
-    grid-template-columns: 3fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-columns: 3fr 1fr 1fr 1fr 1fr;
     padding: 0 0.5rem;
     margin: 0;
     gap: 1rem;
@@ -395,8 +333,7 @@ li p:nth-child(3),
 li p:nth-child(4) {
     padding-left: 0.6rem;
 }
-li p:nth-child(5),
-li p:nth-child(6) {
+li p:nth-child(5){
     padding-left: 0.8rem;
 }
 

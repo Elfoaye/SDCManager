@@ -114,7 +114,6 @@ export const useDevisStore = defineStore('devis', () => {
                     nom: item.nom,
                     item_type: item.item_type,
                     total: item.total,
-                    dispo: item.dispo,
                     valeur: item.valeur,
                     contrib: item.contrib,
                     nb_sorties: item.nb_sorties,

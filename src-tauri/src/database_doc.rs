@@ -305,7 +305,7 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, 
 
     let mut stmt = conn.prepare("
         SELECT 
-            m.materiel_id, m.nom, m.item_type, m.total, m.dispo, m.valeur, m.contrib, m.nb_sorties, m.benef,
+            m.materiel_id, m.nom, m.item_type, m.total,  m.valeur, m.contrib, m.nb_sorties, m.benef,
             d.quantité, d.durée, d.etat
         FROM Devis_materiel d
         JOIN Materiel m ON d.materiel_id = m.materiel_id
@@ -320,7 +320,6 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, 
                     nom: row.get(1)?,
                     item_type: row.get(2)?,
                     total: row.get(3)?,
-                    dispo: row.get(4)?,
                     valeur: row.get(5)?,
                     contrib: row.get(6)?,
                     nb_sorties: row.get(7)?,
@@ -423,7 +422,6 @@ pub fn load_facture(facture_id: i32, handle: tauri::AppHandle) -> Result<FullDev
                     nom: row.get(1)?,
                     item_type: row.get(2)?,
                     total: row.get(3)?,
-                    dispo: row.get(4)?,
                     valeur: row.get(5)?,
                     contrib: row.get(6)?,
                     nb_sorties: row.get(7)?,

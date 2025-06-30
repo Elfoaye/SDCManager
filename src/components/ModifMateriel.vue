@@ -15,7 +15,6 @@ const tempItem = ref({
     nom: '',
     item_type: '',
     total: '',
-    dispo: 0,
     valeur: '',
     contrib: '',
     nb_sorties: 0,
@@ -30,7 +29,6 @@ const requiredFields = reactive({
   nom: false,
   item_type: false,
   total: false,
-  dispo: false,
   valeur: false,
   contrib: false,
   nb_sorties: false,
@@ -44,7 +42,7 @@ const badFields = computed(() => {
 function verifField(field) {
     const value = tempItem.value[field];
 
-    if(['nb_sorties', 'benef', 'dispo'].includes(field)) {
+    if(['nb_sorties', 'benef'].includes(field)) {
         if(value && value < 0) {
             requiredFields[field] = true;
             return false;
@@ -175,7 +173,7 @@ watch(
                 <p v-else>Appliquer les modifications sur <span>{{ item.nom }}</span> ?</p>
 
                 <div class="confirm-buttons">
-                    <button v-if="confirm === 'delete'" @click="deleteItem" class="delete" >Supprimer</button>
+                    <button v-if="confirm === 'delete'" @click="deleteItem" class="delete-confirm" >Supprimer</button>
                     <button v-else @click="applyItemChanges" class="change">Modifier</button>
                     <button @click="confirmCancel" class="cancel">Annuler</button>
                 </div>
@@ -199,7 +197,6 @@ watch(
             </label>
         </section>
         <section class="stats form-grid">
-            <label v-if="!create">Disponible : <input v-model="tempItem.dispo" @input="verifField('dispo')" :class="{ error: requiredFields.dispo }" type="number" min="0" placeholder="Quantitée d'objets disponibles..."/></label>
             <label>Total : <input v-model="tempItem.total" @input="verifField('total')" :class="{ error: requiredFields.total }" type="number" min="0" placeholder="Quantitée totale d'objets..."/></label>
             <label>Valeur (€) : <input v-model="tempItem.valeur" @input="setContribFromValue()" :class="{ error: requiredFields.valeur }" type="number" step="0.01" min="0" placeholder="Valeur de remplacement..."/> </label>
             <label>Contribution (€) : <input v-model="tempItem.contrib" @input="verifField('contrib')" :class="{ error: requiredFields.contrib }" type="number" step="0.01" min="0" placeholder="Contribution par jour..."/> </label>
@@ -417,8 +414,17 @@ button.delete {
     background-color: var(--background-error);
 }
 
+button.delete-confirm {
+    width: 8rem;
+    background-color: var(--background-error);
+}
+
 button.delete:hover {
     background-color: var(--error);
+}
+
+.confirm-buttons {
+    margin-top: 1rem;
 }
 
 .spinner {
