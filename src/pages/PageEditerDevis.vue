@@ -22,6 +22,7 @@ const tempExtrafield = ref({
 
 const saveMassage = ref({ result: 'success', message: '' });
 const loadError = ref('');
+const confirmExtra = ref('');
 
 const notDispoItems = ref([]);
 
@@ -46,6 +47,11 @@ function removeExtraField(item) {
     if (index !== -1) {
         store.extraItems.splice(index, 1);
     }
+    confirmExtra.value = '';
+}
+
+function confirmRemoveExtra(item) {
+    confirmExtra.value = item;
 }
 
 const finalCost = computed(() => {
@@ -331,6 +337,16 @@ watch(() => [store.devisInfos.date, store.devisInfos.duration], () => {
                 </section>
                 
                 <section class="bonus">
+                    <div v-if="confirmExtra" class="confirm">
+                        <div class="pop-up">
+                            <p>Êtes vous sûr de vouloir supprimer {{ confirmExtra.name }} ?</p>
+
+                            <div class="confirm-buttons">
+                                <button @click="removeExtraField(confirmExtra)" class="delete" >Supprimer</button>
+                                <button @click="confirmExtra = ''" class="cancel">Annuler</button>
+                            </div>
+                        </div>
+                    </div>
                     <h2>Autre</h2>
                     <div class="other">
                         <label>Nom : 
@@ -353,7 +369,7 @@ watch(() => [store.devisInfos.date, store.devisInfos.duration], () => {
                             <li class="extra" v-for="item in store.extraItems" :data-id="item.id">
                                 <p style="white-space: pre-line;">{{ item.name }}</p>
                                 <p>{{ item.price.toFixed(2) }} €</p>
-                                <button class="extra-button" @click="removeExtraField(item)">Supprimer</button>
+                                <button class="extra-button" @click="confirmRemoveExtra(item)">Supprimer</button>
                             </li>
                         </ul>
                     </div>
