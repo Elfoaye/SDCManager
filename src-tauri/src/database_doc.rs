@@ -320,14 +320,14 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, 
                     nom: row.get(1)?,
                     item_type: row.get(2)?,
                     total: row.get(3)?,
-                    valeur: row.get(5)?,
-                    contrib: row.get(6)?,
-                    nb_sorties: row.get(7)?,
-                    benef: row.get(8)?,
+                    valeur: row.get(4)?,
+                    contrib: row.get(5)?,
+                    nb_sorties: row.get(6)?,
+                    benef: row.get(7)?,
                 },
-                quantité: row.get(9)?,
-                durée: row.get(10)?,
-                etat: row.get(11)?,
+                quantité: row.get(8)?,
+                durée: row.get(9)?,
+                etat: row.get(10)?,
             })
         })
         .map_err(|e| e.to_string())?;
@@ -407,7 +407,7 @@ pub fn load_facture(facture_id: i32, handle: tauri::AppHandle) -> Result<FullDev
 
     let mut stmt = conn.prepare("
         SELECT 
-            m.materiel_id, m.nom, m.item_type, m.total, m.dispo, m.valeur, m.contrib, m.nb_sorties, m.benef,
+            m.materiel_id, m.nom, m.item_type, m.total, m.valeur, m.contrib, m.nb_sorties, m.benef,
             f.quantité, f.durée, f.etat
         FROM Facture_materiel f
         JOIN Materiel m ON f.materiel_id = m.materiel_id
@@ -422,14 +422,14 @@ pub fn load_facture(facture_id: i32, handle: tauri::AppHandle) -> Result<FullDev
                     nom: row.get(1)?,
                     item_type: row.get(2)?,
                     total: row.get(3)?,
-                    valeur: row.get(5)?,
-                    contrib: row.get(6)?,
-                    nb_sorties: row.get(7)?,
-                    benef: row.get(8)?,
+                    valeur: row.get(4)?,
+                    contrib: row.get(5)?,
+                    nb_sorties: row.get(6)?,
+                    benef: row.get(7)?,
                 },
-                quantité: row.get(9)?,
-                durée: row.get(10)?,
-                etat: row.get(11)?,
+                quantité: row.get(8)?,
+                durée: row.get(9)?,
+                etat: row.get(10)?,
             })
         })
         .map_err(|e| e.to_string())?;

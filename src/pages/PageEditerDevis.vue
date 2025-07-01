@@ -159,12 +159,10 @@ async function checkDispo(item) {
         return true;
 
     try {
-        const dispo = await invoke('get_item_dispo', { id: item.id, date: store.devisInfos.date, duration: item.durée})
-        if(item.quantity > dispo) { // Call back end function thet return number dispo
-            notDispoItems.value.push({item, dispo}); //store item and number dispo
+        const dispo = await invoke('get_item_dispo', { id: item.id, date: store.devisInfos.date, duration: item.duration})
+        if(item.quantity > dispo) {
+            notDispoItems.value.push({item, dispo})
         }
-
-        console.log("Checked dipo on " + item.nom);
     } catch (err) {
         console.error("Error while checking dispo of " + item.nom, err);
     }
@@ -172,19 +170,21 @@ async function checkDispo(item) {
 }
 
 function checkAllSelected() {
-    for(item in store.selectedItems) {
+    store.selectedItems.forEach((item) => {
         checkDispo(item);
-    }
-}
-
-function adjustNotDispo() {
-    for(item in notDispoItems.value) {
-        store.setItem(item, notDispoItems.value.dispo, 'unset')
-    }
+    })
 }
 
 function clearNotDispo() {
-    notDispoItems.value = []
+    notDispoItems.value = [];
+}
+
+function adjustNotDispo() {
+    notDispoItems.value.forEach((element) => {
+        console.log("Adjusting " + element.item.nom + " from " + element.item.quantity + " to " + element.dispo);
+        store.setItem(element.item, element.dispo, 'unset');
+    });
+    clearNotDispo();
 }
 
 onMounted(async() => {
@@ -230,7 +230,9 @@ watch(() => [store.devisInfos.date, store.devisInfos.duration], () => {
         <div v-if="notDispoItems.length > 0" class="confirm">
             <div class="pop-up">
                 <p>Les objets suivants nes sont pas disponible sur la periode sélectinnée :</p>
-                <p v-for="item in notDispoItems"></p>
+                <div class="not-dispo-holder">
+                    <p v-for="item in notDispoItems" class="not-dispo">{{ item.item.nom }}</p>
+                </div>
                 <p>Voulez-vous ajuster la quantité ?</p>
 
                 <div class="confirm-buttons">
@@ -364,7 +366,7 @@ watch(() => [store.devisInfos.date, store.devisInfos.duration], () => {
                         v-if="store.devisInfos.date && store.devisInfos.duration" 
                         class="select-list" 
                         @item-updated="checkDispo"
-                        />
+                    />
                     <p v-else>Entrez une date de début et une durée au devis pour ajouter du materiel</p>
 
                     <div v-if="store.selectedItems.length > 0">
@@ -451,7 +453,9 @@ watch(() => [store.devisInfos.date, store.devisInfos.duration], () => {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    max-height: 5rem;
+    height: fit-content;
+    max-height: 95%;
+    max-width: 95%;
     background-color: var(--background-alt);
     border: 1px solid var(--border-accent);
     border-radius: 0.5rem;
@@ -462,6 +466,15 @@ watch(() => [store.devisInfos.date, store.devisInfos.duration], () => {
 .confirm-buttons {
     display: flex;
     gap: 1rem;
+}
+
+.not-dispo-holder {
+    display: flex;
+    gap: 1rem;
+}
+
+.not-dispo {
+    margin: 0;
 }
 
 .title {

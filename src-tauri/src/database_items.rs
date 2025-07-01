@@ -187,7 +187,7 @@ pub fn get_item_dispo(id: i32, date: String, duration: i32, handle: tauri::AppHa
         "SELECT COALESCE(SUM(fm.quantité), 0)
         FROM Facture_materiel fm
         JOIN Factures f ON f.facture_id = fm.facture_id
-        WHERE fm.item_id = ?1
+        WHERE fm.f_item_id = ?1
           AND DATE(f.date) <= DATE(?2, '+' || ?3 || ' days')
           AND DATE(f.date, '+' || fm.durée || ' days') > DATE(?2)
         ",
