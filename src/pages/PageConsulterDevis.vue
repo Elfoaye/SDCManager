@@ -3,8 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { save } from '@tauri-apps/plugin-dialog';
 import { writeFile } from '@tauri-apps/plugin-fs';
-import { open } from '@tauri-apps/plugin-shell';
-import { dirname } from '@tauri-apps/api/path';
+import { revealItemInDir } from '@tauri-apps/plugin-opener';
 import { ref, onMounted, computed, watch, h } from 'vue';
 import { useToast } from "vue-toastification";
 import { useDevisStore } from '../composables/devisStore';
@@ -129,9 +128,7 @@ async function generatePDF() {
             h('div',{
                     style: { display: 'flex', flexDirection: 'column', cursor: 'pointer' },
                     async onClick() {
-                        const folder = await dirname(filePath);
-                        console.log("opening ", folder);
-                        await open(folder);
+                        await revealItemInDir(filePath);
                     }
                 },
                 [
