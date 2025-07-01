@@ -1,17 +1,23 @@
 mod admin_auth;
-mod database_items;
 mod database_doc;
+mod database_items;
 mod files_setup;
 mod settings;
 use admin_auth::{is_admin, log_in_admin, log_out_admin, update_admin_password};
-use database_items::{add_item, delete_item, get_item_data, get_materiel_data, update_item, get_item_dispo,};
-use database_doc::{delete_devis, delete_facture, duplicate_devis, facture_from_devis, get_client_infos, get_devis_summaries, get_factures_summaries,
-load_devis, load_facture, save_devis,};
+use database_doc::{
+    delete_devis, delete_facture, duplicate_devis, facture_from_devis, get_client_infos,
+    get_devis_summaries, get_factures_summaries, load_devis, load_facture, save_devis,
+};
+use database_items::{
+    add_item, delete_item, get_item_data, get_item_dispo, get_materiel_data, update_item,
+};
 use settings::{get_loc_formulas, get_materiel_types, set_loc_formulas, set_materiel_types};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())

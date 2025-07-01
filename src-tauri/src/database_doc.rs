@@ -1,9 +1,9 @@
 use crate::admin_auth::is_admin;
+use crate::database_items::{get_database_connection, Item};
 use chrono::Local;
 use rusqlite::{params, Connection, OptionalExtension, Result};
 use serde::{Deserialize, Serialize};
-use std::sync::{MutexGuard};
-use crate::database_items::{Item, get_database_connection};
+use std::sync::MutexGuard;
 
 #[derive(Serialize, Deserialize)]
 pub struct Client {
@@ -63,7 +63,7 @@ pub struct SummDevis {
     date: String,
     client_nom: String,
     evenement: String,
-    etat: String
+    etat: String,
 }
 
 fn generate_new_id(is_facture: bool, conn: &Connection) -> Result<i32, rusqlite::Error> {
@@ -74,20 +74,20 @@ fn generate_new_id(is_facture: bool, conn: &Connection) -> Result<i32, rusqlite:
     let last_devis_id: Option<i32>;
     if is_facture {
         last_devis_id = conn
-        .query_row(
-            "SELECT facture_id FROM Factures ORDER BY facture_id DESC LIMIT 1",
-            [],
-            |row| row.get(0),
-        )
-        .optional()?;
+            .query_row(
+                "SELECT facture_id FROM Factures ORDER BY facture_id DESC LIMIT 1",
+                [],
+                |row| row.get(0),
+            )
+            .optional()?;
     } else {
         last_devis_id = conn
-        .query_row(
-            "SELECT devis_id FROM Devis ORDER BY devis_id DESC LIMIT 1",
-            [],
-            |row| row.get(0),
-        )
-        .optional()?;
+            .query_row(
+                "SELECT devis_id FROM Devis ORDER BY devis_id DESC LIMIT 1",
+                [],
+                |row| row.get(0),
+            )
+            .optional()?;
     }
 
     let new_numero = if let Some(last_id) = last_devis_id {
@@ -144,15 +144,17 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
     let client_id =
         if let Some(id) = maybe_client_id {
             // If exist ubdate data and get existing id
-                transaction.execute(
-                "UPDATE Client SET adresse = ?, tel = ?, mail = ? WHERE client_id = ?",
-                params![
-                    full_devis.client.adresse,
-                    full_devis.client.tel,
-                    full_devis.client.mail,
-                    id
-                ],
-            ).map_err(|e| e.to_string())?;
+            transaction
+                .execute(
+                    "UPDATE Client SET adresse = ?, tel = ?, mail = ? WHERE client_id = ?",
+                    params![
+                        full_devis.client.adresse,
+                        full_devis.client.tel,
+                        full_devis.client.mail,
+                        id
+                    ],
+                )
+                .map_err(|e| e.to_string())?;
             id
         } else {
             // Insert and get new id
@@ -303,14 +305,18 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, 
         )
         .map_err(|e| e.to_string())?;
 
-    let mut stmt = conn.prepare("
+    let mut stmt = conn
+        .prepare(
+            "
         SELECT 
             m.materiel_id, m.nom, m.item_type, m.total,  m.valeur, m.contrib, m.nb_sorties, m.benef,
             d.quantité, d.durée, d.etat
         FROM Devis_materiel d
         JOIN Materiel m ON d.materiel_id = m.materiel_id
         WHERE d.devis_id = ?
-    ").map_err(|e| e.to_string())?;
+    ",
+        )
+        .map_err(|e| e.to_string())?;
 
     let items_iter = stmt
         .query_map(params![devis_id], |row| {
@@ -405,14 +411,18 @@ pub fn load_facture(facture_id: i32, handle: tauri::AppHandle) -> Result<FullDev
         )
         .map_err(|e| e.to_string())?;
 
-    let mut stmt = conn.prepare("
+    let mut stmt = conn
+        .prepare(
+            "
         SELECT 
             m.materiel_id, m.nom, m.item_type, m.total, m.valeur, m.contrib, m.nb_sorties, m.benef,
             f.quantité, f.durée, f.etat
         FROM Facture_materiel f
         JOIN Materiel m ON f.materiel_id = m.materiel_id
         WHERE f.facture_id = ?
-    ").map_err(|e| e.to_string())?;
+    ",
+        )
+        .map_err(|e| e.to_string())?;
 
     let items_iter = stmt
         .query_map(params![facture_id], |row| {
@@ -466,7 +476,6 @@ pub fn load_facture(facture_id: i32, handle: tauri::AppHandle) -> Result<FullDev
     })
 }
 
-
 #[tauri::command]
 pub fn delete_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<(), String> {
     if !is_admin() {
@@ -487,7 +496,7 @@ pub fn delete_facture(facture_id: i32, handle: tauri::AppHandle) -> Result<(), S
     if !is_admin() {
         return Err("Les droits Admin sont nécessaires pour cette action".to_string());
     }
-    
+
     let conn = get_database_connection(handle)?;
 
     // SQL delete items & extras on cascade
@@ -547,8 +556,9 @@ pub fn facture_from_devis(devis_id: i64, handle: tauri::AppHandle) -> Result<i32
 
     let facture_id = generate_new_id(true, &transaction).map_err(|e| e.to_string())?;
 
-    transaction.execute(
-        "INSERT INTO Factures (
+    transaction
+        .execute(
+            "INSERT INTO Factures (
             facture_id, client_id, nom, date, date_crea, durée, nb_tech, taux_tech,
             nb_km, taux_km, adhesion, promo, etat
         )
@@ -556,28 +566,33 @@ pub fn facture_from_devis(devis_id: i64, handle: tauri::AppHandle) -> Result<i32
             ?1, client_id, nom, date, date_crea, durée, nb_tech, taux_tech,
             nb_km, taux_km, adhesion, promo, 'facture'
         FROM Devis WHERE devis_id = ?2",
-        params![facture_id, devis_id],
-    ).map_err(|e| e.to_string())?;
+            params![facture_id, devis_id],
+        )
+        .map_err(|e| e.to_string())?;
 
-    transaction.execute(
-        "INSERT INTO Facture_materiel (
+    transaction
+        .execute(
+            "INSERT INTO Facture_materiel (
             facture_id, materiel_id, quantité, durée, etat
         )
         SELECT
             ?1, materiel_id, quantité, durée, etat
         FROM Devis_materiel WHERE devis_id = ?2",
-        params![facture_id, devis_id],
-    ).map_err(|e| e.to_string())?;
+            params![facture_id, devis_id],
+        )
+        .map_err(|e| e.to_string())?;
 
-    transaction.execute(
-        "INSERT INTO Facture_extra (
+    transaction
+        .execute(
+            "INSERT INTO Facture_extra (
             facture_id, nom, prix
         )
         SELECT
             ?1, nom, prix
         FROM Devis_extra WHERE devis_id = ?2",
-        params![facture_id, devis_id],
-    ).map_err(|e| e.to_string())?;
+            params![facture_id, devis_id],
+        )
+        .map_err(|e| e.to_string())?;
 
     transaction.commit().map_err(|e| e.to_string())?;
     Ok(facture_id)

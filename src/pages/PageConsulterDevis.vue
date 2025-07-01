@@ -1,15 +1,21 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { ref, onMounted, computed, watch } from 'vue';
+import { save } from '@tauri-apps/plugin-dialog';
+import { writeFile } from '@tauri-apps/plugin-fs';
+import { open } from '@tauri-apps/plugin-shell';
+import { dirname } from '@tauri-apps/api/path';
+import { ref, onMounted, computed, watch, h } from 'vue';
+import { useToast } from "vue-toastification";
 import { useDevisStore } from '../composables/devisStore';
 import { useBreadcrumb } from '../composables/breadcrumb';
-import html2pdf from 'html2pdf.js'
 import DisplayDevis from '../components/DisplayDevis.vue';
+import html2pdf from 'html2pdf.js'
 
 const { document, setDocument, setPage } = defineProps(['document', 'setDocument', 'setPage']);
 
 const store = useDevisStore();
+const toast = useToast();
 
 const isAdmin = ref(false);
 listen('log_in_admin', (event) => {
@@ -78,26 +84,80 @@ function confirmCancel() {
     confirm.value = null;
 }
 
-function generatePDF() {
-    const element = devisRef.value.printRoot;
-    if (!element) {
-        console.warn("Element introuvable");
-        return;
+async function generatePDF() {
+    try {
+        const element = devisRef.value.printRoot;
+        if (!element) {
+            console.warn("Element introuvable");
+            return;
+        }
+
+        const filePath = await save({
+            title: "Enregistrer le PDF",
+            defaultPath: `${(store.isFacture ? store.devisInfos.id : 'Devis_') + store.devisInfos.name}.pdf`,
+            filters: [
+                { name: "PDF", extensions: ["pdf"] }
+            ]
+        });
+
+        if (!filePath) {
+            console.log("Sauvegarde annulée");
+            return;
+        }
+
+        const opt = {
+            margin: [0, 0, 0, 0],
+            filename: `${(store.isFacture ? store.devisInfos.id : 'Devis_') + store.devisInfos.name}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: {
+                scale: 4,
+                windowWidth: 794,
+                windowHeight: 1123 
+            },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        const pdf = html2pdf().set(opt).from(element).outputPdf('blob');
+        const blob = await pdf.outputPdf('blob');
+
+        const buffer = new Uint8Array(await blob.arrayBuffer());
+
+        await writeFile(filePath, buffer);
+
+        
+        toast.success(
+            h('div',{
+                    style: { display: 'flex', flexDirection: 'column', cursor: 'pointer' },
+                    async onClick() {
+                        const folder = await dirname(filePath);
+                        console.log("opening ", folder);
+                        await open(folder);
+                    }
+                },
+                [
+                    h('strong', 'PDF enregistré avec succès'),
+                    h(
+                        'small',
+                        { style: { marginTop: '4px' } },
+                        'Cliquez ici pour ouvrir le dossier'
+                    )
+                ]
+            ),
+            {
+                timeout: 5000,
+                closeOnClick: true,
+                draggable: false,
+                closeButtonClassName: 'close-button'
+            }
+        );
+    } catch(err) {
+        console.error("Erreur lors de la sauvegarde du PDF : " + err);
+
+        toast.error("Erreur lors de la sauvegarde du PDF : " + err, {
+            timeout: 5000,
+            closeOnClick: true,
+        });
     }
-
-    const opt = {
-        margin: [0, 0, 0, 0],
-        filename: `${(store.isFacture ? store.devisInfos.id : 'Devis ') + store.devisInfos.name}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-            scale: 4,
-            windowWidth: 794,
-            windowHeight: 1123 
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    html2pdf().set(opt).from(element).save();
 }
 
 onMounted(async () => {

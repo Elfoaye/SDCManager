@@ -8,14 +8,19 @@
   "permissions": [
     "core:default",
     "opener:default",
-    "dialog:default",
     "fs:default",
     "fs:write-files",
     {
       "identifier": "fs:scope",
       "allow": [
-        { "path": "*" }
+        {
+          "path": "*"
+        }
       ]
-    }
+    },
+    "dialog:default",
+    "notification:default",
+    "shell:allow-open",
+    "shell:allow-stdin-write"
   ]
 }

@@ -1,10 +1,10 @@
 use crate::admin_auth::is_admin;
 use crate::files_setup::get_or_create_data_dir;
+use chrono::NaiveDate;
 use once_cell::sync::OnceCell;
 use rusqlite::{params, Connection, Result};
 use serde::{Deserialize, Serialize};
 use std::sync::{Mutex, MutexGuard};
-use chrono::NaiveDate;
 
 #[derive(Serialize, Deserialize)]
 pub struct Item {
@@ -172,29 +172,37 @@ pub fn delete_item(id: i32, handle: tauri::AppHandle) -> Result<String, String> 
 }
 
 #[tauri::command]
-pub fn get_item_dispo(id: i32, date: String, duration: i32, handle: tauri::AppHandle) -> Result<i32, String> {
+pub fn get_item_dispo(
+    id: i32,
+    date: String,
+    duration: i32,
+    handle: tauri::AppHandle,
+) -> Result<i32, String> {
     NaiveDate::parse_from_str(&date, "%Y-%m-%d").map_err(|e| format!("Date invalide: {}", e))?;
 
     let conn = get_database_connection(handle)?;
 
-    let total: i32 = conn.query_row(
-        "SELECT total FROM Materiel WHERE materiel_id = ?",
-        params![id],
-        |row| row.get(0),
-    ).map_err(|e| format!("Erreur lors de la récupération du total: {}", e))?;
+    let total: i32 = conn
+        .query_row(
+            "SELECT total FROM Materiel WHERE materiel_id = ?",
+            params![id],
+            |row| row.get(0),
+        )
+        .map_err(|e| format!("Erreur lors de la récupération du total: {}", e))?;
 
-    let used: i32 = conn.query_row(
-        "SELECT COALESCE(SUM(fm.quantité), 0)
+    let used: i32 = conn
+        .query_row(
+            "SELECT COALESCE(SUM(fm.quantité), 0)
         FROM Facture_materiel fm
         JOIN Factures f ON f.facture_id = fm.facture_id
         WHERE fm.f_item_id = ?1
           AND DATE(f.date) <= DATE(?2, '+' || ?3 || ' days')
           AND DATE(f.date, '+' || fm.durée || ' days') > DATE(?2)
         ",
-        params![id, date, duration],
-        |row| row.get(0),
-    ).map_err(|e| format!("Erreur lors de la récupération des réservations: {}", e))?;
+            params![id, date, duration],
+            |row| row.get(0),
+        )
+        .map_err(|e| format!("Erreur lors de la récupération des réservations: {}", e))?;
 
     Ok((total - used).max(0))
 }
-
