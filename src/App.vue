@@ -1,8 +1,10 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { useTheme } from './composables/useTheme'
+import { Window } from '@tauri-apps/api/window';
+import { confirm } from '@tauri-apps/plugin-dialog';
 
 import NavBar from './components/NavBar.vue';
 import HeaderBar from './components/HeaderBar.vue';
@@ -17,6 +19,7 @@ import PageParams from './pages/PageParams.vue';
 
 const { loadTheme } = useTheme()
 loadTheme()
+
 
 const currentPage = ref(null);
 const lastPage = ref(null);
@@ -65,6 +68,23 @@ listen('log_in_admin', (event) => {
     if(!event.payload) {
         onAdminLogOut();
     }
+});
+
+onMounted(() => {
+    const appWindow = new Window('main');
+
+    appWindow.onCloseRequested(async (event) => {
+        // event.preventDefault();
+
+        const shouldClose = await confirm(
+            'Voulez-vous vraiment quitter l’application ?',
+            { title: 'Confirmer la fermeture', type: 'warning' }
+        );
+
+        if (shouldClose) {
+            await event.window().close();
+        }
+    });
 });
 </script>
 
