@@ -20,7 +20,6 @@ import PageParams from './pages/PageParams.vue';
 const { loadTheme } = useTheme()
 loadTheme()
 
-
 const currentPage = ref(null);
 const lastPage = ref(null);
 const redirect = ref(null);
@@ -70,11 +69,17 @@ listen('log_in_admin', (event) => {
     }
 });
 
-onMounted(() => {
+let closeFlag = false;
+let unlistenCloseRequested = null;
+
+onMounted(async () => {
     const appWindow = new Window('main');
 
     appWindow.onCloseRequested(async (event) => {
-        // event.preventDefault();
+        if(closeFlag) {
+            return;
+        }
+        event.preventDefault();
 
         const shouldClose = await confirm(
             'Voulez-vous vraiment quitter l’application ?',
@@ -82,7 +87,9 @@ onMounted(() => {
         );
 
         if (shouldClose) {
-            await event.window().close();
+            closeFlag = true;
+            console.log(unlistenCloseRequested, closeFlag);
+            await appWindow.close();
         }
     });
 });
