@@ -27,11 +27,21 @@ Promise.all([
     invoke('get_factures_summaries')
 ]).then(([devis, factures]) => {
     listContent.value = [...devis, ...factures];
+    console.table(listContent.value);
 });
 
 const sortProperty = ref(null);
 const sortAsc = ref(true);
 const filterSearch = ref('');
+const filterType = ref(null);
+
+function setFilterType(type) {
+    if(filterType.value === type) {
+        filterType.value = null;
+    } else {
+        filterType.value = type;
+    }
+}
 
 const filteredContent = computed(() => {
     const query = String(filterSearch.value).trim().toLowerCase();
@@ -41,6 +51,10 @@ const filteredContent = computed(() => {
             String(devis.id).toLowerCase().includes(query) ||
             String(devis.client_nom).toLowerCase().includes(query) ||
             String(devis.evenement).toLowerCase().includes(query))) // Search bar
+            return false;
+
+        if (filterType.value === 'devis' && devis.etat.includes('facture') ||
+            filterType.value === 'facture' && devis.etat.includes('devis'))
             return false;
 
         return true;
@@ -82,6 +96,14 @@ function setSort(key) {
         <div class="list">
             <div class="search">
                 <input v-model="filterSearch" class="searchbar" type="text" placeholder="Chercher par ID, nom, client..."/>
+                <div class="filter-type">
+                <button :class="{ selected: filterType === 'devis' }" @click="setFilterType('devis')">
+                    Devis
+                </button>
+                <button :class="{ selected: filterType === 'facture' }" @click="setFilterType('facture')">
+                    Factures
+                </button>
+            </div>
             </div>
 
             <li class="head">
@@ -92,6 +114,12 @@ function setSort(key) {
                 >
                     {{ col.label }} 
                     <span v-if="sortProperty === col.key">{{ sortAsc ? '▲' : '▼' }}</span>
+                    <span v-else-if="sortProperty === null">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <text x="50%" y="14" text-anchor="middle" font-size="10">▲</text>
+                        <text x="50%" y="24" text-anchor="middle" font-size="10">▼</text>
+                    </svg>
+                </span>
                 </button>
             </li>
             <li class="new-item" @click="setDocument({id: 0, facture: false}, true)">+ Nouveau devis</li>
@@ -115,16 +143,41 @@ function setSort(key) {
     overflow-y: hidden;
 }
 
-.searchbar {
-    width: 50%;
-    padding: 1rem;
-}
-
 .list {
     flex: 1;
     display: flex;
     flex-direction: column;
     min-height: 0;
+}
+
+.search {
+    display: flex;
+    align-items: center;
+}
+
+.searchbar {
+    width: 50%;
+    max-height: 1rem;
+    padding: 1rem;
+}
+
+.filter-type {
+    max-width: 90%;
+    justify-self: center;
+    display: flex;
+    margin: 0.5rem;
+    padding: 0.5rem;
+    gap: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+}
+
+.filter-type button {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
 }
 
 ul {

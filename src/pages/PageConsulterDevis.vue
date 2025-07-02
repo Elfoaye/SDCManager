@@ -176,15 +176,16 @@ watch(() => document, (newDoc) => {
         <div class="content"> 
             <div v-if="confirm" class="confirm">
                 <div class="pop-up">
-                    <p>Êtes-vous sûr de vouloir 
+                    <p v-if="confirm === 'delete' && !isAdmin">Les droits admin sont nécessaires pour supprimer un document</p>
+                    <p v-else>Êtes-vous sûr de vouloir 
                         {{ confirmMessage }} 
                         <span>{{ store.devisInfos.name }}</span> ?
                     </p>
 
                     <div class="confirm-buttons">
                         <button v-if="confirm === 'duplicate'" @click="duplicateDevis" class="new" >Dupliquer</button>
-                        <button v-else-if="confirm === 'delete'" @click="deleteDocument" class="delete" >Supprimer</button>
-                        <button v-else @click="createFacture" class="new" >Facturer</button>
+                        <button v-else-if="confirm === 'facture'" @click="createFacture" class="new" >Facturer</button>
+                        <button v-else-if="confirm === 'delete' && isAdmin" @click="deleteDocument" class="delete" >Supprimer</button>
                         <button @click="confirmCancel" class="cancel">Annuler</button>
                     </div>
                 </div>
@@ -211,7 +212,7 @@ watch(() => document, (newDoc) => {
                 <button v-if="!store.isFacture" @click="setConfirm('facture')">
                     Facturer
                 </button>
-                <button v-if="isAdmin" @click="setConfirm('delete')" class="delete">
+                <button @click="setConfirm('delete')" class="delete">
                     Supprimer
                 </button>
             </div>

@@ -135,7 +135,12 @@ onMounted(() => {
             >
                 {{ col.label }} 
                 <span v-if="sortProperty === col.key">{{ sortAsc ? '▲' : '▼' }}</span>
-                
+                <span v-else-if="sortProperty === null">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <text x="50%" y="14" text-anchor="middle" font-size="10">▲</text>
+                        <text x="50%" y="24" text-anchor="middle" font-size="10">▼</text>
+                    </svg>
+                </span>
             </button>
         </li>
         <ul>

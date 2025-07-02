@@ -9,9 +9,7 @@ import "vue-toastification/dist/index.css";
 const app = createApp(App);
 app.use(createPinia());
 
-const options = {
-    // You can set your default options here
-};
+const options = {};
 app.use(Toast, options);
 
 app.mount('#app');

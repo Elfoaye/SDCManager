@@ -585,7 +585,7 @@ textarea {
 }
 
 .select-list {
-    max-height: 40vh;
+    max-height: 50vh;
 }
 
 .bonus {
