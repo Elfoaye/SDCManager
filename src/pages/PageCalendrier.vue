@@ -1,33 +1,45 @@
 <script setup>
+import { invoke } from '@tauri-apps/api/core';
+import { computed, ref } from 'vue';
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import frLocale from '@fullcalendar/core/locales/fr';
 import interactionPlugin from '@fullcalendar/interaction';
 
+const calendarRef = ref(null);
+const listFactures = ref([]);
+
+const calendarEvents = computed(() =>
+    listFactures.value.map((facture) => ({
+        id: facture.id,
+        title: facture.nom,
+        start: facture.date,
+        end: addDays(facture.date, facture.durée),
+        allDay: true
+    }))
+);
+
+invoke('get_factures_summaries').then((factures) => { 
+    listFactures.value = factures; 
+
+    const calendarApi = calendarRef.value?.getApi();
+
+    if (calendarApi) {
+        calendarApi.removeAllEvents();
+        calendarApi.addEventSource(calendarEvents.value);
+    }
+});
+
+function addDays(dateStr, days) {
+    const date = new Date(dateStr);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+}
+
 const calendarOptions = {
     plugins: [dayGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
     locale: frLocale,
-    events: [
-        {
-            title: 'Fête de la musique',
-            start: '2025-07-02',
-            end: '2025-07-06',
-            id: 20250601
-        },
-        {
-            title: 'Verticalété',
-            start: '2025-06-28',
-            end: '2025-07-04',
-            id: 20250602
-        },
-        {
-            title: 'Pôtes de marmots',
-            start: '2025-07-08',
-            end: '2025-07-09',
-            id: 20250701
-        }
-    ],
     eventClick(info) {
         handleEventClick(info.event);
     },
@@ -38,17 +50,20 @@ const calendarOptions = {
 
 function handleEventClick(event) {
     console.log('Rediriger vers le devis :', event.id);
-    
 }
 
 function handleDayClick(date) {
     console.log('Afficher détails du jour :', date);
+    console.table(calendarEvents.value);
 }
 </script>
 
 <template>
     <div class="cal-container">
-        <FullCalendar :options="calendarOptions" />
+        <FullCalendar 
+            ref="calendarRef"
+            :options="calendarOptions" 
+        />
     </div>
 </template>
 

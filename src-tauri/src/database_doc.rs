@@ -61,6 +61,7 @@ pub struct SummDevis {
     id: i32,
     nom: String,
     date: String,
+    durée: i32,
     client_nom: String,
     evenement: String,
     etat: String,
@@ -608,6 +609,7 @@ pub fn get_devis_summaries(handle: tauri::AppHandle) -> Result<Vec<SummDevis>, S
             d.devis_id, 
             d.nom, 
             d.date, 
+            d.durée,
             c.nom, 
             c.evenement,
             d.etat
@@ -622,9 +624,10 @@ pub fn get_devis_summaries(handle: tauri::AppHandle) -> Result<Vec<SummDevis>, S
                 id: row.get(0)?,
                 nom: row.get(1)?,
                 date: row.get(2)?,
-                client_nom: row.get(3)?,
-                evenement: row.get(4)?,
-                etat: row.get(5)?,
+                durée: row.get(3)?,
+                client_nom: row.get(4)?,
+                evenement: row.get(5)?,
+                etat: row.get(6)?,
             })
         })
         .map_err(|e| e.to_string())?;
@@ -647,6 +650,7 @@ pub fn get_factures_summaries(handle: tauri::AppHandle) -> Result<Vec<SummDevis>
             f.facture_id, 
             f.nom, 
             f.date, 
+            f.durée,
             c.nom, 
             c.evenement,
             f.etat
@@ -661,9 +665,10 @@ pub fn get_factures_summaries(handle: tauri::AppHandle) -> Result<Vec<SummDevis>
                 id: row.get(0)?,
                 nom: row.get(1)?,
                 date: row.get(2)?,
-                client_nom: row.get(3)?,
-                evenement: row.get(4)?,
-                etat: row.get(5)?,
+                durée: row.get(3)?,
+                client_nom: row.get(4)?,
+                evenement: row.get(5)?,
+                etat: row.get(6)?,
             })
         })
         .map_err(|e| e.to_string())?;

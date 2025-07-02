@@ -27,7 +27,6 @@ Promise.all([
     invoke('get_factures_summaries')
 ]).then(([devis, factures]) => {
     listContent.value = [...devis, ...factures];
-    console.table(listContent.value);
 });
 
 const sortProperty = ref(null);
