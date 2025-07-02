@@ -1,13 +1,33 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
 import { computed, ref } from 'vue';
+import { useBreadcrumb } from '../composables/breadcrumb';
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import frLocale from '@fullcalendar/core/locales/fr';
 import interactionPlugin from '@fullcalendar/interaction';
 
+const { setDocument } = defineProps(['setDocument']);
+
+const { setBreadcrumb } = useBreadcrumb();
+setBreadcrumb([
+    { label: 'Accueil', page: null },
+    { label: 'Devis & Factures', page: 'devparcour' },
+    { label: 'Planning', page: 'cal' }
+]);
+
+
 const calendarRef = ref(null);
 const listFactures = ref([]);
+
+function stringToColor(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash) % 360;
+    return `hsl(${hue}, 60%, 65%)`;
+}
 
 const calendarEvents = computed(() =>
     listFactures.value.map((facture) => ({
@@ -15,7 +35,8 @@ const calendarEvents = computed(() =>
         title: facture.nom,
         start: facture.date,
         end: addDays(facture.date, facture.durée),
-        allDay: true
+        allDay: true,
+        backgroundColor: stringToColor(facture.client_nom)
     }))
 );
 
@@ -45,11 +66,20 @@ const calendarOptions = {
     },
     dateClick(info) {
         handleDayClick(info.dateStr);
-    }
+    },
+    eventDidMount(info) {
+        const el = info.el.querySelector('.fc-event-title');
+        if (el) {
+            el.style.background = 'rgba(0, 0, 0, 0.4)';
+            el.style.color = 'white';
+            el.style.padding = '0 5px';
+            el.style.borderRadius = '2px';
+        }
+  }
 };
 
 function handleEventClick(event) {
-    console.log('Rediriger vers le devis :', event.id);
+    setDocument({ id: event.id, facture: true });
 }
 
 function handleDayClick(date) {

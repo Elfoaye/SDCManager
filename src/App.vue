@@ -46,6 +46,8 @@ async function setPage(value) {
 
     lastPage.value = currentPage.value;
     currentPage.value = value;
+
+    console.log(lastPage.value, currentPage.value);
 }
 
 function setDocument(document, modif) {
@@ -98,16 +100,15 @@ onMounted(async () => {
 
 <template>
     <div class="app">
-        <HeaderBar :setPage="setPage"/>
+        <HeaderBar :setPage="setPage" @cancel="setPage(lastPage)"/>
         <div class="layout">
-            <NavBar class="no-print" :setPage="setPage"/>
+            <NavBar :setPage="setPage" @cancel="setPage(lastPage)"/>
 
             <div class="page">
                 <PageAuth 
                     v-if="currentPage === 'auth'" 
                     :redirect="redirect"
                     :setPage="setPage"
-                    @cancel="setPage(lastPage)"
                 />
                 <PageMateriel 
                     v-else-if="currentPage === 'consult' || currentPage === 'modif'" 
@@ -115,6 +116,7 @@ onMounted(async () => {
                 />
                 <PageCalendrier 
                     v-else-if="currentPage === 'cal'"
+                    :setDocument="setDocument"
                 />
                 <PageParcourirDevis 
                     v-else-if="currentPage === 'devparcour'" 

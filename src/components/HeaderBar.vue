@@ -6,6 +6,7 @@ import { useBreadcrumb } from '../composables/breadcrumb';
 const { breadcrumb } = useBreadcrumb();
 
 const props = defineProps(['setPage']);
+const emit = defineEmits(['cancel']);
 
 const isAdmin = ref(false);
 const confirm = ref(false);
@@ -42,7 +43,7 @@ onMounted(() => {
             <button v-if="isAdmin" @click="confirm=true">Mode Admin</button>
         </div>
         <nav class="path">
-            <button @click="setPage(last_page)">&#8617;</button>
+            <button @click="emit('cancel')">&#8617;</button>
             <div
                 v-for="(step, index) in breadcrumb"
                 :key="index"

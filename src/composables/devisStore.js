@@ -143,8 +143,8 @@ export const useDevisStore = defineStore('devis', () => {
 
     async function loadDocument(document) {
         try {
-            const fullDocument = document.facture ? await invoke('load_facture', { factureId: document.id }) :
-            await invoke('load_devis', { devisId: document.id });
+            const fullDocument = document.facture ? await invoke('load_facture', { factureId: Number(document.id) }) :
+            await invoke('load_devis', { devisId: Number(document.id) });
 
             clientInfos.value = {
                 name: fullDocument.client.nom,

@@ -36,7 +36,6 @@ const props = defineProps(['setPage']);
                     <path d="M6 18H10" stroke="currentColor" stroke-opacity="0.25" stroke-width="1.2" stroke-linecap="round"/>
                     <path d="M14 18H18" stroke="currentColor" stroke-opacity="0.25" stroke-width="1.2" stroke-linecap="round"/>
                 </svg>
-
                 Calendrier
             </button>
             <button @click="setPage('devparcour')">

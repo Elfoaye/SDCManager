@@ -10,7 +10,7 @@ setBreadcrumb([
   ]);
 
 const props = defineProps(['redirect','setPage']);
-const emit = defineEmits(['cancel'])
+const emit = defineEmits(['cancel']);
 
 const password = ref('');
 const password_error = ref('');
