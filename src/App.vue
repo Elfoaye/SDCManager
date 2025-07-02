@@ -9,6 +9,7 @@ import { confirm } from '@tauri-apps/plugin-dialog';
 import NavBar from './components/NavBar.vue';
 import HeaderBar from './components/HeaderBar.vue';
 import PageAccueil from './pages/PageAccueil.vue'
+import PageCalendrier from './pages/PageCalendrier.vue';
 import PageMateriel from './pages/PageMateriel.vue';
 import PageEditerDevis from './pages/PageEditerDevis.vue';
 import PageConsulterDevis from './pages/PageConsulterDevis.vue';
@@ -111,6 +112,9 @@ onMounted(async () => {
                 <PageMateriel 
                     v-else-if="currentPage === 'consult' || currentPage === 'modif'" 
                     :modif="currentPage === 'modif'"
+                />
+                <PageCalendrier 
+                    v-else-if="currentPage === 'cal'"
                 />
                 <PageParcourirDevis 
                     v-else-if="currentPage === 'devparcour'" 
