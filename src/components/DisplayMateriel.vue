@@ -2,7 +2,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { computed, ref } from 'vue';
 
-const props = defineProps(['item','setItem']);
+const props = defineProps(['item','setItem','setDocument']);
 const emit = defineEmits(['item-change']);
 
 const formulas = ref(null);
@@ -10,22 +10,13 @@ invoke('get_loc_formulas').then((data) => formulas.value = data);
 
 const quantity = ref(1);
 const duration = ref(1);
-const isFree = ref(false);
+
+const lastOutings = ref([]);
+invoke('get_factures_from_item', { itemId: props.item.id }).then((data) => lastOutings.value = data);
 
 const followingRate = computed(() => {
     if(!props.item || !formulas.value) return 0;
     return props.item.contrib * formulas.value.contrib_following;
-});
-
-const usageFill = computed(() => {
-    if(!props.item || props.item.total === 0) return 0;
-    return Math.min(100, (props.item.dispo/props.item.total) * 100);
-});
-
-const usageColor = computed(() => {
-    if (usageFill.value == 100) return "#4caf50";
-    if (usageFill.value > 50) return "#F9DD00";
-    return "#ff9800";
 });
 
 const renta = computed(() => {
@@ -62,6 +53,15 @@ const priceLoc = computed(() => {
 
 function setQuantityToMax() {
     quantity.value = props.item.total;
+}
+
+function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    return new Intl.DateTimeFormat('fr-FR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    }).format(date);
 }
 </script>
 
@@ -102,9 +102,15 @@ function setQuantityToMax() {
                 </div>
 
                 <div>
-                    <label class="check"><input v-model="isFree" type="checkbox"/>Prêt (la contribution ne s'applique pas)</label>
-                    <h3 v-if="!isFree && priceLoc > 0" class="contrib-total">Contribution totale : <span>{{ priceLoc.toFixed(2) }}€</span></h3>
+                    <h3 class="contrib-total">Contribution totale : <span>{{ priceLoc.toFixed(2) }}€</span></h3>
                 </div>
+            </div>
+        </section>
+        <section class="latest" v-if="lastOutings.length > 0">
+            <h2>Historique des sorties :</h2>
+            <div v-for="out in lastOutings" class="outings" @click="setDocument({id: out.id, facture: true})">
+                <h3>{{ out.nom }} : <span>{{ out.quantité }}</span></h3>
+                <p>{{ formatDate(out.date) }} - {{ out.durée }} jours</p>
             </div>
         </section>
     </div>
@@ -119,8 +125,14 @@ section {
     border-bottom: 1px solid var(--border);
 }
 
+section:last-of-type {
+    border-bottom: none;
+}
+
 .title {
     display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .general h1 {
@@ -130,7 +142,7 @@ section {
     font-size: 1.5rem;
 }
 
-.general h2, .dispo h2 {
+h2 {
     margin: 0;
     margin-bottom: 1rem;
     font-size: 1.2rem;
@@ -141,11 +153,10 @@ section {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: var(--accent);
-    border: 1px solid var(--border);
     border-radius: 0.5rem;
     width: 2rem;
     height: 2rem;
+    margin-right: 0.5rem;
 }
 
 .back:hover {
@@ -169,7 +180,6 @@ h3 {
 .dispo {
     display: flex;
     flex-direction: column;
-    border: 0;
 }
 
 .options {
@@ -241,35 +251,30 @@ button {
     display: flex;
     align-items: center;
     gap: 0.3rem;
-
-    transition: all 0.2s;
-}
-
-button:hover {
-    background-color: var(--surface-selected);
-    cursor: pointer;
-    
-    transition: all 0.2s;
-}
-
-button.selected {
-    background-color: var(--accent-hover);
 }
 
 .contrib-total {
     padding-bottom: 1rem;
 }
 
-.check {
-    margin-bottom: 1rem;
-    cursor: pointer;
-    max-width: fit-content;
-    align-items: baseline;
+.latest {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
-.check input {
-    margin-right: 0.5rem;
-    cursor: pointer;
+.outings {
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
 }
 
+.outings:hover {
+    cursor: pointer;
+    background-color: var(--surface-hover);
+}
+
+.outings h3 {
+    margin: 0;
+}
 </style>

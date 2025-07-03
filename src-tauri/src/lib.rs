@@ -9,7 +9,7 @@ use database_doc::{
     get_devis_summaries, get_factures_summaries, load_devis, load_facture, load_facture_materiel, save_devis,
 };
 use database_items::{
-    add_item, delete_item, get_item_data, get_item_dispo, get_materiel_data, update_item,
+    add_item, delete_item, get_item_data, get_item_dispo, get_materiel_data, update_item, get_factures_from_item,
 };
 use settings::{get_loc_formulas, get_materiel_types, set_loc_formulas, set_materiel_types};
 
@@ -24,6 +24,7 @@ pub fn run() {
             get_materiel_data,
             get_item_data,
             update_item,
+            get_factures_from_item,
             add_item,
             delete_item,
             get_item_dispo,

@@ -109,6 +109,7 @@ onMounted(async () => {
                 <PageMateriel 
                     v-else-if="currentPage === 'consult' || currentPage === 'modif'" 
                     :modif="currentPage === 'modif'"
+                    :setDocument="setDocument"
                 />
                 <PageCalendrier 
                     v-else-if="currentPage === 'cal'"

@@ -4,7 +4,7 @@ import ListeMateriel from '../components/ListeMateriel.vue';
 import DisplayMateriel from '../components/DisplayMateriel.vue'
 import ModifMateriel from '../components/ModifMateriel.vue'
 
-const props = defineProps(['modif']);
+const props = defineProps(['modif','setDocument']);
 
 const displayKey = ref(0);
 const modifKey = ref(0);
@@ -100,6 +100,7 @@ watch(() => props.modif, () => {
                 :key="displayKey"
                 :item="display" 
                 :setItem="setDisplay"
+                :setDocument="props.setDocument"
                 @item-change="onItemChange"
             />
         </Transition>
@@ -164,6 +165,7 @@ watch(() => props.modif, () => {
     }
 
     .detail {
+        min-width: 23rem;
         max-width: 30rem;
     }
 }

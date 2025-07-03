@@ -18,6 +18,15 @@ pub struct Item {
     pub benef: f32,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct SummFactureItem{
+    id: i32,
+    nom: String,
+    date: String,
+    quantité: i32,
+    durée: i32
+}
+
 static DB_CONN: OnceCell<Mutex<Connection>> = OnceCell::new();
 
 pub fn get_database_connection(
@@ -205,4 +214,44 @@ pub fn get_item_dispo(
         .map_err(|e| format!("Erreur lors de la récupération des réservations: {}", e))?;
 
     Ok((total - used).max(0))
+}
+
+#[tauri::command]
+pub fn get_factures_from_item(item_id: i32,  handle: tauri::AppHandle) -> Result<Vec<SummFactureItem>, String> {
+    let conn = get_database_connection(handle)?;
+
+    let mut request = conn
+        .prepare(
+            "SELECT 
+                f.facture_id, 
+                f.nom, 
+                f.date, 
+                fm.quantité,
+                fm.durée
+            FROM Factures f
+            JOIN Facture_materiel fm ON fm.facture_id = f.facture_id
+            WHERE fm.materiel_id = ?1
+            GROUP BY f.facture_id
+            ORDER BY f.date DESC"
+        )
+        .map_err(|e| e.to_string())?;
+
+    let devis_iter = request
+        .query_map([item_id], |row| {
+            Ok(SummFactureItem {
+                id: row.get(0)?,
+                nom: row.get(1)?,
+                date: row.get(2)?,
+                quantité: row.get(3)?,
+                durée: row.get(4)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+    let mut result = Vec::new();
+    for devis in devis_iter {
+        result.push(devis.map_err(|e| e.to_string())?);
+    }
+
+    Ok(result)
 }

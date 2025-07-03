@@ -123,7 +123,7 @@ function formatDate(dateStr) {
         month: 'long',
         year: 'numeric'
     }).format(date);
-    }
+}
 
 watch(selectedDay, (newDate, oldDate) => {
     if (oldDate) {
