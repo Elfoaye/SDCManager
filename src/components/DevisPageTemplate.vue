@@ -22,7 +22,7 @@ defineProps({
         <p class="legal">
             Son des Cimes – 39 Imp. Du Pellas – 05350 Arvieux<br />
             Association loi 1901 reconnue d’intérêt général n° W051000990 - Code APE : 9329Z<br />
-            Siret : 513 386 979 000 19 - ☎ : 06 62 54 34 79 <br />
+            Siret : 513 386 979 000 19 - &#9990; : 06 62 54 34 79 <br />
             sondescimes@gmail.com - http://sondescimes.lescigales.org<br />
             Non assujettie à la T.V.A.<br />
         </p>

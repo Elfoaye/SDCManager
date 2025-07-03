@@ -75,8 +75,12 @@ listen('log_in_admin', (event) => {
 onMounted(async () => {
     const appWindow = new Window('main');
 
+    
+
     appWindow.onCloseRequested(async (event) => {
-        if(closeFlag) {
+        const confirmOnClose = localStorage.getItem('confirmOnClose') !== 'false';
+        
+        if(!confirmOnClose || closeFlag) {
             return;
         }
         event.preventDefault();

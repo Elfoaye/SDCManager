@@ -33,6 +33,7 @@ const IBAN = 'FR76 ' + '\u200B' + '1680 ' + '\u200B' + '7001 ' + '\u200B' + '313
 }
 
 .rib p {
+    font-size: 14px;
     padding-left: 5px;
     color: dimgray;
 }

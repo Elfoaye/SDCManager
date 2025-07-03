@@ -26,7 +26,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div v-if="confirm" class="confirm no-print">
+    <div v-if="confirm" class="confirm">
         <div class="pop-up">
             <p>Êtes-vous sûr de vouloir quitter le <span>Mode Admin</span> ?</p>
 
@@ -36,7 +36,7 @@ onMounted(() => {
             </div>
         </div>
     </div>
-    <header class="no-print">
+    <header>
         <div class="topnav" :class="{ admin: isAdmin }">
             <img src="../assets/Logo.png">
 
@@ -60,6 +60,7 @@ onMounted(() => {
 header {
     display: flex;
     align-items: center;
+    padding: 0.2rem;
     border-bottom: 1px solid var(--border);
     height: clamp(3rem, 8vh, 5rem);
 }
@@ -74,7 +75,7 @@ header {
 }
 
 .topnav img {
-    max-height: 80%;
+    max-height: 100%;
 }
 
 .topnav.admin {
@@ -82,11 +83,15 @@ header {
     background: linear-gradient(to left, var(--background), var(--warning));
 }
 
+.path {
+    max-height: 100%;
+}
+
 button {
     border: 0;
     hyphens: auto;
     white-space: normal;
-    font-size: clamp(0.6rem, 2vh, 1rem);
+    font-size: clamp(0.6rem, 2vw, 1rem);
     background-color: var(--background);
     max-height: 90%;
     width: fit-content;

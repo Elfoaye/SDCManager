@@ -312,6 +312,7 @@ const yearMembership = computed(() => {
     padding-top: 57px;
     padding-bottom: 20px;
 
+    font-size: 16px;
     color: rgb(17,145,148);
     background: white;
 
@@ -351,6 +352,10 @@ const yearMembership = computed(() => {
 ::v-deep(.date) {
     font-size: 14px;
     margin: 5px 15px;
+}
+
+::v-deep(p) {
+    font-size: 16px;
 }
 
 .adress {
@@ -465,6 +470,7 @@ th, tfoot.summ.blue td {
 }
 
 ::v-deep(footer p) {
+    font-size: 12px;
     text-align: center;
     color: gray;
 }
