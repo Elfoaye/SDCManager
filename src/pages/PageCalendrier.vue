@@ -233,10 +233,11 @@ watch(selectedDay, (newDate, oldDate) => {
     display: flex;
     justify-content: space-around;
     flex-wrap: wrap;
-    gap: 2rem;
+    gap: 1rem;
 }
 
 .facture {
+    flex: 1;
     padding: 1rem;
     border: 1px solid var(--border);
     border-radius: 0.5rem;

@@ -29,6 +29,7 @@ setBreadcrumb([
 ]);
 
 const confirm = ref(null);
+const badValues = ref([])
 const devisRef = ref(null);
 
 const confirmMessage = computed(() => {
@@ -73,8 +74,49 @@ async function deleteDocument() {
     }
 }
 
+function isValidDateString(dateStr) {
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!regex.test(dateStr)) return false;
+
+    const date = new Date(dateStr);
+    return !isNaN(date.getTime());
+}
+
+function verifFacture() {
+    badValues.value = [];
+
+    if(!store.devisInfos.id) {
+        badValues.value.push('Devis invalide, essayez de rafraichir la page');
+    }
+
+    if(!store.devisInfos.name) {
+        badValues.value.push('Nom du devis');
+    }
+
+    if(!store.devisInfos.date || !isValidDateString(store.devisInfos.date)) {
+        badValues.value.push('Date');
+    }
+
+    if(!Number.isInteger(store.devisInfos.duration) || store.devisInfos.duration <= 0) {
+        badValues.value.push('Durée');
+    }
+
+    if(!store.clientInfos.name || store.clientInfos.name.trim() === '') {
+        badValues.value.push('Nom du client');
+    }
+
+    if(badValues.value.length > 0)  {
+        confirm.value = 'badvalues';
+        return false;
+    }
+
+    return true;
+}
+
 function setConfirm(value) {
     if(!(store.devisInfos.id > 0)) return;
+
+    if(value === 'facture' && !verifFacture()) return;
 
     confirm.value = value;
 }
@@ -177,6 +219,10 @@ watch(() => document, (newDoc) => {
             <div v-if="confirm" class="confirm">
                 <div class="pop-up">
                     <p v-if="confirm === 'delete' && !isAdmin">Les droits admin sont nécessaires pour supprimer un document</p>
+                    <p v-else-if="confirm === 'badvalues'" class="bad-val">
+                        Les champs suivants ne sont pas valides pour créer une facture :
+                        <span v-for="value in badValues"> - {{ value }}</span>
+                    </p>
                     <p v-else>Êtes-vous sûr de vouloir 
                         {{ confirmMessage }} 
                         <span>{{ store.devisInfos.name }}</span> ?
@@ -246,7 +292,7 @@ watch(() => document, (newDoc) => {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    max-height: 5rem;
+    height: fit-content;
     background-color: var(--background-alt);
     border: 1px solid var(--border-accent);
     border-radius: 0.5rem;
@@ -257,6 +303,11 @@ watch(() => document, (newDoc) => {
 .confirm-buttons {
     display: flex;
     gap: 1rem;
+}
+
+.bad-val {
+    display: flex;
+    flex-direction: column;
 }
 
 h2 {

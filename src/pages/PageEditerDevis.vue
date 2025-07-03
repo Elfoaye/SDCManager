@@ -187,7 +187,6 @@ function clearNotDispo() {
 
 function adjustNotDispo() {
     notDispoItems.value.forEach((element) => {
-        console.log("Adjusting " + element.item.nom + " from " + element.item.quantity + " to " + element.dispo);
         store.setItem(element.item, element.dispo, 'unset');
     });
     clearNotDispo();
