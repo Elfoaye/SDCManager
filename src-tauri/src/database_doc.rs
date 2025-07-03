@@ -41,6 +41,15 @@ pub struct FullItem {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct SummItem {
+    id: i32,
+    nom: String,
+    quantité: i32,
+    durée: i32,
+}
+
+
+#[derive(Serialize, Deserialize)]
 pub struct DevisExtra {
     id: i32,
     devis_id: i32,
@@ -369,6 +378,38 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, 
         items,
         extra,
     })
+}
+
+#[tauri::command]
+pub fn load_facture_materiel(facture_id: i32, handle: tauri::AppHandle) -> Result<Vec<SummItem>, String> {
+    let conn: MutexGuard<'static, Connection> = get_database_connection(handle)?;
+
+    let mut stmt = conn
+        .prepare(
+            "SELECT m.materiel_id, m.nom, f.quantité, f.durée
+            FROM Facture_materiel f
+            JOIN Materiel m ON f.materiel_id = m.materiel_id
+            WHERE f.facture_id = ?",
+        )
+        .map_err(|e| e.to_string())?;
+
+    let items_iter = stmt
+        .query_map(params![facture_id], |row| {
+            Ok(SummItem {
+                id: row.get(0)?,
+                nom: row.get(1)?,
+                quantité: row.get(2)?,
+                durée: row.get(3)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+    let mut items = Vec::new();
+    for item_res in items_iter {
+        items.push(item_res.map_err(|e| e.to_string())?);
+    }
+
+    Ok(items)
 }
 
 #[tauri::command]

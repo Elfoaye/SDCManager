@@ -18,6 +18,8 @@ setBreadcrumb([
 
 const calendarRef = ref(null);
 const listFactures = ref([]);
+const dailyFactures = ref({});
+
 const selectedDay = ref(null);
 
 function stringToColor(str) {
@@ -82,13 +84,36 @@ function handleEventClick(event) {
     setDocument({ id: event.id, facture: true });
 }
 
-function handleDayClick(date) {
-    if(selectedDay.value === date) {
+async function handleDayClick(date) {
+    if(!date || selectedDay.value === date) {
         selectedDay.value = null;
         return;
     }
 
     selectedDay.value = date;
+    dailyFactures.value = {};
+
+    const dayFac = listFactures.value.filter(facture => {
+        const start = new Date(facture.date);
+        const end = new Date(start);
+        end.setDate(start.getDate() + facture.durée);
+        const d = new Date(date);
+        return d >= start && d < end;
+    });
+
+    for (const facture of dayFac) {
+        try {
+            const materiel = await invoke('load_facture_materiel', { factureId: facture.id });
+            dailyFactures.value[facture.id] = {
+                id: facture.id,
+                nom: facture.nom,
+                client_nom: facture.client_nom,
+                materiel
+            };
+        } catch (err) {
+            console.error(`Erreur chargement matériel facture ${facture.id}`, err);
+        }
+    }
 }
 
 function formatDate(dateStr) {
@@ -127,35 +152,12 @@ watch(selectedDay, (newDate, oldDate) => {
                     <button class="back" @click="handleDayClick(null)">X</button>
                 </div>
                 <div class="data">
-                    <div class="facture">
+                    <div v-for="facture in dailyFactures" class="facture">
                         <div class="name">
-                            <h2>Facture 20250601 Fête de la musique</h2>
-                            <h2>Jean Macé des archives départementales</h2>
+                            <h2>{{ facture.id + ' ' + facture.nom }}</h2>
+                            <h3>{{ facture.client_nom }}</h3>
                         </div>
-                        <p><span>1</span> Basse fender squir alt noir légèrement endomagée + sangle + ampli + jack</p>
-                        <p><span>1</span> Basse fender squir alt noir légèrement endomagée + sangle + ampli + jack</p>
-                        <p><span>1</span> Basse fender squir alt noir légèrement endomagée + sangle + ampli + jack</p>
-                        <p><span>1</span> Basse fender squir alt noir légèrement endomagée + sangle + ampli + jack</p>
-                    </div>
-                    <div class="facture">
-                        <div class="name">
-                            <h2>Facture 20250601 Fête de la musique</h2>
-                            <h2>Jean Macé des archives départementales</h2>
-                        </div>
-                        <p><span>1</span> Basse fender squir alt noir légèrement endomagée + sangle + ampli + jack</p>
-                        <p><span>1</span> Basse fender squir alt noir légèrement endomagée + sangle + ampli + jack</p>
-                        <p><span>1</span> Basse fender squir alt noir légèrement endomagée + sangle + ampli + jack</p>
-                        <p><span>1</span> Basse fender squir alt noir légèrement endomagée + sangle + ampli + jack</p>
-                    </div>
-                    <div class="facture">
-                        <div class="name">
-                            <h2>Facture 20250601 Fête de la musique</h2>
-                            <h2>Jean Macé des archives départementales</h2>
-                        </div>
-                        <p><span>1</span> Basse fender squir alt noir légèrement endomagée + sangle + ampli + jack</p>
-                        <p><span>1</span> Basse fender squir alt noir légèrement endomagée + sangle + ampli + jack</p>
-                        <p><span>1</span> Basse fender squir alt noir légèrement endomagée + sangle + ampli + jack</p>
-                        <p><span>1</span> Basse fender squir alt noir légèrement endomagée + sangle + ampli + jack</p>
+                        <p v-for="item in facture.materiel"><span>{{ item.quantité }}</span> {{ item.nom }}</p>
                     </div>
                 </div>
         </div>
@@ -176,7 +178,7 @@ watch(selectedDay, (newDate, oldDate) => {
 }
 
 .calendar {
-    flex: 2; 
+    flex: 1; 
     width: 100%;
     padding: 1rem;
     overflow-y: auto;
@@ -228,6 +230,20 @@ watch(selectedDay, (newDate, oldDate) => {
 
 .data {
     overflow-y: auto;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+
+.facture {
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+}
+
+.facture p {
+    margin-left: 1rem;
 }
 
 .expand-height-enter-active,
