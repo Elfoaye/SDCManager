@@ -26,6 +26,8 @@ const lastPage = ref(null);
 const redirect = ref(null);
 const currentDocument = ref({id: 0, facture: false});
 
+let closeFlag = false;
+
 const adminPages = ['modif','admin'];
 function isAdminProtected(value) {
     return adminPages.includes(value);
@@ -46,8 +48,6 @@ async function setPage(value) {
 
     lastPage.value = currentPage.value;
     currentPage.value = value;
-
-    console.log(lastPage.value, currentPage.value);
 }
 
 function setDocument(document, modif) {
@@ -72,9 +72,6 @@ listen('log_in_admin', (event) => {
     }
 });
 
-let closeFlag = false;
-let unlistenCloseRequested = null;
-
 onMounted(async () => {
     const appWindow = new Window('main');
 
@@ -91,7 +88,6 @@ onMounted(async () => {
 
         if (shouldClose) {
             closeFlag = true;
-            console.log(unlistenCloseRequested, closeFlag);
             await appWindow.close();
         }
     });
