@@ -88,6 +88,7 @@ h2 {
 
 label {
     width: fit-content;
+    font-size: 1rem;
 }
 
 label:hover, input:hover {

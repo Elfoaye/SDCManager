@@ -60,7 +60,6 @@ onMounted(() => {
 header {
     display: flex;
     align-items: center;
-    padding: 0.2rem;
     border-bottom: 1px solid var(--border);
     height: clamp(3rem, 8vh, 5rem);
 }

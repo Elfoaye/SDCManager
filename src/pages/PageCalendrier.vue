@@ -152,7 +152,7 @@ watch(selectedDay, (newDate, oldDate) => {
                     <button class="back" @click="handleDayClick(null)">X</button>
                 </div>
                 <div class="data">
-                    <div v-for="facture in dailyFactures" class="facture">
+                    <div v-for="facture in dailyFactures" class="facture" @click="setDocument({ id: facture.id, facture: true })">
                         <div class="name">
                             <h2>{{ facture.id + ' ' + facture.nom }}</h2>
                             <h3>{{ facture.client_nom }}</h3>
@@ -241,6 +241,11 @@ watch(selectedDay, (newDate, oldDate) => {
     padding: 1rem;
     border: 1px solid var(--border);
     border-radius: 0.5rem;
+}
+
+.facture:hover {
+    cursor: pointer;
+    background-color: var(--surface-hover);
 }
 
 .facture p {

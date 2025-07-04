@@ -227,6 +227,8 @@ watch(() => document, (newDoc) => {
                         {{ confirmMessage }} 
                         <span>{{ store.devisInfos.name }}</span> ?
                     </p>
+                    <p v-if="confirm === 'facture'">(Créer une facture applique la sortie du materiel sélectionné)</p>
+                    <p v-if="confirm === 'delete' && isAdmin">(Cette action est irréversible)</p>
 
                     <div class="confirm-buttons">
                         <button v-if="confirm === 'duplicate'" @click="duplicateDevis" class="new" >Dupliquer</button>
@@ -292,12 +294,17 @@ watch(() => document, (newDoc) => {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 1rem;
     height: fit-content;
     background-color: var(--background-alt);
     border: 1px solid var(--border-accent);
     border-radius: 0.5rem;
     padding: 1rem;
     padding-bottom: 2rem;
+}
+
+.pop-up p {
+    margin: 0 1rem;
 }
 
 .confirm-buttons {

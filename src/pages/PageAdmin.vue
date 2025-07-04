@@ -228,6 +228,7 @@ section div:not(.submit) {
 label {
     width: 100%;
     text-wrap: nowrap;
+    font-size: 1rem;
 }
 
 .admin {
@@ -343,6 +344,7 @@ section div.pack {
 
 .formulas p {
     margin-top: 0;
+    font-size: 0.9rem;
 }
 
 p.success {
