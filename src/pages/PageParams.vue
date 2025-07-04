@@ -94,4 +94,12 @@ label {
 label:hover, input:hover {
     cursor: pointer;
 }
+
+select {
+    padding: 0.5rem;
+    color: var(--text);
+    background-color: var(--background-alt);
+    border: 1px solid var(--border);
+    border-radius: 0.3rem;
+}
 </style>
