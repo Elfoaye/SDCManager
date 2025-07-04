@@ -123,7 +123,8 @@ export const useDevisStore = defineStore('devis', () => {
                 },
                 quantité: item.quantity,
                 durée: item.duration,
-                etat: state
+                etat: state,
+                prix: item.totalPrice
             })),
             extra: extraItems.value.map(extra => ({
                 id: 0,
@@ -171,7 +172,7 @@ export const useDevisStore = defineStore('devis', () => {
                 quantity: fullItem.quantité,
                 duration: fullItem.durée,
                 state: fullItem.etat,
-                totalPrice: priceLoc(fullItem.item, fullItem.quantité, fullItem.durée)
+                totalPrice: fullItem.prix
             }));
 
             extraItems.value = fullDocument.extra.map(extra => ({

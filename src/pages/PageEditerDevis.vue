@@ -161,7 +161,7 @@ async function endModif() {
 }
 
 async function checkDispo(item) {
-    if(!store.devisInfos.date || !item.duration || !item.quantity)
+    if(!store.devisInfos.date || !item || !item.duration || !item.quantity)
         return true;
     
     try {

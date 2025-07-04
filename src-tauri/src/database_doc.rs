@@ -38,6 +38,7 @@ pub struct FullItem {
     quantité: i32,
     durée: i32,
     etat: String,
+    prix: f32
 }
 
 #[derive(Serialize, Deserialize)]
@@ -237,8 +238,8 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
         // Scope limit for borrowing in transaction.prepare
         let mut requete_item = transaction
             .prepare(
-                "INSERT INTO Devis_materiel (devis_id, materiel_id, quantité, durée, etat) 
-            VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO Devis_materiel (devis_id, materiel_id, quantité, durée, etat, prix) 
+            VALUES (?, ?, ?, ?, ?, ?)",
             )
             .map_err(|e| e.to_string())?;
 
@@ -249,7 +250,8 @@ pub fn save_devis(full_devis: FullDevis, handle: tauri::AppHandle) -> Result<i64
                     item.item.id,
                     item.quantité,
                     item.durée,
-                    item.etat
+                    item.etat,
+                    item.prix
                 ])
                 .map_err(|e| e.to_string())?;
         }
@@ -320,7 +322,7 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, 
             "
         SELECT 
             m.materiel_id, m.nom, m.item_type, m.total,  m.valeur, m.contrib, m.nb_sorties, m.benef,
-            d.quantité, d.durée, d.etat
+            d.quantité, d.durée, d.etat, d.prix
         FROM Devis_materiel d
         JOIN Materiel m ON d.materiel_id = m.materiel_id
         WHERE d.devis_id = ?
@@ -344,6 +346,7 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, 
                 quantité: row.get(8)?,
                 durée: row.get(9)?,
                 etat: row.get(10)?,
+                prix: row.get(11)?,
             })
         })
         .map_err(|e| e.to_string())?;
@@ -458,7 +461,7 @@ pub fn load_facture(facture_id: i32, handle: tauri::AppHandle) -> Result<FullDev
             "
         SELECT 
             m.materiel_id, m.nom, m.item_type, m.total, m.valeur, m.contrib, m.nb_sorties, m.benef,
-            f.quantité, f.durée, f.etat
+            f.quantité, f.durée, f.etat, f.prix
         FROM Facture_materiel f
         JOIN Materiel m ON f.materiel_id = m.materiel_id
         WHERE f.facture_id = ?
@@ -482,6 +485,7 @@ pub fn load_facture(facture_id: i32, handle: tauri::AppHandle) -> Result<FullDev
                 quantité: row.get(8)?,
                 durée: row.get(9)?,
                 etat: row.get(10)?,
+                prix: row.get(11)?,
             })
         })
         .map_err(|e| e.to_string())?;
@@ -568,8 +572,8 @@ pub fn duplicate_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<i32, S
 
     transaction
         .execute(
-            "INSERT INTO Devis_materiel (devis_id, materiel_id, quantité, durée, etat)
-         SELECT ?, materiel_id, quantité, durée, etat
+            "INSERT INTO Devis_materiel (devis_id, materiel_id, quantité, durée, etat, prix)
+         SELECT ?, materiel_id, quantité, durée, etat, prix
          FROM Devis_materiel
          WHERE devis_id = ?",
             params![new_devis_id, devis_id],
@@ -615,10 +619,10 @@ pub fn facture_from_devis(devis_id: i64, handle: tauri::AppHandle) -> Result<i32
     transaction
         .execute(
             "INSERT INTO Facture_materiel (
-            facture_id, materiel_id, quantité, durée, etat
+            facture_id, materiel_id, quantité, durée, etat, prix
         )
         SELECT
-            ?1, materiel_id, quantité, durée, etat
+            ?1, materiel_id, quantité, durée, etat, prix
         FROM Devis_materiel WHERE devis_id = ?2",
             params![facture_id, devis_id],
         )
