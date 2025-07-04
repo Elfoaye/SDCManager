@@ -145,6 +145,10 @@ section {
     gap: 1vw;
 }
 
+section.quick-lists {
+    flex-wrap: nowrap;
+}
+
 button {
     justify-self: center;
     display: flex;

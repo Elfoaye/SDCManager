@@ -301,7 +301,7 @@ const yearMembership = computed(() => {
     justify-content: center;
     flex-wrap: wrap;
     max-width: 100%;
-    gap: 1rem;
+    gap: 16px;
 }
 
 ::v-deep(.page) {
@@ -327,14 +327,14 @@ const yearMembership = computed(() => {
 ::v-deep(header) {
     display: flex;
     flex-direction: column;
-    margin-bottom: 1rem;
+    margin-bottom: 16px;
 }
 
 ::v-deep(.infos) {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 1rem;
+    margin-bottom: 16px;
 }
 
 ::v-deep(.infos img) {
@@ -464,7 +464,7 @@ th, tfoot.summ.blue td {
     display: flex;
     justify-content: end;
     align-items: center;
-    gap: 1rem;
+    gap: 16px;
     margin-top: auto;
     height: fit-content;
 }
