@@ -103,16 +103,17 @@ function setSort(key) {
 function handleQuantityInput(item, quantity, duration) {
     if(!item) return;
 
+    let newItem;
     if(quantity) {
-        const newQuant = Math.max(0, Math.min(parseInt(quantity.target.value, 10), item.total));
+        const newQuant = Math.max(0, parseInt(quantity.target.value, 10));
 
-        store.setItem(item, newQuant, 'unset');
+        newItem = store.setItem(item, newQuant, 'unset');
     } else if (duration) {
         const newDur = Math.max(0, parseInt(duration.target.value, 10));
 
-        store.setItem(item, 'unset', newDur);
+        newItem = store.setItem(item, 'unset', newDur);
     }
-    emit('item-updated', item);
+    emit('item-updated', newItem);
 }
 
 onMounted(() => {
@@ -149,8 +150,8 @@ onMounted(() => {
                 <p>{{ item.item_type }}</p>
                 <p>{{ item.total }}</p>
                 <p>{{ item.contrib.toFixed(2) }} €</p>
-                <input type="number" @change="handleQuantityInput(item, $event, null)" min="0" :max="item.total" :value="getQuantity(item)"/>
-                <input type="number" @change="handleQuantityInput(item, null, $event)" min="0" :max="item.total" :value="getDuration(item)"/>
+                <input type="number" @change="handleQuantityInput(item, $event, null)" min="0" :value="getQuantity(item)"/>
+                <input type="number" @change="handleQuantityInput(item, null, $event)" min="0" :value="getDuration(item)"/>
                 <p v-if="getPrice(item) > 0">{{ getPrice(item).toFixed(2) }} €</p>
             </li>
         </ul>

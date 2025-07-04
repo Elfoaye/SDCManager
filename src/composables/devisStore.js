@@ -60,6 +60,7 @@ export const useDevisStore = defineStore('devis', () => {
             if (quantity != 'unset') existing.quantity = quantity;
             if (duration != 'unset') existing.duration = duration;
             existing.totalPrice = priceLoc(item, existing.quantity, existing.duration);
+            return existing;
         } else {
             const q = quantity !== 'unset' ? quantity : 1;
             const d = duration !== 'unset' ? duration : devisInfos.value.duration;
@@ -70,6 +71,7 @@ export const useDevisStore = defineStore('devis', () => {
             duration: d,
             totalPrice: priceLoc(item, q, d)
             });
+            return selectedItems.value[selectedItems.value.length - 1];
         }
     }
 

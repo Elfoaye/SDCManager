@@ -163,11 +163,11 @@ async function endModif() {
 async function checkDispo(item) {
     if(!store.devisInfos.date || !item.duration || !item.quantity)
         return true;
-
+    
     try {
-        const dispo = await invoke('get_item_dispo', { id: item.id, date: store.devisInfos.date, duration: item.duration})
+        const dispo = await invoke('get_item_dispo', { id: item.id, date: store.devisInfos.date, duration: item.duration});
         if(item.quantity > dispo) {
-            notDispoItems.value.push({item, dispo})
+            notDispoItems.value.push({item, dispo});
         }
     } catch (err) {
         console.error("Error while checking dispo of " + item.nom, err);
