@@ -628,6 +628,30 @@ pub fn facture_from_devis(devis_id: i64, handle: tauri::AppHandle) -> Result<i32
         )
         .map_err(|e| e.to_string())?;
 
+
+    { // Updating benef for each factured item
+        let mut price_request = transaction
+            .prepare("SELECT materiel_id, prix FROM Devis_materiel WHERE devis_id = ?1")
+            .map_err(|e| e.to_string())?;
+
+        let price_request_rows = price_request
+            .query_map([devis_id], |row| {
+                Ok((row.get::<_, i32>(0)?, row.get::<_, f64>(1)?))
+            })
+            .map_err(|e| e.to_string())?;
+
+        for row in price_request_rows {
+            let (materiel_id, prix) = row.map_err(|e| e.to_string())?;
+
+            transaction
+                .execute(
+                    "UPDATE Materiel SET benef = benef + ?1 WHERE materiel_id = ?2",
+                    params![prix, materiel_id],
+                )
+                .map_err(|e| e.to_string())?;
+        }
+    }
+
     transaction
         .execute(
             "INSERT INTO Facture_extra (
