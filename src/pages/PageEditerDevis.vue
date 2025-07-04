@@ -528,8 +528,9 @@ h3 {
 }
 
 .note {
-    color: var(--border);
-    font-size: 10;
+    opacity: 80%;
+    font-size: 0.85rem;
+    margin: 0;
 }
 
 .line {

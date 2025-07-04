@@ -57,7 +57,7 @@ watch(fontSize, (newSize) => {
                 <h2>Visuels</h2>
                 <label><input :checked="activeTheme === 'dark'" @change="toggleTheme" type="checkbox"> Thème sombre</label>
                 <label><input :checked="theme === 'system'" @change="toggleSystem" type="checkbox"> Thème du système</label>
-                <label>
+                <label class="text-size">
                     Taille du texte :
                     <select v-model="fontSize">
                     <option value="14">Petit</option>
@@ -66,6 +66,7 @@ watch(fontSize, (newSize) => {
                     <option value="20">Très grand</option>
                     </select>
                 </label>
+                <p class="note" v-if="fontSize > 16">(Attention: cette taille de texte n'est pas prévue pour les petites fenêtres)</p>
             </section>
             <section>
                 <h2>Interactions</h2>
@@ -94,6 +95,17 @@ label {
 label:hover, input:hover {
     cursor: pointer;
 }
+
+.text-size {
+    margin-top: 1rem;
+}
+
+.note {
+    opacity: 80%;
+    font-size: 0.85rem;
+    margin: 0;
+}
+
 
 select {
     padding: 0.5rem;

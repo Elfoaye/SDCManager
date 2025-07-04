@@ -194,6 +194,8 @@ watch(() => props.modif, () => {
 .search {
     width: 100%;
     margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
 }
 
 .searchbar {

@@ -78,7 +78,7 @@ function formatDate(dateStr) {
             <p>Valeur de remplacement : <span>{{ item.valeur }}€</span>/Objet (Total : {{ item.valeur * item.total }}€)</p>
             <p>Nombre de sorties : <span>{{ item.nb_sorties }}</span></p>
             <p>Revenus générés : <span>{{ (item.benef).toFixed(2) }}€</span></p>
-            <p>Taux de rentabilité : <span>{{ (renta/item.total).toFixed(2) }}%</span> ({{ renta.toFixed(2) }}% d'un objet)</p>
+            <p>Taux de rentabilité : <span>{{ (renta/item.total).toFixed(2) }}%</span> ({{ renta.toFixed(2) }}% d'un élément)</p>
         </section>
         <section class="price">
             <p>Contribution : <span>{{ item.contrib.toFixed(2) }}€</span> + {{ followingRate.toFixed(2) }}€ par jour supplémentaire</p>
@@ -109,7 +109,7 @@ function formatDate(dateStr) {
         <section class="latest" v-if="lastOutings.length > 0">
             <h2>Historique des sorties :</h2>
             <div v-for="out in lastOutings" class="outings" @click="setDocument({id: out.id, facture: true})">
-                <h3>{{ out.nom }} : <span>{{ out.quantité }}</span></h3>
+                <h3>{{ out.nom }} : <span>{{ out.quantité }} éléments</span></h3>
                 <p>{{ formatDate(out.date) }} - {{ out.durée }} jours</p>
             </div>
         </section>
@@ -264,7 +264,7 @@ button {
 }
 
 .outings {
-    padding: 0.5rem;
+    padding: 1rem;
     border: 1px solid var(--border);
     border-radius: 0.5rem;
 }
