@@ -136,7 +136,11 @@ onMounted(async () => {
                 />
                 <PageParams v-else-if="currentPage === 'params'" />
                 <PageAdmin v-else-if="currentPage === 'admin'" />
-                <PageAccueil v-else/>
+                <PageAccueil 
+                    v-else
+                    :setDocument="setDocument"
+                    :setPage="setPage"
+                />
             </div>
         </div>
     </div>
