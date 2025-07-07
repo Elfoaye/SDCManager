@@ -12,13 +12,13 @@ const { setDocument } = defineProps(['setDocument']);
 const { setBreadcrumb } = useBreadcrumb();
 setBreadcrumb([
     { label: 'Accueil', page: null },
-    { label: 'Devis & Factures', page: 'devparcour' },
+    { label: 'Devis & Devis', page: 'devparcour' },
     { label: 'Calendrier', page: 'cal' }
 ]);
 
 const calendarRef = ref(null);
-const listFactures = ref([]);
-const dailyFactures = ref({});
+const listDevis = ref([]);
+const dailyDevis = ref({});
 
 const selectedDay = ref(null);
 
@@ -32,18 +32,18 @@ function stringToColor(str) {
 }
 
 const calendarEvents = computed(() =>
-    listFactures.value.map((facture) => ({
-        id: facture.id,
-        title: facture.nom,
-        start: facture.date,
-        end: addDays(facture.date, facture.durée),
+    listDevis.value.map((devis) => ({
+        id: devis.id,
+        title: devis.nom,
+        start: devis.date,
+        end: addDays(devis.date, devis.durée),
         allDay: true,
-        backgroundColor: stringToColor(facture.client_nom)
+        backgroundColor: stringToColor(devis.client_nom)
     }))
 );
 
-invoke('get_factures_summaries').then((factures) => { 
-    listFactures.value = factures; 
+invoke('get_devis_summaries').then((devis) => { 
+    listDevis.value = devis.filter(d => d.etat && d.etat.toLowerCase().includes('valide'));
 
     const calendarApi = calendarRef.value?.getApi();
 
@@ -81,7 +81,7 @@ const calendarOptions = {
 };
 
 function handleEventClick(event) {
-    setDocument({ id: event.id, facture: true });
+    setDocument({ id: event.id, facture: false });
 }
 
 async function handleDayClick(date) {
@@ -91,27 +91,27 @@ async function handleDayClick(date) {
     }
 
     selectedDay.value = date;
-    dailyFactures.value = {};
+    dailyDevis.value = {};
 
-    const dayFac = listFactures.value.filter(facture => {
-        const start = new Date(facture.date);
+    const dayDev = listDevis.value.filter(devis => {
+        const start = new Date(devis.date);
         const end = new Date(start);
-        end.setDate(start.getDate() + facture.durée);
+        end.setDate(start.getDate() + devis.durée);
         const d = new Date(date);
         return d >= start && d < end;
     });
 
-    for (const facture of dayFac) {
+    for (const devis of dayDev) {
         try {
-            const materiel = await invoke('load_facture_materiel', { factureId: facture.id });
-            dailyFactures.value[facture.id] = {
-                id: facture.id,
-                nom: facture.nom,
-                client_nom: facture.client_nom,
+            const materiel = await invoke('load_devis_materiel', { devisId: devis.id });
+            dailyDevis.value[devis.id] = {
+                id: devis.id,
+                nom: devis.nom,
+                client_nom: devis.client_nom,
                 materiel
             };
         } catch (err) {
-            console.error(`Erreur chargement matériel facture ${facture.id}`, err);
+            console.error(`Erreur chargement matériel devis ${devis.id}`, err);
         }
     }
 }
@@ -152,12 +152,12 @@ watch(selectedDay, (newDate, oldDate) => {
                     <button class="back" @click="handleDayClick(null)">X</button>
                 </div>
                 <div class="data">
-                    <div v-for="facture in dailyFactures" class="facture" @click="setDocument({ id: facture.id, facture: true })">
+                    <div v-for="devis in dailyDevis" class="devis" @click="setDocument({ id: devis.id, facture: false })">
                         <div class="name">
-                            <h2>{{ facture.id + ' ' + facture.nom }}</h2>
-                            <h3>{{ facture.client_nom }}</h3>
+                            <h2>{{ devis.id + ' ' + devis.nom }}</h2>
+                            <h3>{{ devis.client_nom }}</h3>
                         </div>
-                        <p v-for="item in facture.materiel"><span>{{ item.quantité }}</span> {{ item.nom }}</p>
+                        <p v-for="item in devis.materiel"><span>{{ item.quantité }}</span> {{ item.nom }}</p>
                     </div>
                 </div>
         </div>
@@ -236,19 +236,19 @@ watch(selectedDay, (newDate, oldDate) => {
     gap: 1rem;
 }
 
-.facture {
+.devis {
     flex: 1;
     padding: 1rem;
     border: 1px solid var(--border);
     border-radius: 0.5rem;
 }
 
-.facture:hover {
+.devis:hover {
     cursor: pointer;
     background-color: var(--surface-hover);
 }
 
-.facture p {
+.devis p {
     margin-left: 1rem;
 }
 

@@ -86,8 +86,6 @@ export const useDevisStore = defineStore('devis', () => {
 
         devisInfos.value.type = state;
 
-        console.log("Store saving devis ",  state);
-
         const fullDevis = {
             client: {
                 id: clientInfos.value.id,

@@ -1,6 +1,6 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useBreadcrumb } from '../composables/breadcrumb';
 
 const { setBreadcrumb } = useBreadcrumb();
@@ -10,27 +10,29 @@ setBreadcrumb([
 
 const { setDocument, setPage } = defineProps(['setDocument', 'setPage']);
 
-const lastDevis = ref([]);
-invoke('get_devis_summaries').then((devis) => { lastDevis.value = devis.sort((a, b) => b.id - a.id).slice(0, 5); });
+const devis = ref([]);
+invoke('get_devis_summaries').then((data) => { devis.value = data });
 
-const nextFactures = ref([]);
+const lastDevis = computed(() => devis.value.sort((a, b) => b.id - a.id).slice(0, 5));
+const nextEvents = computed(() => {
+    const today = new Date();
+
+    return devis.value
+        .filter(d => d.etat && d.etat.toLowerCase().includes('valide')
+            && addDaysStr(d.date, d.durée) > today)
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .slice(0, 5);
+});
+
+const lastFactures = ref([]);
+invoke('get_factures_summaries').then((data) => { lastFactures.value = data; });
+
 
 function addDaysStr(dateStr, days) {
   const date = new Date(dateStr);
   date.setDate(date.getDate() + days);
   return date;
 }
-
-invoke('get_factures_summaries').then((factures) => {
-    const today = new Date();
-
-    const filteredAndSorted = factures
-        .filter(f => addDaysStr(f.date, f.durée) > today)
-        .sort((a, b) => new Date(a.date) - new Date(b.date))
-        .slice(0, 5);
-
-    nextFactures.value = filteredAndSorted;
-});
 
 function formatDate(dateStr) {
     const date = new Date(dateStr);
@@ -92,8 +94,18 @@ function formatDate(dateStr) {
                 </button>
             </section>
             <section class="quick-lists">
+                <div class="list" v-if="lastFactures.length > 0">
+                    <h2>Dernières factures: </h2>
+                    <ul>
+                        <li v-for="facture in lastFactures" @click="setDocument({ id: facture.id, facture: true })">
+                            <p>{{ formatDate(facture.date) }}</p>
+                            <h3>{{ facture.id + ' ' + facture.nom }}</h3>
+                            <p>{{ facture.client_nom }}</p>
+                        </li>
+                    </ul>
+                </div>
                 <div class="list" v-if="lastDevis.length > 0">
-                    <h2>Derniers devis : </h2>
+                    <h2>Derniers devis: </h2>
                     <ul>
                         <li v-for="devis in lastDevis" @click="setDocument({ id: devis.id, facture: false })">
                             <h3>{{ devis.nom }}</h3>
@@ -101,13 +113,13 @@ function formatDate(dateStr) {
                         </li>
                     </ul>
                 </div>
-                <div class="list" v-if="nextFactures.length > 0">
-                    <h2>Prochains évenements : </h2>
+                <div class="list" v-if="nextEvents.length > 0">
+                    <h2>Prochains évenements: </h2>
                     <ul>
-                        <li v-for="facture in nextFactures" @click="setDocument({ id: facture.id, facture: true })">
-                            <p>{{ formatDate(facture.date) }}</p>
-                            <h3>{{ facture.id + ' ' + facture.nom }}</h3>
-                            <p>{{ facture.client_nom }}</p>
+                        <li v-for="devis in nextEvents" @click="setDocument({ id: devis.id, facture: false })">
+                            <p>{{ formatDate(devis.date) }}</p>
+                            <h3>{{ devis.nom }}</h3>
+                            <p>{{ devis.client_nom }}</p>
                         </li>
                     </ul>
                 </div>
@@ -186,12 +198,14 @@ ul {
     list-style-type: none;
     margin: 0;
     padding: 0;
-    width: 100%;
+    width: fit-content;
+    max-width: 100%;
     text-align: center;
 }
 
 li {
     width: 20vw;
+    max-width: 95%;
     flex: 1;
     padding: 0.5rem;
     border: 1px solid var(--border);

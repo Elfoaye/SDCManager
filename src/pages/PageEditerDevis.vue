@@ -162,9 +162,7 @@ async function endModif() {
     }
 
     try {
-        console.log("Valid :", isValid.value);
         const valid = isValid.value ? 'devis valide' : 'devis';
-        console.log("Vue saving devis ",  valid);
         await store.saveDevis(valid);
         props.setDocument({id: store.devisInfos.id, facture: false}, false);
     } catch(err) {
@@ -214,11 +212,7 @@ function isValidDateString(dateStr) {
 
 function verifValid() {
     badValues.value = [];
-
-    if(!store.devisInfos.id) {
-        badValues.value.push('Devis invalide, essayez de rafraichir la page');
-    }
-
+    
     if(!store.devisInfos.name) {
         badValues.value.push('Nom du devis');
     }

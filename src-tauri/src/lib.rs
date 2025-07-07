@@ -6,7 +6,7 @@ mod settings;
 use admin_auth::{is_admin, log_in_admin, log_out_admin, update_admin_password};
 use database_doc::{
     delete_devis, delete_facture, duplicate_devis, facture_from_devis, get_client_infos,
-    get_devis_summaries, get_factures_summaries, load_devis, load_facture, load_facture_materiel, save_devis,
+    get_devis_summaries, get_factures_summaries, load_devis, load_facture, load_devis_materiel, save_devis,
 };
 use database_items::{
     add_item, delete_item, get_item_data, get_item_dispo, get_materiel_data, update_item, get_factures_from_item,
@@ -31,7 +31,7 @@ pub fn run() {
             save_devis,
             load_devis,
             load_facture,
-            load_facture_materiel,
+            load_devis_materiel,
             delete_devis,
             delete_facture,
             duplicate_devis,

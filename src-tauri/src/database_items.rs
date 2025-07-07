@@ -201,12 +201,13 @@ pub fn get_item_dispo(
 
     let used: i32 = conn
         .query_row(
-            "SELECT COALESCE(SUM(fm.quantité), 0)
-        FROM Facture_materiel fm
-        JOIN Factures f ON f.facture_id = fm.facture_id
-        WHERE fm.f_item_id = ?1
-          AND DATE(f.date) <= DATE(?2, '+' || ?3 || ' days')
-          AND DATE(f.date, '+' || fm.durée || ' days') > DATE(?2)
+            "SELECT COALESCE(SUM(dm.quantité), 0)
+        FROM Devis_materiel dm
+        JOIN Devis d ON d.devis_id = dm.devis_id
+        WHERE dm.d_item_id = ?1
+          AND DATE(d.date) <= DATE(?2, '+' || ?3 || ' days')
+          AND DATE(d.date, '+' || dm.durée || ' days') > DATE(?2)
+          AND dm.etat LIKE '%valide%'
         ",
             params![id, date, duration],
             |row| row.get(0),

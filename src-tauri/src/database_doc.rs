@@ -384,20 +384,20 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, 
 }
 
 #[tauri::command]
-pub fn load_facture_materiel(facture_id: i32, handle: tauri::AppHandle) -> Result<Vec<SummItem>, String> {
+pub fn load_devis_materiel(devis_id: i32, handle: tauri::AppHandle) -> Result<Vec<SummItem>, String> {
     let conn: MutexGuard<'static, Connection> = get_database_connection(handle)?;
 
     let mut stmt = conn
         .prepare(
-            "SELECT m.materiel_id, m.nom, f.quantité, f.durée
-            FROM Facture_materiel f
-            JOIN Materiel m ON f.materiel_id = m.materiel_id
-            WHERE f.facture_id = ?",
+            "SELECT m.materiel_id, m.nom, d.quantité, d.durée
+            FROM Devis_materiel d
+            JOIN Materiel m ON d.materiel_id = m.materiel_id
+            WHERE d.devis_id = ?",
         )
         .map_err(|e| e.to_string())?;
 
     let items_iter = stmt
-        .query_map(params![facture_id], |row| {
+        .query_map(params![devis_id], |row| {
             Ok(SummItem {
                 id: row.get(0)?,
                 nom: row.get(1)?,
