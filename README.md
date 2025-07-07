@@ -4,7 +4,7 @@
 
 **SDCManager** est une application de gestion du matériel développée pour l’association **Son Des Cimes**. Ce logiciel de bureau facilite la gestion du prêt, de la location, de l’entretien et du renouvellement du matériel de l’association. 
 
-L’application permet de suivre un inventaire synchronisé entre plusieurs utilisateurs, de gérer la disponibilité et la rentabilité des équipements, et de générer automatiquement devis, factures et notes de prêt.
+L’application permet de suivre un inventaire de materiel synchronisé entre plusieurs utilisateurs, de gérer la disponibilité et la rentabilité des équipements, et de créer et gérer des devis et factures, en utilisant l'inventaire de materiel qui gardera compte des sorties.
 
 ---
 
@@ -16,13 +16,15 @@ L’application permet de suivre un inventaire synchronisé entre plusieurs util
   - Emprunt et retour du matériel avec mise à jour automatique de la disponibilité  
 
 - **Gestion des documents :**  
-  - Création et modification de devis et feuilles d’emprunt  
-  - Génération automatique des factures à partir des devis ou emprunts  
+  - Création et modification de devis
+  - Génération automatique des factures à partir des devis
+  - Visualisation des évenements à venir sous forme de planning
 
 - **Fonctions administratives (mode Administrateur) :**  
   - Ajout, suppression et modification du matériel  
-  - Personnalisation des formules de calcul des prix de location  
-  - Modification des modèles de documents (devis, factures, emprunts)  
+  - Personnalisation des formules de calcul des prix de location
+
+  A venir :
   - Gestion des utilisateurs et synchronisation  
   - Gestion des sauvegardes et restauration de versions antérieures de la base de données  
 
@@ -34,7 +36,6 @@ L’application permet de suivre un inventaire synchronisé entre plusieurs util
 - **Backend & logique métier :** Rust via Tauri  
 - **Base de données :** SQLite  
 - **Synchronisation :** Peer-to-peer avec Syncthing  
-- **Design :** Prototype réalisé sous Figma  
 
 ---
 
@@ -54,16 +55,9 @@ Les exécutables d’installation sont disponibles dans le dossier [`release`](.
 - Navigation simple via menu de navigation sur le côté gauche. 
 - Accès aux différentes sections :  
   - Accueil  
-  - Matériel (liste, détail, emprunt/retour)  
-  - Documents (devis, factures, emprunts)  
+  - Matériel (liste, détail, historique des sorties)  
+  - Documents (devis, factures, planning)  
   - Administration (matériel, formules, modèles, utilisateurs, sauvegardes)  
-
----
-
-## Contribution
-
-Contributions, suggestions et rapports de bugs sont les bienvenus !  
-Merci de bien vouloir ouvrir une issue avant de proposer une Pull Request.
 
 ---
 
