@@ -405,7 +405,7 @@ watch(() => [store.devisInfos.date, store.devisInfos.duration], () => {
         </div>
             <p class="note">note: Les devis ne comptent pas comme sortie de materiel, facturez le devis pour créer une sortie</p>
             <section class="total">
-                <h2><span>Prix total : {{ finalCost.toFixed(2) }} €</span></h2>
+                <h2><span>Prix total : {{ Number(finalCost).toFixed(2) }} €</span></h2>
             </section>
 
             <section class="submit">

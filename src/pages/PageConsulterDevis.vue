@@ -125,20 +125,36 @@ function confirmCancel() {
     confirm.value = null;
 }
 
-async function generatePDF() {
+async function generatePdfBlob() {
+    const element = devisRef.value.printRoot;
+    if (!element) {
+        console.warn("Element introuvable");
+        return;
+    }
+
+    const opt = {
+        margin: [0, 0, 0, 0],
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+            scale: 4,
+            windowWidth: 794,
+            windowHeight: 1123 
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    return await html2pdf().set(opt).from(element).toPdf().get('pdf');
+}
+
+async function savePdf() {
     try {
-        const element = devisRef.value.printRoot;
-        if (!element) {
-            console.warn("Element introuvable");
-            return;
-        }
+        const pdf = await generatePdfBlob();
+        const blob = await pdf.output('blob');
 
         const filePath = await save({
             title: "Enregistrer le PDF",
             defaultPath: `${(store.isFacture ? store.devisInfos.id : 'Devis_') + store.devisInfos.name}.pdf`,
-            filters: [
-                { name: "PDF", extensions: ["pdf"] }
-            ]
+            filters: [{ name: "PDF", extensions: ["pdf"] }]
         });
 
         if (!filePath) {
@@ -146,42 +162,19 @@ async function generatePDF() {
             return;
         }
 
-        const opt = {
-            margin: [0, 0, 0, 0],
-            filename: `${(store.isFacture ? store.devisInfos.id : 'Devis_') + store.devisInfos.name}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: {
-                scale: 4,
-                windowWidth: 794,
-                windowHeight: 1123 
-            },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        const pdf = html2pdf().set(opt).from(element).outputPdf('blob');
-        const blob = await pdf.outputPdf('blob');
-
         const buffer = new Uint8Array(await blob.arrayBuffer());
-
         await writeFile(filePath, buffer);
 
-        
         toast.success(
-            h('div',{
-                    style: { display: 'flex', flexDirection: 'column', cursor: 'pointer' },
-                    async onClick() {
-                        await revealItemInDir(filePath);
-                    }
-                },
-                [
-                    h('strong', 'PDF enregistré avec succès'),
-                    h(
-                        'small',
-                        { style: { marginTop: '4px' } },
-                        'Cliquez ici pour ouvrir le dossier'
-                    )
-                ]
-            ),
+            h('div', {
+                style: { display: 'flex', flexDirection: 'column', cursor: 'pointer' },
+                async onClick() {
+                    await revealItemInDir(filePath);
+                }
+            }, [
+                h('strong', 'PDF enregistré avec succès'),
+                h('small', { style: { marginTop: '4px' } }, 'Cliquez ici pour ouvrir le dossier')
+            ]),
             {
                 timeout: 5000,
                 closeOnClick: true,
@@ -189,12 +182,29 @@ async function generatePDF() {
                 closeButtonClassName: 'close-button'
             }
         );
-    } catch(err) {
-        console.error("Erreur lors de la sauvegarde du PDF : " + err);
 
-        toast.error("Erreur lors de la sauvegarde du PDF : " + err, {
+    } catch (err) {
+        console.error("Erreur lors de la sauvegarde du PDF : ", err);
+        toast.error("Erreur lors de la sauvegarde du PDF", {
             timeout: 5000,
-            closeOnClick: true,
+            closeOnClick: true
+        });
+    }
+}
+
+async function printPdf() {
+    try {
+        const pdf = await generatePdfBlob();
+        await pdf.autoPrint();
+
+        const blobUrl = URL.createObjectURL(pdf.output('blob'));
+        const win = window.open(blobUrl);
+        if (win) win.focus();
+    } catch (err) {
+        console.error("Erreur lors de l'impression du PDF : ", err);
+        toast.error("Erreur lors de la l'impression du PDF", {
+            timeout: 5000,
+            closeOnClick: true
         });
     }
 }
@@ -251,9 +261,14 @@ watch(() => document, (newDoc) => {
                 <button v-if="!store.isFacture" class="modif" @click="setDocument({id: store.devisInfos.id, facture: false}, true)">
                     Modifier
                 </button>
-                <button class="new" @click="generatePDF">
+                <button class="new" @click="savePdf">
                     Télecharger
                 </button>
+                <button class="new" @click="printPdf">
+                    Imprimer
+                </button>
+            </div>
+            <div class="buttons">
                 <button v-if="!store.isFacture" @click="setConfirm('duplicate')">
                     Dupliquer
                 </button>
@@ -335,9 +350,9 @@ h2 {
     padding: 1rem;
     width: 100%;
     display: flex;
-    flex-direction: column;
     align-items: center;
     border-bottom: 0;
+    gap: 1rem;
     border: 1px solid var(--border-accent);
     background-color: var(--background);
     
@@ -348,5 +363,11 @@ h2 {
     justify-content: center;
     gap: 1rem;
     max-width: 100%;
+}
+
+@media screen and (max-width: 1080px) {
+    .submit {
+        flex-direction: column;
+    }
 }
 </style>

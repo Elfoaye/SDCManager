@@ -152,7 +152,7 @@ onMounted(() => {
                 <p>{{ item.contrib.toFixed(2) }} €</p>
                 <input type="number" @change="handleQuantityInput(item, $event, null)" min="0" :value="getQuantity(item)"/>
                 <input type="number" @change="handleQuantityInput(item, null, $event)" min="0" :value="getDuration(item)"/>
-                <p v-if="getPrice(item) > 0">{{ getPrice(item).toFixed(2) }} €</p>
+                <p v-if="getPrice(item) && getPrice(item) > 0">{{ getPrice(item).toFixed(2) }} €</p>
             </li>
         </ul>
     </div>
