@@ -29,13 +29,22 @@ setBreadcrumb([
 ]);
 
 const confirm = ref(null);
-const badValues = ref([])
+const badValues = ref([]);
 const devisRef = ref(null);
 
 const confirmMessage = computed(() => {
     if(confirm.value === 'duplicate') return 'dupliquer'; 
     if(confirm.value === 'facture') return 'créer une facture depuis';
     return 'suprimer';
+});
+
+const titleClass = computed(() => {
+    if(store.isFacture)
+        return null; 
+    if(store.devisInfos.type.includes("valide")) 
+        return 'valid';
+
+    return 'in-progress';
 });
 
 async function duplicateDevis() {
@@ -248,7 +257,7 @@ watch(() => document, (newDoc) => {
                     </div>
                 </div>
             </div>
-            <div class="title">
+            <div class="title" :class="titleClass">
                 <h1>Consulter {{ store.isFacture ? 'la facture' :'le devis' }}</h1>
             </div>
             <h2>{{ store.devisInfos.type + ' ' + store.devisInfos.id + ' ' + store.devisInfos.name }}</h2>
@@ -327,6 +336,14 @@ watch(() => document, (newDoc) => {
     gap: 1rem;
 }
 
+.title.valid {
+    border: 2px solid var(--success);
+}
+
+.title.in-progress {
+    border: 2px solid var(--warning);
+}
+
 .bad-val {
     display: flex;
     flex-direction: column;
@@ -351,6 +368,7 @@ h2 {
     width: 100%;
     display: flex;
     align-items: center;
+    justify-content: center;
     border-bottom: 0;
     gap: 1rem;
     border: 1px solid var(--border-accent);

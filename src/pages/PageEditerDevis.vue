@@ -19,6 +19,8 @@ const tempExtrafield = ref({
     name: '',
     price: ''
 });
+const isValid = ref(false);
+const badValues = ref([]);
 
 const saveMassage = ref({ result: 'success', message: '' });
 const loadError = ref('');
@@ -126,6 +128,7 @@ function newDevis() {
     store.utilitaries.transportRate = formulas.value.transport_km;
 
     saveMassage.value = null;
+    isValid.value = false;
     setContextName();
 }
 
@@ -140,6 +143,7 @@ async function loadDocument(document) {
         await store.loadDocument(document);
         loadError.value = '';
         setContextName();
+        isValid.value = store.devisInfos.type.includes('valide');
     } catch (err) {
         console.error(err + " on loading document " + document.id);
         loadError.value = err;
@@ -151,8 +155,17 @@ function cancelDevis() {
 }
 
 async function endModif() {
+    if(isValid.value && !verifValid()) {
+        const container = document.querySelector('.content');
+        container.scrollTop = 0;
+        return;
+    }
+
     try {
-        await store.saveDevis('devis');
+        console.log("Valid :", isValid.value);
+        const valid = isValid.value ? 'devis valide' : 'devis';
+        console.log("Vue saving devis ",  valid);
+        await store.saveDevis(valid);
         props.setDocument({id: store.devisInfos.id, facture: false}, false);
     } catch(err) {
         console.error("Erreur lors de la sauvegarde du devis : ", err);
@@ -172,7 +185,6 @@ async function checkDispo(item) {
     } catch (err) {
         console.error("Error while checking dispo of " + item.nom, err);
     }
-    
 }
 
 function checkAllSelected() {
@@ -190,6 +202,56 @@ function adjustNotDispo() {
         store.setItem(element.item, element.dispo, 'unset');
     });
     clearNotDispo();
+}
+
+function isValidDateString(dateStr) {
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!regex.test(dateStr)) return false;
+
+    const date = new Date(dateStr);
+    return !isNaN(date.getTime());
+}
+
+function verifValid() {
+    badValues.value = [];
+
+    if(!store.devisInfos.id) {
+        badValues.value.push('Devis invalide, essayez de rafraichir la page');
+    }
+
+    if(!store.devisInfos.name) {
+        badValues.value.push('Nom du devis');
+    }
+
+    if(!store.devisInfos.date || !isValidDateString(store.devisInfos.date)) {
+        badValues.value.push('Date');
+    }
+
+    if(!Number.isInteger(store.devisInfos.duration) || store.devisInfos.duration <= 0) {
+        badValues.value.push('Durée');
+    }
+
+    if(!store.clientInfos.name || store.clientInfos.name.trim() === '') {
+        badValues.value.push('Nom du client');
+    }
+
+    if(badValues.value.length > 0)  {
+        return false;
+    }
+
+    return true;
+}
+
+function handleCheckboxChange(event) {
+    const checked = event.target.checked;
+
+    if (checked && !verifValid()) {
+        event.preventDefault();
+        event.target.checked = false;
+        return;
+    }
+
+    isValid.value = checked;
 }
 
 onMounted(async() => {
@@ -256,7 +318,7 @@ watch(() => [store.devisInfos.date, store.devisInfos.duration], () => {
         </div>
         <div class="content-parts">
             <div class="part">
-                <section class="infos">
+                <section class="gen">
                     <h2>Informations générales</h2>
                     <div class="line tech">
                         <label>Nom du devis :
@@ -269,6 +331,13 @@ watch(() => [store.devisInfos.date, store.devisInfos.duration], () => {
                             <input type="number" v-model="store.devisInfos.duration" min="1"/>
                         </label>
                     </div>
+                    <label class="inline check">Devis valide ?
+                        <input type="checkbox" :checked="isValid" @change="handleCheckboxChange"/>
+                    </label>
+                    <p v-if="badValues.length > 0" class="error">
+                        Les champs suivants ne sont pas valides pour valider le devis:
+                        <span v-for="value in badValues"> - {{ value }}</span>
+                    </p>
                 </section>
                 <section class="infos">
                     <h2>Client</h2>
@@ -417,6 +486,10 @@ watch(() => [store.devisInfos.date, store.devisInfos.duration], () => {
                         Annuler
                     </button>
                 </div>
+                <p v-if="badValues.length > 0" class="error">
+                    Les champs suivants ne sont pas valides pour valider le devis:
+                    <span v-for="value in badValues"> - {{ value }}</span>
+                </p>
                 <p v-if="saveMassage" :class="saveMassage.result">{{ saveMassage.message }}</p>
             </section>
     </div>
@@ -563,6 +636,10 @@ label.inline {
     align-items: center;
     max-width: fit-content;
     gap: 0.5rem;
+}
+
+.gen label.inline { 
+    margin-top: 1rem;
 }
 
 .membership {

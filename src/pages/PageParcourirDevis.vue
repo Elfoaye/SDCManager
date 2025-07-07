@@ -191,7 +191,7 @@ ul {
 
 li, li.head {
     display: grid;
-    grid-template-columns: 1fr 2fr 3fr 2fr 2fr 3fr 1fr;
+    grid-template-columns: 2fr 2fr 3fr 2fr 2fr 3fr 1fr;
     padding: 0 0.5rem;
     margin: 0;
     gap: 1rem;

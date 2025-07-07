@@ -15,7 +15,7 @@ export const useDevisStore = defineStore('devis', () => {
         date: '',
         writeDate: '',
         duration: 1,
-        type: ''
+        type: '',
     });
 
     const clientInfos = ref({
@@ -85,6 +85,8 @@ export const useDevisStore = defineStore('devis', () => {
         const year = today.getFullYear();
 
         devisInfos.value.type = state;
+
+        console.log("Store saving devis ",  state);
 
         const fullDevis = {
             client: {
