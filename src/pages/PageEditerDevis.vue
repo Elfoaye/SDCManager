@@ -86,6 +86,10 @@ const matchingEvents = computed(() => {
         .map(c => c.evenement);
 });
 
+const materielCost = computed(() => {
+    return store.selectedItems.reduce((sum, item) => sum + item.totalPrice, 0);
+});
+
 function onNameInput() {
     store.clientInfos.eventName = '';
     store.clientInfos.adress = '';
@@ -450,6 +454,7 @@ watch(() => [store.devisInfos.date, store.devisInfos.duration], () => {
                     <p v-else>Entrez une date de début et une durée au devis pour ajouter du materiel</p>
 
                     <div v-if="store.selectedItems.length > 0">
+                        <h2 class="total-mat">Total materiel : {{ materielCost.toFixed(2) }} €</h2>
                         <h3 class="toggle-materiel" @click="displaySelected = !displaySelected">
                             <span v-if="displaySelected">&#9660;</span>
                             <span v-else>&#9654;</span>
@@ -709,8 +714,13 @@ textarea {
     align-items: start;
 }
 
+.total-mat {
+    margin-top: 1rem;
+}
+
 .toggle-materiel {
     padding: 1rem;
+    padding-top: 0;
     border-radius: 0.5rem;
 
     transition: all 0.2s;

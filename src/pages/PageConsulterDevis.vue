@@ -266,23 +266,23 @@ watch(() => document, (newDoc) => {
                 <DisplayDevis ref="devisRef"/>
             </section>
         <section class="submit">
-            <div class="buttons">
-                <button v-if="!store.isFacture" class="modif" @click="setDocument({id: store.devisInfos.id, facture: false}, true)">
+            <div class="buttons" v-if="!store.isFacture">
+                <button class="modif" @click="setDocument({id: store.devisInfos.id, facture: false}, true)">
                     Modifier
                 </button>
-                <button class="new" @click="savePdf">
-                    Télecharger
+                <button @click="setConfirm('duplicate')">
+                    Dupliquer
                 </button>
-                <button class="new" @click="printPdf">
-                    Imprimer
+                <button @click="setConfirm('facture')">
+                    Facturer
                 </button>
             </div>
             <div class="buttons">
-                <button v-if="!store.isFacture" @click="setConfirm('duplicate')">
-                    Dupliquer
+                <button @click="savePdf">
+                    Télecharger
                 </button>
-                <button v-if="!store.isFacture" @click="setConfirm('facture')">
-                    Facturer
+                <button @click="printPdf">
+                    Imprimer
                 </button>
                 <button @click="setConfirm('delete')" class="delete">
                     Supprimer

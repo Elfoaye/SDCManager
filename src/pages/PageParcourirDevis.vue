@@ -157,7 +157,6 @@ function setSort(key) {
 
 .searchbar {
     width: 50%;
-    height: 3rem;
     padding: 1rem;
 }
 
