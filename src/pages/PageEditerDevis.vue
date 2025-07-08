@@ -180,7 +180,7 @@ async function checkDispo(item) {
         return true;
     
     try {
-        const dispo = await invoke('get_item_dispo', { id: item.id, date: store.devisInfos.date, duration: item.duration});
+        const dispo = await invoke('get_item_dispo', { id: item.id, devisId: store.devisInfos.id, date: store.devisInfos.date, duration: item.duration});
         if(item.quantity > dispo) {
             notDispoItems.value.push({item, dispo});
         }

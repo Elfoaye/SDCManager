@@ -108,7 +108,7 @@ function setSort(key) {
 
             <li class="head">
                 <button 
-                    v-for="col in columns"
+                    v-for="(col, index) in columns"
                     :key="col.key"
                     @click="setSort(col.key)"
                 >

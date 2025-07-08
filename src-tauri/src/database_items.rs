@@ -183,6 +183,7 @@ pub fn delete_item(id: i32, handle: tauri::AppHandle) -> Result<String, String> 
 #[tauri::command]
 pub fn get_item_dispo(
     id: i32,
+    devis_id: i32,
     date: String,
     duration: i32,
     handle: tauri::AppHandle,
@@ -208,8 +209,8 @@ pub fn get_item_dispo(
           AND DATE(d.date) <= DATE(?2, '+' || ?3 || ' days')
           AND DATE(d.date, '+' || dm.durée || ' days') > DATE(?2)
           AND dm.etat LIKE '%valide%'
-        ",
-            params![id, date, duration],
+          AND d.devis_id != ?4",
+            params![id, date, duration, devis_id],
             |row| row.get(0),
         )
         .map_err(|e| format!("Erreur lors de la récupération des réservations: {}", e))?;
