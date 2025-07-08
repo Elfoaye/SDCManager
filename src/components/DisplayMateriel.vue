@@ -109,7 +109,7 @@ function formatDate(dateStr) {
         <section class="latest" v-if="lastOutings.length > 0">
             <h2>Historique des sorties :</h2>
             <div v-for="out in lastOutings" class="outings" @click="setDocument({id: out.id, facture: true})">
-                <h3>{{ out.nom }} : <span>{{ out.quantité }} éléments</span></h3>
+                <h3>{{ out.nom }} : <span>{{ out.quantité }} unités</span></h3>
                 <p>{{ formatDate(out.date) }} - {{ out.durée }} jours</p>
             </div>
         </section>

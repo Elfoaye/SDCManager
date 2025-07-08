@@ -164,7 +164,7 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     padding: 1rem;
-    width: 95%;
+    width: 100%;
     max-width: 60rem;
     border: 1px solid var(--border);
     border-radius: 0.5rem;
@@ -233,8 +233,8 @@ li.head {
 }
 
 li input {
-    width: 4vw;
-    max-width: 4rem;
+    max-width: 3rem;
+    margin-left: 0.5rem;
 }
 
 .head button {

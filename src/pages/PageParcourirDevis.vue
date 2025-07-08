@@ -49,7 +49,8 @@ const filteredContent = computed(() => {
         if (query && !(String(devis.nom).toLowerCase().includes(query) || 
             String(devis.id).toLowerCase().includes(query) ||
             String(devis.client_nom).toLowerCase().includes(query) ||
-            String(devis.evenement).toLowerCase().includes(query))) // Search bar
+            String(devis.evenement).toLowerCase().includes(query) ||
+            String(devis.etat).toLowerCase().includes(query))) // Search bar
             return false;
 
         if (filterType.value === 'devis' && devis.etat.includes('facture') ||
@@ -156,7 +157,7 @@ function setSort(key) {
 
 .searchbar {
     width: 50%;
-    max-height: 1rem;
+    height: 3rem;
     padding: 1rem;
 }
 

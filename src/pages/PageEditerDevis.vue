@@ -287,6 +287,7 @@ watch(() => [store.devisInfos.date, store.devisInfos.duration], () => {
 </script>
 
 <template>
+    <div class = "all">
     <div class="content">
         <div v-if="notDispoItems.length > 0" class="confirm">
             <div class="pop-up">
@@ -328,6 +329,7 @@ watch(() => [store.devisInfos.date, store.devisInfos.duration], () => {
                     <label class="inline check">Devis valide ?
                         <input type="checkbox" :checked="isValid" @change="handleCheckboxChange"/>
                     </label>
+                    <p class="note">Valider un devis applique la sortie du materiel et l'affiche dans le calendrier</p>
                     <p v-if="badValues.length > 0" class="error">
                         Les champs suivants ne sont pas valides pour valider le devis:
                         <span v-for="value in badValues"> - {{ value }}</span>
@@ -360,7 +362,7 @@ watch(() => [store.devisInfos.date, store.devisInfos.duration], () => {
                             <input v-model="store.clientInfos.phone"/>
                         </label>
                     </div>
-                    <p class="note">note: Seuls le nom et l'adresse apparaissent sur le document, l'evenement sert à retrouver l'adresse plus facilement</p>
+                    <p class="note">Seuls le nom et l'adresse apparaissent sur le document, l'evenement sert à retrouver l'adresse plus facilement</p>
                 </section>
                 <section class="base">
                     <h2>Utilitaires</h2>
@@ -466,30 +468,39 @@ watch(() => [store.devisInfos.date, store.devisInfos.duration], () => {
                 </section>
             </div>
         </div>
-            <p class="note">note: Les devis ne comptent pas comme sortie de materiel, facturez le devis pour créer une sortie</p>
-            <section class="total">
-                <h2><span>Prix total : {{ Number(finalCost).toFixed(2) }} €</span></h2>
-            </section>
-
-            <section class="submit">
-                <div class="buttons">
-                    <button @click="endModif" class="new">
-                        Sauvegarder
-                    </button>
-                    <button @click="cancelDevis" class="cancel">
-                        Annuler
-                    </button>
-                </div>
-                <p v-if="badValues.length > 0" class="error">
-                    Les champs suivants ne sont pas valides pour valider le devis:
-                    <span v-for="value in badValues"> - {{ value }}</span>
-                </p>
-                <p v-if="saveMassage" :class="saveMassage.result">{{ saveMassage.message }}</p>
-            </section>
+        <section class="total">
+            <h2><span>Prix total : {{ Number(finalCost).toFixed(2) }} €</span></h2>
+        </section>     
+    </div>
+    <section class="submit">
+        <div class="buttons">
+            <button @click="endModif" class="new">
+                Sauvegarder
+            </button>
+            <button @click="cancelDevis" class="cancel">
+                Annuler
+            </button>
+        </div>
+        <p v-if="badValues.length > 0" class="error">
+            Les champs suivants ne sont pas valides pour valider le devis:
+            <span v-for="value in badValues"> - {{ value }}</span>
+        </p>
+        <p v-if="saveMassage" :class="saveMassage.result">{{ saveMassage.message }}</p>
+    </section>
     </div>
 </template>
 
 <style scoped>
+.all {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+
 .content {
     align-items: center;
     width: 100%;
@@ -598,6 +609,7 @@ h3 {
     opacity: 80%;
     font-size: 0.85rem;
     margin: 0;
+    margin-top: 5px;
 }
 
 .line {
@@ -748,17 +760,19 @@ li:not(.head):nth-child(even) {
 }
 
 .submit {
-    width: 100%;
     position: sticky;
-    bottom: -0.5rem;
+    bottom: 0;
     margin: 0;
+    padding: 1rem;
+    width: 100%;
     display: flex;
-    flex-direction: column;
     align-items: center;
+    justify-content: center;
     border-bottom: 0;
-    border: 1px solid var(--border-accent);
-    border-bottom: 0;
+    gap: 1rem;
+    border-top: 1px solid var(--border-accent);
     background-color: var(--background);
+    border-radius: 0;
 }
 
 .buttons {

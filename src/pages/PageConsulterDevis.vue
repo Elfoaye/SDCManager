@@ -149,7 +149,7 @@ async function generatePdfBlob() {
             windowWidth: 794,
             windowHeight: 1123 
         },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        jsPDF: { unit: 'mm', format: [210, 297], orientation: 'portrait' }
     };
 
     return await html2pdf().set(opt).from(element).toPdf().get('pdf');
@@ -246,7 +246,7 @@ watch(() => document, (newDoc) => {
                         {{ confirmMessage }} 
                         <span>{{ store.devisInfos.name }}</span> ?
                     </p>
-                    <p v-if="confirm === 'facture'">(Créer une facture applique la sortie du materiel sélectionné)</p>
+                    <p v-if="confirm === 'facture'">(Les factures sont ajoutées à l'historique de sortie du materiel sélectionné et mettent à jour la rentabilité)</p>
                     <p v-if="confirm === 'delete' && isAdmin">(Cette action est irréversible)</p>
 
                     <div class="confirm-buttons">
@@ -298,6 +298,8 @@ watch(() => document, (newDoc) => {
     flex-direction: column;
     align-items: center;
     width: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 .confirm {
@@ -362,7 +364,7 @@ h2 {
 
 .submit {
     position: sticky;
-    bottom: -0.5rem;
+    bottom: 0;
     margin: 0;
     padding: 1rem;
     width: 100%;
@@ -371,9 +373,8 @@ h2 {
     justify-content: center;
     border-bottom: 0;
     gap: 1rem;
-    border: 1px solid var(--border-accent);
+    border-top: 1px solid var(--border-accent);
     background-color: var(--background);
-    
 }
 
 .buttons {

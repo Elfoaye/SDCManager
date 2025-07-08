@@ -204,8 +204,8 @@ ul {
 }
 
 li {
-    width: 20vw;
-    max-width: 95%;
+    width: 100%;
+    max-width: 100%;
     flex: 1;
     padding: 0.5rem;
     border: 1px solid var(--border);
@@ -223,7 +223,7 @@ li:hover {
 }
 
 li h3 {
- margin: 0;
+    margin: 0;
 }
 
 li p {

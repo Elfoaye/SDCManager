@@ -164,7 +164,6 @@ onMounted(async () => {
     flex: 1;
     display: flex;
     justify-content: center;
-    padding: 0.5rem;
     overflow-y: auto;
     overflow-x: hidden;
     max-width: 100%;
