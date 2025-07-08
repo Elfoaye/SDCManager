@@ -158,7 +158,12 @@ section {
 }
 
 section.quick-lists {
-    flex-wrap: nowrap;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    width: fit-content;
+    max-width: 90%;
+    align-self: center;
+    column-gap: 2rem;
 }
 
 button {
@@ -174,6 +179,7 @@ button {
 
 .list {
     justify-self: center;
+    width: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -181,7 +187,7 @@ button {
     max-height: 40vh;
     overflow-x: hidden;
     gap: 1vh;
-    padding: 1rem;
+    padding: 0.5rem;
     border: 1px solid var(--border);
     border-radius: 0.5rem;
     background-color: var(--background-alt);
@@ -198,19 +204,19 @@ ul {
     list-style-type: none;
     margin: 0;
     padding: 0;
-    width: fit-content;
-    max-width: 100%;
+    width: 100%;
     text-align: center;
+    
 }
 
 li {
     width: 100%;
-    max-width: 100%;
     flex: 1;
     padding: 0.5rem;
     border: 1px solid var(--border);
     border-radius: 0.5rem;
     margin-bottom: 0.5rem;
+    box-sizing: border-box;
 
     transition: all 0.2s;
 }
