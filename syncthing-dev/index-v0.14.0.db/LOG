@@ -1,0 +1,19 @@
+=============== Jul 9, 2025 (CEST) ===============
+09:00:53.062224 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+09:00:53.165223 db@open opening
+09:00:53.166327 version@stat F·[] S·0B[] Sc·[]
+09:00:53.215188 db@janitor F·2 G·0
+09:00:53.215188 db@open done T·49.9654ms
+09:00:53.791981 memdb@flush N·19 S·622B
+09:00:53.857316 memdb@flush created L0@3 N·19 S·338B "\ndb..ion,v19":"\nla..eck,v1"
+09:00:53.857458 version@stat F·[1] S·338B[338B] Sc·[0.25]
+09:00:53.922755 memdb@flush committed F·1 T·130.2543ms
+09:00:53.924721 journal@remove removed @1
+09:00:53.924873 table@compaction range L-1 "":""
+09:00:53.925114 table@compaction L0·1 -> L1·0 S·338B Q·19
+09:00:53.982051 table@build created L1@4 N·4 S·211B "\ndb..ion,v19":"\nla..eck,v1"
+09:00:53.982193 version@stat F·[0 1] S·211B[0B 211B] Sc·[0.00 0.00]
+09:00:54.041198 table@compaction committed F~ S-127B Ke·0 D·15 T·114.9233ms
+09:00:54.041272 table@remove removed @3
+09:03:11.138639 db@close closing
+09:03:11.138639 db@close done T·0s

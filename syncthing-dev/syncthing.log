@@ -1,0 +1,42 @@
+[start] 2025/07/09 09:00:52 INFO: syncthing v1.30.0 "Gold Grasshopper" (go1.24.4 windows-amd64) builder@github.syncthing.net 2025-06-20 09:17:23 UTC
+[start] 2025/07/09 09:00:52 INFO: Generating ECDSA key and certificate for syncthing...
+[start] 2025/07/09 09:00:52 INFO: Default folder created and/or linked to new config
+[start] 2025/07/09 09:00:52 INFO: Default config saved. Edit D:\Cours\Stage\SDCManager\syncthing-dev\config.xml to taste (with Syncthing stopped) or use the GUI
+[start] 2025/07/09 09:00:52 INFO: Archiving a copy of old config file format at: D:\Cours\Stage\SDCManager\syncthing-dev\config.xml.v0
+[VLJRS] 2025/07/09 09:00:53 INFO: My ID: VLJRSZX-2QCS2FY-ZWBHCDL-MLXFLJC-5FTLGDF-64BLL6F-SVOJ2H6-D6VAIQO
+[VLJRS] 2025/07/09 09:00:53 INFO: Hashing performance is 1204.05 MB/s
+[VLJRS] 2025/07/09 09:00:53 INFO: Running database migration 14...
+[VLJRS] 2025/07/09 09:00:53 INFO: Running database migration 16...
+[VLJRS] 2025/07/09 09:00:53 INFO: Running database migration 17...
+[VLJRS] 2025/07/09 09:00:53 INFO: Running database migration 19...
+[VLJRS] 2025/07/09 09:00:53 INFO: Running database migration 20...
+[VLJRS] 2025/07/09 09:00:53 INFO: Compacting database after migration...
+[VLJRS] 2025/07/09 09:00:54 INFO: Overall send rate is unlimited, receive rate is unlimited
+[VLJRS] 2025/07/09 09:00:54 INFO: No stored folder metadata for "default"; recalculating
+[VLJRS] 2025/07/09 09:00:54 INFO: Relay listener (dynamic+https://relays.syncthing.net/endpoint) starting
+[VLJRS] 2025/07/09 09:00:54 INFO: Using discovery mechanism: global discovery server https://discovery-lookup.syncthing.net/v2/?noannounce
+[VLJRS] 2025/07/09 09:00:54 INFO: Using discovery mechanism: global discovery server https://discovery-announce-v4.syncthing.net/v2/?nolookup
+[VLJRS] 2025/07/09 09:00:54 INFO: Using discovery mechanism: global discovery server https://discovery-announce-v6.syncthing.net/v2/?nolookup
+[VLJRS] 2025/07/09 09:00:54 INFO: Using discovery mechanism: IPv4 local broadcast discovery on port 21027
+[VLJRS] 2025/07/09 09:00:54 INFO: Using discovery mechanism: IPv6 local multicast discovery on address [ff12::8384]:21027
+[VLJRS] 2025/07/09 09:00:54 INFO: Loading HTTPS certificate: open D:\Cours\Stage\SDCManager\syncthing-dev\https-cert.pem: The system cannot find the file specified.
+[VLJRS] 2025/07/09 09:00:54 INFO: Creating new HTTPS certificate
+[VLJRS] 2025/07/09 09:00:54 INFO: Ready to synchronize "Default Folder" (default) (sendreceive)
+[VLJRS] 2025/07/09 09:00:54 INFO: Completed initial scan of sendreceive folder "Default Folder" (default)
+[VLJRS] 2025/07/09 09:00:54 INFO: GUI and API listening on 127.0.0.1:8384
+[VLJRS] 2025/07/09 09:00:54 INFO: Access the GUI via the following URL: http://127.0.0.1:8384/
+[VLJRS] 2025/07/09 09:00:54 INFO: My name is "DESKTOP-O09A6RJ"
+[VLJRS] 2025/07/09 09:00:54 INFO: TCP listener ([::]:22000) starting
+[VLJRS] 2025/07/09 09:00:54 INFO: QUIC listener ([::]:22000) starting
+[VLJRS] 2025/07/09 09:00:54 INFO: Support for IPv6 UPnP is currently not available on Windows: listen udp6 [ff05::c]:0: setsockopt: not supported by windows
+[VLJRS] 2025/07/09 09:01:02 INFO: Sent usage report (version 3)
+[VLJRS] 2025/07/09 09:01:04 INFO: Joined relay relay://193.104.33.56:22067
+[VLJRS] 2025/07/09 09:01:14 INFO: New external port opened: external TCP address(es) [86.207.132.121:50896] to local address [::]:22000.
+[VLJRS] 2025/07/09 09:01:14 INFO: New external port opened: external TCP address(es) [86.207.132.121:33024] to local address [::]:22000.
+[VLJRS] 2025/07/09 09:01:14 INFO: Detected 2 NAT services
+[VLJRS] 2025/07/09 09:01:32 INFO: quic://0.0.0.0:22000 detected NAT type: Port restricted NAT
+[VLJRS] 2025/07/09 09:01:32 INFO: quic://0.0.0.0:22000 resolved external address quic://86.207.132.121:22000 (via stun.counterpath.com:3478)
+[VLJRS] 2025/07/09 09:03:10 INFO: QUIC listener ([::]:22000) shutting down
+[VLJRS] 2025/07/09 09:03:10 INFO: Relay listener (dynamic+https://relays.syncthing.net/endpoint) shutting down
+[VLJRS] 2025/07/09 09:03:11 INFO: TCP listener ([::]:22000) shutting down
+[VLJRS] 2025/07/09 09:03:11 INFO: Exiting
