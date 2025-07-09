@@ -35,7 +35,10 @@
       "icons/icon.ico"
     ],
     "resources": [
-      "default_data/*"
+      "default_data/*",
+      "bin/windows/syncthing.exe",
+      "bin/linux/syncthing",
+      "bin/macos/syncthing"
     ]
   }
 }

@@ -30,5 +30,6 @@ chrono = "0.4.41"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-notification = "2"
+ureq = "3.0.12"
 
 

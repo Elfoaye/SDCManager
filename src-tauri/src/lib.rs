@@ -3,6 +3,7 @@ mod database_doc;
 mod database_items;
 mod files_setup;
 mod settings;
+mod sync;
 use admin_auth::{is_admin, log_in_admin, log_out_admin, update_admin_password};
 use database_doc::{
     delete_devis, delete_facture, duplicate_devis, facture_from_devis, get_client_infos,
