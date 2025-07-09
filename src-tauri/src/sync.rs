@@ -46,6 +46,8 @@ pub fn launch_syncthing(handle: &tauri::AppHandle) -> Result<(), String> {
 
     *SYNCTHING_PROCESS.lock().unwrap() = Some(child);
 
+    println!("Syncthing lancé");
+
     Ok(())
 }
 
@@ -73,16 +75,38 @@ pub fn stop_syncthing() {
 }
 
 async fn wait_for_syncthing_api() -> Result<(), String> {
-    for _ in 0..30 {
-        match ureq::get(&format!("{}/rest/system/ping", API_URL)).call() {
-            Ok(resp) if resp.status() == 200 => return Ok(()),
-            _ => sleep(Duration::from_secs(1)).await,
+    println!("Début de l'attente de l'api...");
+    for i in 0..30 {
+        // match ureq::get(&format!("{}/rest/system/ping", API_URL))
+        //     .header("X-API-Key", API_KEY)
+        //     .call() {
+        //     Ok(resp) if resp.status() == 200 => return Ok(()),
+        //     _ => sleep(Duration::from_secs(1)).await,
+        // }
+        let result = ureq::get(&format!("{}/rest/system/ping", API_URL))
+        .header("X-API-Key", API_KEY)
+        .call();
+
+        match result {
+            Ok(resp) if resp.status() == 200 => {
+                println!("[{}] Syncthing API disponible (code: 200)", i);
+                return Ok(());
+            },
+            Ok(resp) => {
+                println!("[{}] Réponse Syncthing : code {}", i, resp.status());
+            },
+            Err(e) => {
+                println!("[{}] Erreur Syncthing : {}", i, e);
+            }
         }
+
+        sleep(Duration::from_secs(1)).await;
     }
     Err("Syncthing API non disponible après 30 secondes".into())
 }
 
 fn restart_syncthing() -> Result<(), String> {
+    println!("Redémarage de syncthing");
     let url = format!("{}/rest/system/restart", API_URL);
     let response = post(&url)
         .header("X-API-Key", API_KEY)
@@ -132,11 +156,12 @@ fn configure_syncthing_folder(path: &Path, folder_id: &str) -> Result<(), String
         .header("X-API-Key", API_KEY)
         .send_json(&config)
         .map_err(|e| format!("Erreur mise à jour config Syncthing : {}", e))?;
-
+    println!("Syncthing configuré !");
     Ok(())
 }
 
 fn is_folder_configured(folder_id: &str) -> Result<bool, String> {
+    println!("Verification de la configuration : ");
     let url = format!("{}/rest/config", API_URL);
     let mut response = get(&url)
         .header("X-API-Key", API_KEY)
@@ -149,21 +174,26 @@ fn is_folder_configured(folder_id: &str) -> Result<bool, String> {
         .map_err(|e| format!("Erreur parsing config JSON: {}", e))?;
 
     if let Some(folders) = config.get("folders").and_then(|f| f.as_array()) {
+        println!("Configuration Ok");
         Ok(folders.iter().any(|f| f.get("id") == Some(&serde_json::Value::String(folder_id.to_string()))))
     } else {
+        println!("Configuration à faire");
         Ok(false)
     }
 }
 
 #[tauri::command]
 pub async fn setup_syncthing_sync(handle: tauri::AppHandle) -> Result<(), String> {
+    println!("Début du setup de syncthing...");
     let data_dir = get_or_create_data_dir(&handle)?;
 
     launch_syncthing(&handle)?;
 
     wait_for_syncthing_api().await?;
+    println!("Fin de l'attente de l'api");
 
     if !is_folder_configured("sdc-data")? {
+        println!("Configuation de syncthing...");
         configure_syncthing_folder(&data_dir, "sdc-data")?;
         restart_syncthing()?;
     }
