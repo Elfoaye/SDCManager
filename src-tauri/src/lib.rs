@@ -13,6 +13,9 @@ use database_items::{
     add_item, delete_item, get_item_data, get_item_dispo, get_materiel_data, update_item, get_factures_from_item,
 };
 use settings::{get_loc_formulas, get_materiel_types, set_loc_formulas, set_materiel_types};
+use sync::{setup_syncthing_sync, stop_syncthing};
+
+use tauri::WindowEvent;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -47,8 +50,14 @@ pub fn run() {
             update_admin_password,
             log_in_admin,
             log_out_admin,
-            is_admin
+            is_admin,
+            setup_syncthing_sync
         ])
+        .on_window_event(| _window, event| {
+            if let WindowEvent::CloseRequested { .. } = event {
+                stop_syncthing();
+            }
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

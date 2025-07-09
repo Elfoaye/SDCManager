@@ -75,8 +75,6 @@ listen('log_in_admin', (event) => {
 onMounted(async () => {
     const appWindow = new Window('main');
 
-    
-
     appWindow.onCloseRequested(async (event) => {
         const confirmOnClose = localStorage.getItem('confirmOnClose') !== 'false';
         
@@ -95,6 +93,12 @@ onMounted(async () => {
             await appWindow.close();
         }
     });
+});
+
+onMounted(() => {
+    invoke("setup_syncthing_sync")
+    .then(() => console.log("Syncthing initialisé"))
+    .catch((e) => console.error("Erreur Syncthing:", e));
 });
 </script>
 
