@@ -79,6 +79,7 @@ onMounted(async () => {
         const confirmOnClose = localStorage.getItem('confirmOnClose') !== 'false';
         
         if(!confirmOnClose || closeFlag) {
+            await invoke('stop_syncthing');
             return;
         }
         event.preventDefault();
@@ -90,6 +91,7 @@ onMounted(async () => {
 
         if (shouldClose) {
             closeFlag = true;
+            await invoke('stop_syncthing');
             await appWindow.close();
         }
     });

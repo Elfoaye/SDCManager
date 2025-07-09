@@ -57,9 +57,9 @@ fn kill_process_tree(pid: u32) -> std::io::Result<()> {
     Ok(())
 }
 
+#[tauri::command]
 pub fn stop_syncthing() {
     if let Some(mut child) = SYNCTHING_PROCESS.lock().unwrap().take() {
-        println!("Killing syncthing");
         #[cfg(windows)]
         {
             let _ = kill_process_tree(child.id());

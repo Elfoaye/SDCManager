@@ -15,8 +15,6 @@ use database_items::{
 use settings::{get_loc_formulas, get_materiel_types, set_loc_formulas, set_materiel_types};
 use sync::{setup_syncthing_sync, stop_syncthing};
 
-use tauri::WindowEvent;
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -51,13 +49,9 @@ pub fn run() {
             log_in_admin,
             log_out_admin,
             is_admin,
-            setup_syncthing_sync
+            setup_syncthing_sync,
+            stop_syncthing
         ])
-        .on_window_event(| _window, event| {
-            if let WindowEvent::CloseRequested { .. } = event {
-                stop_syncthing();
-            }
-        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
