@@ -3,7 +3,7 @@ use tauri::Manager;
 use std::fs;
 use std::path::Path;
 use std::process::{Child, Command, Stdio};
-use tokio::time::{sleep, Duration};
+use tokio::time::{sleep, Duration, Instant};
 use ureq::{get, post};
 use serde_json::json;
 use std::sync::Mutex;
@@ -14,7 +14,6 @@ static SYNCTHING_PROCESS: Lazy<Mutex<Option<Child>>> = Lazy::new(|| Mutex::new(N
 const API_URL: &str = "http://localhost:8384";
 
 fn get_api_key(path: &Path) -> Result<String, String> {
-
     let content = fs::read_to_string(&path).map_err(|e| e.to_string())?;
     let doc = roxmltree::Document::parse(&content).map_err(|e| e.to_string())?;
 
@@ -31,15 +30,17 @@ fn get_api_key(path: &Path) -> Result<String, String> {
 }
 
 async fn wait_for_config_file(path: &Path, timeout_secs: u64) -> Result<(), String> {
-    let mut waited = 0;
-
-    while waited < timeout_secs {
+    println!("Début de l'attente du fichier de config...");
+    let start = Instant::now();
+    let deadline = start + Duration::from_secs(timeout_secs);
+    
+    while Instant::now() < deadline {
         if path.exists() {
+            let elapsed = Instant::now() - start;
+            println!("Fichier de config trouvé après {:.2?}", elapsed);
             return Ok(());
         }
-
-        sleep(Duration::from_secs(1)).await;
-        waited += 1;
+        sleep(Duration::from_millis(100)).await; // ↩️ beaucoup plus réactif
     }
 
     Err(format!("Fichier {:?} non trouvé après {} secondes", path, timeout_secs))
@@ -77,8 +78,6 @@ pub fn launch_syncthing(handle: &tauri::AppHandle) -> Result<(), String> {
 
     *SYNCTHING_PROCESS.lock().unwrap() = Some(child);
 
-    println!("Syncthing lancé");
-
     Ok(())
 }
 
@@ -107,37 +106,34 @@ pub fn stop_syncthing() {
 
 async fn wait_for_syncthing_api(api_key: &str) -> Result<(), String> {
     println!("Début de l'attente de l'api...");
-    for i in 0..30 {
-        // match ureq::get(&format!("{}/rest/system/ping", API_URL))
-        //     .header("X-API-Key", API_KEY)
-        //     .call() {
-        //     Ok(resp) if resp.status() == 200 => return Ok(()),
-        //     _ => sleep(Duration::from_secs(1)).await,
-        // }
-        let result = ureq::get(&format!("{}/rest/system/ping", API_URL))
-        .header("X-API-Key", api_key)
-        .call();
+    let start = Instant::now();
+    let deadline = start + Duration::from_secs(10);
 
-        match result {
+    while Instant::now() < deadline {
+        let response = ureq::get(&format!("{}/rest/system/ping", API_URL))
+            .header("X-API-Key", api_key)
+            .call();
+
+        match response {
             Ok(resp) if resp.status() == 200 => {
-                println!("[{}] Syncthing API disponible (code: 200)", i);
+                let elapsed = Instant::now() - start;
+                println!("Api disponible après {:.2?}", elapsed);
                 return Ok(());
-            },
-            Ok(resp) => {
-                println!("[{}] Réponse Syncthing : code {}", i, resp.status());
-            },
-            Err(e) => {
-                println!("[{}] Erreur Syncthing : {}", i, e);
+            }
+            Err(err) => {
+                println!("Ping Syncthing échoué : {:?}", err);
+            }
+            _ => {
+                println!("Ping Syncthing sans succès...");
             }
         }
 
-        sleep(Duration::from_secs(1)).await;
+        sleep(Duration::from_millis(100)).await;
     }
-    Err("Syncthing API non disponible après 30 secondes".into())
+    Err("Syncthing API non disponible après 10 secondes".into())
 }
 
 fn restart_syncthing(api_key: &str) -> Result<(), String> {
-    println!("Redémarage de syncthing");
     let url = format!("{}/rest/system/restart", API_URL);
     let response = post(&url)
         .header("X-API-Key", api_key)
@@ -150,6 +146,8 @@ fn restart_syncthing(api_key: &str) -> Result<(), String> {
 }
 
 fn get_local_device_id(api_key: &str) -> Result<String, String> {
+    let start = Instant::now();
+
     let url = format!("{}/rest/system/status", API_URL);
     let mut response = get(&url)
         .header("X-API-Key", api_key)
@@ -165,10 +163,12 @@ fn get_local_device_id(api_key: &str) -> Result<String, String> {
         .as_str()
         .ok_or("Clé 'myID' manquante ou invalide")?;
 
+    println!("Récupération ID Syncthing en {:.2?}", start.elapsed());
+
     Ok(my_id.to_string())
 }
 
-fn configure_syncthing_folder(path: &Path, folder_id: &str, api_key: &str) -> Result<(), String> {
+fn configure_syncthing_folder(path: &Path, folder_id: &str, api_key: &str, my_id: &str) -> Result<(), String> {
     let url = format!("{}/rest/config", API_URL);
 
     let mut response = get(&url)
@@ -180,8 +180,6 @@ fn configure_syncthing_folder(path: &Path, folder_id: &str, api_key: &str) -> Re
         .body_mut()
         .read_json()
         .map_err(|e| format!("Erreur parsing config JSON: {}", e))?;
-
-    let my_id = get_local_device_id(api_key)?;
 
     let folder_obj = json!({
         "id": folder_id,
@@ -222,12 +220,10 @@ fn configure_syncthing_folder(path: &Path, folder_id: &str, api_key: &str) -> Re
         .header("X-API-Key", api_key)
         .send_json(&config)
         .map_err(|e| format!("Erreur mise à jour config Syncthing : {}", e))?;
-    println!("Syncthing configuré !");
     Ok(())
 }
 
 fn is_folder_configured(folder_id: &str, api_key: &str) -> Result<bool, String> {
-    println!("Verification de la configuration : ");
     let url = format!("{}/rest/config", API_URL);
     let mut response = get(&url)
         .header("X-API-Key", api_key)
@@ -240,17 +236,30 @@ fn is_folder_configured(folder_id: &str, api_key: &str) -> Result<bool, String> 
         .map_err(|e| format!("Erreur parsing config JSON: {}", e))?;
 
     if let Some(folders) = config.get("folders").and_then(|f| f.as_array()) {
-        println!("Configuration Ok");
         Ok(folders.iter().any(|f| f.get("id") == Some(&serde_json::Value::String(folder_id.to_string()))))
     } else {
-        println!("Configuration à faire");
         Ok(false)
     }
 }
 
 #[tauri::command]
-pub async fn setup_syncthing_sync(handle: tauri::AppHandle) -> Result<(), String> {
-    println!("Début du setup de syncthing...");
+pub async fn get_user_id(handle: tauri::AppHandle) -> Result<String, String> {
+    let config_path = handle
+        .path()
+        .resolve("syncthing_config", tauri::path::BaseDirectory::AppData)
+        .map_err(|e| e.to_string())?
+        .join("config.xml");
+
+    wait_for_config_file(&config_path, 10).await?;
+    let api_key = get_api_key(&config_path)?;
+    println!("Api key trouvée");
+
+    let id = get_local_device_id(&api_key).map_err(|e| format!("Erreur lors de l'obtetion de l'id local: {}", e))?;
+    Ok(id)
+}
+
+#[tauri::command]
+pub async fn setup_syncthing_sync(handle: tauri::AppHandle) -> Result<String, String> {
     let data_dir = get_or_create_data_dir(&handle)?;
 
     launch_syncthing(&handle)?;
@@ -265,14 +274,13 @@ pub async fn setup_syncthing_sync(handle: tauri::AppHandle) -> Result<(), String
     let api_key = get_api_key(&config_path)?;
 
     wait_for_syncthing_api(&api_key).await?;
-    println!("Fin de l'attente de l'api");
+
+    let id = get_local_device_id(&api_key).map_err(|e| format!("Erreur lors de l'obtetion de l'id local: {}", e))?;
 
     if !is_folder_configured("sdc-data", &api_key)? {
-        println!("Configuation de syncthing...");
-        configure_syncthing_folder(&data_dir, "sdc-data", &api_key)?;
+        configure_syncthing_folder(&data_dir, "sdc-data", &api_key, &id)?;
         restart_syncthing(&api_key)?;
     }
 
-    println!("Configuration syncthing terminée !");
-    Ok(())
+    Ok(id)
 }

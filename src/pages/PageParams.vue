@@ -1,7 +1,10 @@
 <script setup>
+import { invoke } from '@tauri-apps/api/core';
 import { useBreadcrumb } from '../composables/breadcrumb';
 import { useTheme } from '../composables/useTheme'
-import { ref, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
+
+const { syncID } = defineProps(['syncID']);
 
 const { setBreadcrumb } = useBreadcrumb();
 setBreadcrumb([
@@ -11,8 +14,18 @@ setBreadcrumb([
 
 const { theme, activeTheme, setTheme } = useTheme();
 
+const syncApiKey = ref('');
+
 const confirmOnClose = ref(true);
 const fontSize = ref('16');
+
+const displayedSyncID = computed(() => {
+  return syncID && syncID !== ''
+    ? syncID
+    : syncApiKey && syncApiKey !== ''
+      ? syncApiKey
+      : 'Indisponible, essayez de recharger la page';
+});
 
 function toggleTheme() {
     const newTheme = activeTheme.value === 'light' ? 'dark' : 'light';
@@ -25,25 +38,27 @@ function toggleSystem() {
 }
 
 onMounted(() => {
-  const stored = localStorage.getItem('confirmOnClose');
-  confirmOnClose.value = stored !== null ? stored === 'true' : true;
-});
+    const confirm = localStorage.getItem('confirmOnClose');
+    confirmOnClose.value = confirm !== null ? confirm === 'true' : true;
 
-onMounted(() => {
-  const stored = localStorage.getItem('fontSize');
-  if (stored) {
-    fontSize.value = stored;
-    document.documentElement.style.fontSize = `${stored}px`;
-  }
+    const storedFont = localStorage.getItem('fontSize');
+    if (storedFont) {
+        fontSize.value = storedFont;
+        document.documentElement.style.fontSize = `${storedFont}px`;
+    }
+
+    if(!syncID) { 
+        invoke('get_user_id').then((id) => {syncApiKey.value = id});
+    }
 });
 
 watch(confirmOnClose, (newVal) => {
-  localStorage.setItem('confirmOnClose', newVal.toString());
+    localStorage.setItem('confirmOnClose', newVal.toString());
 });
 
 watch(fontSize, (newSize) => {
-  localStorage.setItem('fontSize', newSize);
-  document.documentElement.style.fontSize = `${newSize}px`;
+    localStorage.setItem('fontSize', newSize);
+    document.documentElement.style.fontSize = `${newSize}px`;
 });
 </script>
 
@@ -72,6 +87,10 @@ watch(fontSize, (newSize) => {
                 <h2>Interactions</h2>
                 <label><input type="checkbox" v-model="confirmOnClose" /> Confirmer avant de quitter l’application</label>
             </section>
+            <section>
+                <h2>Synchronisation</h2>
+                <p>ID : {{ displayedSyncID }}</p>
+            </section>
         </div>
     </div>
 </template>
@@ -90,6 +109,14 @@ h2 {
 label {
     width: fit-content;
     font-size: 1rem;
+}
+
+input {
+    accent-color: var(--accent);
+}
+
+input:hover {
+    accent-color: var(--accent-hover);
 }
 
 label:hover, input:hover {

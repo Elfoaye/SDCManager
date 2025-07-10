@@ -26,6 +26,8 @@ const lastPage = ref(null);
 const redirect = ref(null);
 const currentDocument = ref({id: 0, facture: false});
 
+const syncthingUserID = ref('');
+
 let closeFlag = false;
 
 const adminPages = ['modif','admin'];
@@ -99,7 +101,10 @@ onMounted(async () => {
 
 onMounted(() => {
     invoke("setup_syncthing_sync")
-    .then(() => console.log("Syncthing initialisé"))
+    .then((id) => { 
+        syncthingUserID.value = id;
+        console.log("Config terminée pour l'id ", syncthingUserID.value);
+    })
     .catch((e) => console.error("Erreur Syncthing:", e));
 });
 </script>
@@ -140,7 +145,10 @@ onMounted(() => {
                     :document="currentDocument"
                     :setDocument="setDocument"
                 />
-                <PageParams v-else-if="currentPage === 'params'" />
+                <PageParams 
+                    v-else-if="currentPage === 'params'" 
+                    :syncID="syncthingUserID"
+                />
                 <PageAdmin v-else-if="currentPage === 'admin'" />
                 <PageAccueil 
                     v-else
