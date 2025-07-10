@@ -1,7 +1,7 @@
 use crate::files_setup::get_or_create_data_dir;
 use tauri::Manager;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use tokio::time::{sleep, Duration, Instant};
 use ureq::{get, post};
@@ -30,7 +30,6 @@ fn get_api_key(path: &Path) -> Result<String, String> {
 }
 
 async fn wait_for_config_file(path: &Path, timeout_secs: u64) -> Result<(), String> {
-    println!("Début de l'attente du fichier de config...");
     let start = Instant::now();
     let deadline = start + Duration::from_secs(timeout_secs);
     
@@ -105,7 +104,6 @@ pub fn stop_syncthing() {
 }
 
 async fn wait_for_syncthing_api(api_key: &str) -> Result<(), String> {
-    println!("Début de l'attente de l'api...");
     let start = Instant::now();
     let deadline = start + Duration::from_secs(10);
 
@@ -242,20 +240,103 @@ fn is_folder_configured(folder_id: &str, api_key: &str) -> Result<bool, String> 
     }
 }
 
-#[tauri::command]
-pub async fn get_user_id(handle: tauri::AppHandle) -> Result<String, String> {
-    let config_path = handle
+fn get_config_path(handle: &tauri::AppHandle) -> Result<PathBuf, String> {
+    Ok(handle
         .path()
         .resolve("syncthing_config", tauri::path::BaseDirectory::AppData)
         .map_err(|e| e.to_string())?
-        .join("config.xml");
+        .join("config.xml"))
+}
+
+#[tauri::command]
+pub async fn get_user_id(handle: tauri::AppHandle) -> Result<String, String> {
+    let config_path = get_config_path(&handle).map_err(|e| e.to_string())?;
 
     wait_for_config_file(&config_path, 10).await?;
     let api_key = get_api_key(&config_path)?;
-    println!("Api key trouvée");
 
     let id = get_local_device_id(&api_key).map_err(|e| format!("Erreur lors de l'obtetion de l'id local: {}", e))?;
     Ok(id)
+}
+
+#[tauri::command]
+pub async fn add_user_to_sync_to(id: String, name: String, handle: tauri::AppHandle) -> Result<(), String> {
+    let config_path = get_config_path(&handle).map_err(|e| e.to_string())?;
+
+    wait_for_config_file(&config_path, 10).await?;
+    let api_key = get_api_key(&config_path)?;
+
+    let url = format!("{}/rest/config", API_URL);
+    let mut response = ureq::get(&url)
+        .header("X-API-Key", &api_key)
+        .call()
+        .map_err(|e| format!("Erreur lecture config : {}", e))?;
+
+    let mut config: serde_json::Value = response
+        .body_mut()
+        .read_json()
+        .map_err(|e| format!("Erreur parsing JSON : {}", e))?;
+
+    let devices = config["devices"]
+        .as_array_mut()
+        .ok_or("Champ 'devices' introuvable")?;
+
+    let is_first_device = devices.is_empty();
+
+    if !devices.iter().any(|d| d["deviceID"] == id) {
+        devices.push(json!({
+            "deviceID": id,
+            "name": name,
+            "addresses": ["dynamic"],
+            "compression": "metadata",
+            "introducer": false,
+            "skipIntroductionRemovals": false,
+            "introducedBy": "",
+            "paused": false,
+            "allowedNetworks": [],
+            "autoAcceptFolders": false,
+            "maxSendKbps": 0,
+            "maxRecvKbps": 0,
+            "maxRequestKiB": 0,
+            "untrusted": false,
+            "remoteGUIPort": 0
+        }));
+    }
+
+    let folders = config["folders"]
+        .as_array_mut()
+        .ok_or("Champ 'folders' introuvable")?;
+
+    for folder in folders {
+        if folder["id"] == "sdc-data" {
+            let folder_devices = folder["devices"]
+                .as_array_mut()
+                .ok_or("Champ 'devices' du dossier invalide")?;
+            
+            if !folder_devices.iter().any(|d| d["deviceID"] == id) {
+                folder_devices.push(json!({ "deviceID": id }));
+            }
+        }
+    }
+
+    // Appliquer la nouvelle config
+    ureq::post(&url)
+        .header("X-API-Key", &api_key)
+        .send_json(&config)
+        .map_err(|e| format!("Erreur mise à jour config : {}", e))?;
+
+    // Supprimer les données locales SI c'est le premier device
+    if is_first_device {
+        let data_dir = get_or_create_data_dir(&handle)?;
+        if data_dir.exists() {
+            std::fs::remove_dir_all(&data_dir)
+                .map_err(|e| format!("Erreur suppression du dossier local : {}", e))?;
+        }
+    }
+
+    restart_syncthing(&api_key)?;
+
+    Ok(())
 }
 
 #[tauri::command]
@@ -264,11 +345,7 @@ pub async fn setup_syncthing_sync(handle: tauri::AppHandle) -> Result<String, St
 
     launch_syncthing(&handle)?;
 
-    let config_path = handle
-        .path()
-        .resolve("syncthing_config", tauri::path::BaseDirectory::AppData)
-        .map_err(|e| e.to_string())?
-        .join("config.xml");
+    let config_path = get_config_path(&handle).map_err(|e| e.to_string())?;
 
     wait_for_config_file(&config_path, 10).await?;
     let api_key = get_api_key(&config_path)?;

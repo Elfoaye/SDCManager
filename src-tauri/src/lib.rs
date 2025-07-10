@@ -13,7 +13,7 @@ use database_items::{
     add_item, delete_item, get_item_data, get_item_dispo, get_materiel_data, update_item, get_factures_from_item,
 };
 use settings::{get_loc_formulas, get_materiel_types, set_loc_formulas, set_materiel_types};
-use sync::{setup_syncthing_sync, stop_syncthing, get_user_id};
+use sync::{setup_syncthing_sync, stop_syncthing, get_user_id, add_user_to_sync_to};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -51,7 +51,8 @@ pub fn run() {
             is_admin,
             setup_syncthing_sync,
             stop_syncthing,
-            get_user_id
+            get_user_id,
+            add_user_to_sync_to
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

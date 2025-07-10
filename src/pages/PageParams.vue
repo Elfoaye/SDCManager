@@ -16,6 +16,10 @@ const { theme, activeTheme, setTheme } = useTheme();
 
 const syncApiKey = ref('');
 
+const tempPeerSyncName = ref('');
+const tempPeerSyncID = ref('');
+const addSyncMessage = ref({ class: "", message: "" });
+
 const confirmOnClose = ref(true);
 const fontSize = ref('16');
 
@@ -35,6 +39,23 @@ function toggleTheme() {
 function toggleSystem() {
     const newTheme = theme.value === 'system' ? activeTheme.value : 'system';
     setTheme(newTheme);
+}
+
+async function addSyncPeer() {
+    if(!tempPeerSyncID.value || !tempPeerSyncName.value) {
+        addSyncMessage.value = { class:"error", message: "Veuillez remplir le nom et l'ID pour ajouter un pair" };
+        return;
+    }
+
+    try {
+        await invoke('add_user_to_sync_to', { id: tempPeerSyncID.value, name: tempPeerSyncName.value });
+        addSyncMessage.value = { class:"success", message: `Synchronisation à ${tempPeerSyncName} active`};
+        tempPeerSyncID.value = '';
+        tempPeerSyncName.value = '';
+    } catch (err) {
+        console.error("Erreur lors de l'ajout d'un peer : ", err);
+        addSyncMessage.value = { class:"error", message: err };
+    }
 }
 
 onMounted(() => {
@@ -90,6 +111,15 @@ watch(fontSize, (newSize) => {
             <section>
                 <h2>Synchronisation</h2>
                 <p>ID : {{ displayedSyncID }}</p>
+                <div class="add-sync">
+                    <p>Ajouter un utilisateur à la connexion : </p>
+                    <p>Attention : Ajouter un utilisateur écrasera vos données, assurez vous que ses données soient à jour avant de l'ajouter.</p>
+                    <label>Nom : <input class="text" v-model="tempPeerSyncName"/></label>
+                    <label>ID : <input class="text" v-model="tempPeerSyncID"/></label>
+                    <button @click="addSyncPeer">Ajouter</button>
+                    <p v-if="addSyncMessage.message" :class="addSyncMessage.class">{{ addSyncMessage.message }}</p>
+                </div>
+                
             </section>
         </div>
     </div>
@@ -119,7 +149,7 @@ input:hover {
     accent-color: var(--accent-hover);
 }
 
-label:hover, input:hover {
+label:hover, input:not(.text):hover {
     cursor: pointer;
 }
 
@@ -133,6 +163,15 @@ label:hover, input:hover {
     margin: 0;
 }
 
+.add-sync {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.add-sync p {
+    margin: 0;
+}
 
 select {
     padding: 0.5rem;
