@@ -103,7 +103,8 @@ onMounted(() => {
     invoke("setup_syncthing_sync")
     .then((id) => { 
         syncthingUserID.value = id;
-   })
+        console.log("Syncthing configuré");
+    })
     .catch((e) => console.error("Erreur Syncthing:", e));
 });
 </script>

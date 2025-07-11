@@ -248,6 +248,22 @@ fn get_config_path(handle: &tauri::AppHandle) -> Result<PathBuf, String> {
         .join("config.xml"))
 }
 
+fn clear_syncthing_indexes(config_path: &Path) -> Result<(), String> {
+    let index_dir = config_path
+        .parent()
+        .ok_or("Impossible de trouver le dossier de config Syncthing")?;
+
+    for entry in fs::read_dir(index_dir).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+        if path.is_file() && path.file_name().map_or(false, |f| f.to_string_lossy().starts_with("index-")) {
+            fs::remove_file(&path).map_err(|e| format!("Erreur suppression index {:?} : {}", path, e))?;
+        }
+    }
+
+    Ok(())
+}
+
 #[tauri::command]
 pub async fn get_user_id(handle: tauri::AppHandle) -> Result<String, String> {
     let config_path = get_config_path(&handle).map_err(|e| e.to_string())?;
@@ -320,18 +336,30 @@ pub async fn add_user_to_sync_to(id: String, name: String, handle: tauri::AppHan
     }
 
     // Appliquer la nouvelle config
-    ureq::post(&url)
+    ureq::put(&url)
         .header("X-API-Key", &api_key)
         .send_json(&config)
         .map_err(|e| format!("Erreur mise à jour config : {}", e))?;
 
-    // Supprimer les données locales SI c'est le premier device
+    
     if is_first_device {
+        // Delete local data
         let data_dir = get_or_create_data_dir(&handle)?;
         if data_dir.exists() {
-            std::fs::remove_dir_all(&data_dir)
-                .map_err(|e| format!("Erreur suppression du dossier local : {}", e))?;
+            for entry in fs::read_dir(&data_dir).map_err(|e| e.to_string())? {
+                let entry = entry.map_err(|e| e.to_string())?;
+                let path = entry.path();
+
+                if path.is_file() {
+                    fs::remove_file(&path).map_err(|e| e.to_string())?;
+                } else if path.is_dir() {
+                    fs::remove_dir_all(&path).map_err(|e| e.to_string())?;
+                }
+            }
         }
+
+        // Forcing sync
+        clear_syncthing_indexes(&config_path)?;
     }
 
     restart_syncthing(&api_key)?;
