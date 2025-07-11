@@ -39,7 +39,7 @@ async fn wait_for_config_file(path: &Path, timeout_secs: u64) -> Result<(), Stri
             println!("Fichier de config trouvé après {:.2?}", elapsed);
             return Ok(());
         }
-        sleep(Duration::from_millis(100)).await; // ↩️ beaucoup plus réactif
+        sleep(Duration::from_millis(100)).await;
     }
 
     Err(format!("Fichier {:?} non trouvé après {} secondes", path, timeout_secs))
@@ -108,7 +108,7 @@ async fn wait_for_syncthing_api(api_key: &str) -> Result<(), String> {
     let deadline = start + Duration::from_secs(10);
 
     while Instant::now() < deadline {
-        let response = ureq::get(&format!("{}/rest/system/ping", API_URL))
+        let response = ureq::get(&format!("{}/rest/config", API_URL))
             .header("X-API-Key", api_key)
             .call();
 
@@ -226,19 +226,24 @@ fn configure_syncthing_folder(path: &Path, folder_id: &str, api_key: &str, my_id
 
 fn is_folder_configured(folder_id: &str, api_key: &str) -> Result<bool, String> {
     let url = format!("{}/rest/config", API_URL);
+
+    println!("Tentative de requête sur la config syncthing...");
     let mut response = get(&url)
         .header("X-API-Key", api_key)
         .call()
         .map_err(|e| format!("Erreur lecture config Syncthing : {}", e))?;
 
+    println!("Config récupérée ! Lecture json de la config...");
     let config: serde_json::Value = response
         .body_mut()
         .read_json()
         .map_err(|e| format!("Erreur parsing config JSON: {}", e))?;
 
     if let Some(folders) = config.get("folders").and_then(|f| f.as_array()) {
+        println!("Configuration du dossier de sync OK !");
         Ok(folders.iter().any(|f| f.get("id") == Some(&serde_json::Value::String(folder_id.to_string()))))
     } else {
+        println!("Pas de dossier de sync configuré");
         Ok(false)
     }
 }
@@ -308,6 +313,30 @@ pub async fn add_user_to_sync_to(id: String, name: String, handle: tauri::AppHan
 
     println!("Check first device : {is_first_device}");
 
+    if is_first_device {
+        // Delete local data
+        println!("Vérification des fichiers à supprimer...");
+        let data_dir = get_or_create_data_dir(&handle)?;
+        if data_dir.exists() {
+            for entry in fs::read_dir(&data_dir).map_err(|e| e.to_string())? {
+                let entry = entry.map_err(|e| e.to_string())?;
+                let path = entry.path();
+
+                if path.is_file() {
+                    fs::remove_file(&path).map_err(|e| e.to_string())?;
+                } 
+                // else if path.is_dir() {
+                //     fs::remove_dir_all(&path).map_err(|e| e.to_string())?;
+                // }
+                println!("Suppression d'un element...");
+            }
+        }
+
+        // Forcing sync
+        clear_syncthing_indexes(&config_path)?;
+        println!("Nettoyage des index...");
+    }
+
     if !devices.iter().any(|d| d["deviceID"] == id) {
         devices.push(json!({
             "deviceID": id,
@@ -352,29 +381,6 @@ pub async fn add_user_to_sync_to(id: String, name: String, handle: tauri::AppHan
 
     println!("Config appliquée...");
 
-    if is_first_device {
-        // Delete local data
-        println!("Vérification des fichiers à supprimer...");
-        let data_dir = get_or_create_data_dir(&handle)?;
-        if data_dir.exists() {
-            for entry in fs::read_dir(&data_dir).map_err(|e| e.to_string())? {
-                let entry = entry.map_err(|e| e.to_string())?;
-                let path = entry.path();
-
-                if path.is_file() {
-                    fs::remove_file(&path).map_err(|e| e.to_string())?;
-                } else if path.is_dir() {
-                    fs::remove_dir_all(&path).map_err(|e| e.to_string())?;
-                }
-                println!("Suppression d'un element...");
-            }
-        }
-
-        // Forcing sync
-        clear_syncthing_indexes(&config_path)?;
-        println!("Nettoyage des index...");
-    }
-
     println!("Redémarage de Syncthing...");
     restart_syncthing(&api_key)?;
 
@@ -402,11 +408,12 @@ pub async fn setup_syncthing_sync(handle: tauri::AppHandle) -> Result<String, St
     if !is_folder_configured("sdc-data", &api_key)? {
         println!("Dossier non configuré, configuration en cours...");
         configure_syncthing_folder(&data_dir, "sdc-data", &api_key, &id)?;
-        println!("Dossier configuré !");
+        println!("Redémarage de Syncthing...");
         restart_syncthing(&api_key)?;
     } else {
         println!("Dossier déjà configuré");
     }
 
+    println!("Configuration de syncthing terminée !");
     Ok(id)
 }
