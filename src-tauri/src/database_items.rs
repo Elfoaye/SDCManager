@@ -1,10 +1,8 @@
 use crate::admin_auth::is_admin;
 use crate::files_setup::get_or_create_data_dir;
 use chrono::NaiveDate;
-use once_cell::sync::OnceCell;
 use rusqlite::{params, Connection, Result};
 use serde::{Deserialize, Serialize};
-use std::sync::{Mutex, MutexGuard};
 
 #[derive(Serialize, Deserialize)]
 pub struct Item {
@@ -27,21 +25,11 @@ pub struct SummFactureItem{
     durée: i32
 }
 
-static DB_CONN: OnceCell<Mutex<Connection>> = OnceCell::new();
+pub fn get_database_connection(handle: tauri::AppHandle) -> Result<Connection, String> {
+    let path = get_or_create_data_dir(&handle)?.join("database.db");
+    let conn = Connection::open(path).map_err(|e| e.to_string())?;
 
-pub fn get_database_connection(
-    handle: tauri::AppHandle,
-) -> Result<MutexGuard<'static, Connection>, String> {
-    DB_CONN
-        .get_or_try_init(|| {
-            let path = get_or_create_data_dir(&handle)?.join("database.db");
-
-            Connection::open(path)
-                .map(Mutex::new)
-                .map_err(|e| e.to_string())
-        })?
-        .lock()
-        .map_err(|e| e.to_string())
+    Ok(conn)
 }
 
 #[tauri::command]

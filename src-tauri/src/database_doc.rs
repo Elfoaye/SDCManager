@@ -3,7 +3,6 @@ use crate::database_items::{get_database_connection, Item};
 use chrono::Local;
 use rusqlite::{params, Connection, OptionalExtension, Result};
 use serde::{Deserialize, Serialize};
-use std::sync::MutexGuard;
 
 #[derive(Serialize, Deserialize)]
 pub struct Client {
@@ -385,7 +384,7 @@ pub fn load_devis(devis_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, 
 
 #[tauri::command]
 pub fn load_devis_materiel(devis_id: i32, handle: tauri::AppHandle) -> Result<Vec<SummItem>, String> {
-    let conn: MutexGuard<'static, Connection> = get_database_connection(handle)?;
+    let conn = get_database_connection(handle)?;
 
     let mut stmt = conn
         .prepare(
@@ -417,7 +416,7 @@ pub fn load_devis_materiel(devis_id: i32, handle: tauri::AppHandle) -> Result<Ve
 
 #[tauri::command]
 pub fn load_facture(facture_id: i32, handle: tauri::AppHandle) -> Result<FullDevis, String> {
-    let conn: MutexGuard<'static, Connection> = get_database_connection(handle)?;
+    let conn= get_database_connection(handle)?;
 
     let facture: Devis = conn.query_row(
         "SELECT facture_id, client_id, nom, date, date_crea, durée, nb_tech, taux_tech, nb_km, taux_km, adhesion, promo, etat FROM Factures WHERE facture_id = ?",
