@@ -100,11 +100,14 @@ onMounted(async () => {
 });
 
 onMounted(() => {
-    invoke("setup_syncthing_sync")
-    .then((id) => { 
-        syncthingUserID.value = id;
-    })
-    .catch((e) => console.error("Erreur Syncthing:", e));
+    const activeSync = localStorage.getItem('activeSyncthing');
+    if(activeSync) {
+        invoke("setup_syncthing_sync")
+        .then((id) => { 
+            syncthingUserID.value = id;
+        })
+        .catch((e) => console.error("Erreur Syncthing:", e));
+    }
 });
 </script>
 

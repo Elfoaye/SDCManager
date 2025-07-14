@@ -23,6 +23,7 @@ const addSyncMessage = ref({ class: '', message: '' });
 const copyMessage = ref({ class: '', message: '' }); 
 
 const confirmOnClose = ref(true);
+const activeSyncthing = ref(false);
 const fontSize = ref('16');
 
 const displayedSyncID = computed(() => {
@@ -82,7 +83,9 @@ onMounted(() => {
         document.documentElement.style.fontSize = `${storedFont}px`;
     }
 
-    if(!syncID) { 
+    activeSyncthing.value = localStorage.getItem('activeSyncthing');
+    console.log("Getting ", activeSyncthing.value)
+    if(activeSyncthing.value && !syncID) { 
         invoke('get_user_id').then((id) => {syncApiKey.value = id});
     }
 });
@@ -94,6 +97,11 @@ watch(confirmOnClose, (newVal) => {
 watch(fontSize, (newSize) => {
     localStorage.setItem('fontSize', newSize);
     document.documentElement.style.fontSize = `${newSize}px`;
+});
+
+watch(activeSyncthing, (newValue) => {
+    localStorage.setItem('activeSyncthing', newValue);
+    console.log(newValue);
 });
 </script>
 
@@ -124,22 +132,25 @@ watch(fontSize, (newSize) => {
             </section>
             <section>
                 <h2>Synchronisation</h2>
-                <div class="id">
-                    <label>Sync ID : </label><input :value="displayedSyncID" readonly />
-                    <button @click="copyID">
-                        Copier
-                    </button>
-                    <p v-if="copyMessage.message" :class="copyMessage.class">{{ copyMessage.message }}</p>
+                <label><input v-model="activeSyncthing" type="checkbox"/> Activer la Synchronisation P2P (Requiert un redémarage pour appliquer)</label>
+                <div v-if="activeSyncthing == true" class="synthing-options">
+                    <div class="id">
+                        <label>Sync ID : </label><input :value="displayedSyncID" readonly />
+                        <button @click="copyID">
+                            Copier
+                        </button>
+                        <p v-if="copyMessage.message" :class="copyMessage.class">{{ copyMessage.message }}</p>
+                    </div>
+                    <div class="add-sync">
+                        <p>Ajouter un utilisateur à la connexion : </p>
+                        <p class="error">Attention : Ajouter un utilisateur écrasera vos données, assurez vous que ses données soient à jour avant de l'ajouter.</p>
+                        <label>Nom : <input class="text" v-model="tempPeerSyncName"/></label>
+                        <label>ID : <input class="text" v-model="tempPeerSyncID"/></label>
+                        <button @click="addSyncPeer">Ajouter</button>
+                        <p v-if="addSyncMessage.message" :class="addSyncMessage.class">{{ addSyncMessage.message }}</p>
+                    </div>
+                    <button class="syncthing" @click="openSyncthingUI">Interface Syncthing</button>
                 </div>
-                <div class="add-sync">
-                    <p>Ajouter un utilisateur à la connexion : </p>
-                    <p class="error">Attention : Ajouter un utilisateur écrasera vos données, assurez vous que ses données soient à jour avant de l'ajouter.</p>
-                    <label>Nom : <input class="text" v-model="tempPeerSyncName"/></label>
-                    <label>ID : <input class="text" v-model="tempPeerSyncID"/></label>
-                    <button @click="addSyncPeer">Ajouter</button>
-                    <p v-if="addSyncMessage.message" :class="addSyncMessage.class">{{ addSyncMessage.message }}</p>
-                </div>
-                <button class="syncthing" @click="openSyncthingUI">Interface Syncthing</button>
             </section>
         </div>
     </div>
@@ -182,6 +193,11 @@ label:hover, input:not(.text):hover {
     opacity: 80%;
     font-size: 0.85rem;
     margin: 0;
+}
+
+.synthing-options {
+    display: flex;
+    flex-direction: column;
 }
 
 .add-sync {

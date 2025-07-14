@@ -66,6 +66,7 @@ pub fn launch_syncthing(handle: &tauri::AppHandle) -> Result<(), String> {
     fs::create_dir_all(&config_dir).map_err(|e| e.to_string())?;
 
     let child = Command::new(&syncthing_path)
+        .arg("-no-browser")
         .arg("-home")
         .arg(&config_dir)
         .stdout(Stdio::null())
