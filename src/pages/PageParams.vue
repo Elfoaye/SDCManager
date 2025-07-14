@@ -1,5 +1,6 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { useBreadcrumb } from '../composables/breadcrumb';
 import { useTheme } from '../composables/useTheme'
 import { ref, computed, watch, onMounted } from 'vue';
@@ -18,7 +19,8 @@ const syncApiKey = ref('');
 
 const tempPeerSyncName = ref('');
 const tempPeerSyncID = ref('');
-const addSyncMessage = ref({ class: "", message: "" });
+const addSyncMessage = ref({ class: '', message: '' });
+const copyMessage = ref({ class: '', message: '' }); 
 
 const confirmOnClose = ref(true);
 const fontSize = ref('16');
@@ -41,6 +43,18 @@ function toggleSystem() {
     setTheme(newTheme);
 }
 
+function copyID() {
+    if(!displayedSyncID.value) return;
+
+    navigator.clipboard.writeText(displayedSyncID.value)
+    .then(() => {copyMessage.value = { class: 'success', message: 'ID copié !'}})
+    .catch(() => {copyMessage.value = { class: 'error', message: "Erreur lors de la copie de l'id"}})
+}
+
+const openSyncthingUI = async () => {
+    await openUrl('http://127.0.0.1:8384/');
+};
+
 async function addSyncPeer() {
     if(!tempPeerSyncID.value || !tempPeerSyncName.value) {
         addSyncMessage.value = { class:"error", message: "Veuillez remplir le nom et l'ID pour ajouter un pair" };
@@ -49,7 +63,7 @@ async function addSyncPeer() {
 
     try {
         await invoke('add_user_to_sync_to', { id: tempPeerSyncID.value, name: tempPeerSyncName.value });
-        addSyncMessage.value = { class:"success", message: `Synchronisation à ${tempPeerSyncName} active`};
+        addSyncMessage.value = { class: 'success', message: `Synchronisation à ${tempPeerSyncName.value} active`};
         tempPeerSyncID.value = '';
         tempPeerSyncName.value = '';
     } catch (err) {
@@ -110,16 +124,22 @@ watch(fontSize, (newSize) => {
             </section>
             <section>
                 <h2>Synchronisation</h2>
-                <p>ID : {{ displayedSyncID }}</p>
+                <div class="id">
+                    <label>Sync ID : </label><input :value="displayedSyncID" readonly />
+                    <button @click="copyID">
+                        Copier
+                    </button>
+                    <p v-if="copyMessage.message" :class="copyMessage.class">{{ copyMessage.message }}</p>
+                </div>
                 <div class="add-sync">
                     <p>Ajouter un utilisateur à la connexion : </p>
-                    <p>Attention : Ajouter un utilisateur écrasera vos données, assurez vous que ses données soient à jour avant de l'ajouter.</p>
+                    <p class="error">Attention : Ajouter un utilisateur écrasera vos données, assurez vous que ses données soient à jour avant de l'ajouter.</p>
                     <label>Nom : <input class="text" v-model="tempPeerSyncName"/></label>
                     <label>ID : <input class="text" v-model="tempPeerSyncID"/></label>
                     <button @click="addSyncPeer">Ajouter</button>
                     <p v-if="addSyncMessage.message" :class="addSyncMessage.class">{{ addSyncMessage.message }}</p>
                 </div>
-                
+                <button class="syncthing" @click="openSyncthingUI">Interface Syncthing</button>
             </section>
         </div>
     </div>
@@ -130,6 +150,7 @@ section {
     display: flex;
     flex-direction: column;
     margin: 1rem;
+    margin-bottom: 2rem;
 }
 
 h2 {
@@ -173,11 +194,58 @@ label:hover, input:not(.text):hover {
     margin: 0;
 }
 
+.id {
+    width: 100%;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.id label {
+    margin-right: 1rem;
+}
+
+.id input {
+    width: 50%;
+    max-width: 10rem;
+    padding: 0.5rem;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    overflow-x: auto;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin-right: 0;
+}
+
+.id input:hover {
+    cursor: text;
+}
+
+.id button {
+    padding: 0.4rem;
+    flex: 1;
+    max-width: 4rem;
+    margin-left: 0;
+    border-left: 0;
+    border-top-right-radius: 0.3rem;
+    border-bottom-right-radius: 0.3rem;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.id p {
+    padding-left: 1rem;
+}
+
 select {
     padding: 0.5rem;
     color: var(--text);
     background-color: var(--background-alt);
     border: 1px solid var(--border);
     border-radius: 0.3rem;
+}
+
+.syncthing {
+    margin-top: 1rem;
 }
 </style>
