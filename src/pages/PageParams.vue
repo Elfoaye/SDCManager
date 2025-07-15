@@ -15,15 +15,16 @@ setBreadcrumb([
 
 const { theme, activeTheme, setTheme } = useTheme();
 
+const activeSyncthing = ref(false);
 const syncApiKey = ref('');
-
 const tempPeerSyncName = ref('');
 const tempPeerSyncID = ref('');
 const addSyncMessage = ref({ class: '', message: '' });
 const copyMessage = ref({ class: '', message: '' }); 
 
+const authURL = ref('');
 const confirmOnClose = ref(true);
-const activeSyncthing = ref(false);
+const addTokenResult = ref({ class: '', message: '' });
 const fontSize = ref('16');
 
 const displayedSyncID = computed(() => {
@@ -74,8 +75,26 @@ async function addSyncPeer() {
 }
 
 async function authGoogle() {
-    const url = await invoke("get_google_auth_url");
-    openUrl(url);
+    try {
+        const url = await invoke("get_google_auth_url");
+        openUrl(url);
+    } catch (err) {
+        console.error("Erreur lors de l'ouverture de l'auth Google : ", err);
+        addTokenResult.value = { class:"error", message: err };
+    }
+}
+
+async function getTokenFromURL() {
+    if(!authURL.value) return;
+
+    try {
+        const tokens = await invoke("exchange_code_from_url", {authUrl : authURL.value});
+        console.log(tokens);
+        addTokenResult.value = { class:"success", message: "Identifiants de synchronisation ajoutés !" };
+    } catch (err) {
+        console.error("Erreur lors de l'obtetion des tokens : ", err);
+        addTokenResult.value = { class:"error", message: err };
+    }
 }
 
 onMounted(() => {
@@ -136,6 +155,14 @@ watch(fontSize, (newSize) => {
             <section>
                 <h2>Synchronisation Drive</h2>
                 <button @click="authGoogle">Connexion Google</button>
+                <p>Connectez vous, puis lorsque vous arrivez sur une page qui ne charge pas, copiez l'URL de la page ci-dessous</p>
+                <div class="id">
+                    <label>URL D'authentifiaction : </label><input v-model="authURL"/>
+                    <button @click="getTokenFromURL">
+                        Ajouter
+                    </button>
+                </div>
+                <p v-if="addTokenResult.message" :class="addTokenResult.class">{{ addTokenResult.message }}</p>
             </section>
             <!-- <section>
                 <h2>Synchronisation Peer To Peer</h2>

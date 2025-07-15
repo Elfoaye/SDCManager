@@ -33,3 +33,4 @@ tauri-plugin-notification = "2"
 ureq = { version = "3.0.12", features = ["json"] }
 tokio = { version = "1.46.1", features = ["full"] }
 roxmltree = "0.20.0"
+url = "2.5.4"

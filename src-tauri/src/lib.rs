@@ -15,7 +15,7 @@ use database_items::{
 };
 use settings::{get_loc_formulas, get_materiel_types, set_loc_formulas, set_materiel_types};
 use syncthing::{setup_syncthing_sync, stop_syncthing, get_user_id, add_user_to_sync_to};
-use google_sync::{get_google_auth_url};
+use google_sync::{get_google_auth_url, exchange_code_from_url};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -55,7 +55,8 @@ pub fn run() {
             stop_syncthing,
             get_user_id,
             add_user_to_sync_to,
-            get_google_auth_url
+            get_google_auth_url,
+            exchange_code_from_url
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
