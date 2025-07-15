@@ -73,6 +73,11 @@ async function addSyncPeer() {
     }
 }
 
+async function authGoogle() {
+    const url = await invoke("get_google_auth_url");
+    openUrl(url);
+}
+
 onMounted(() => {
     const confirm = localStorage.getItem('confirmOnClose');
     confirmOnClose.value = confirm !== null ? confirm === 'true' : true;
@@ -83,10 +88,10 @@ onMounted(() => {
         document.documentElement.style.fontSize = `${storedFont}px`;
     }
 
-    activeSyncthing.value = localStorage.getItem('activeSyncthing');
-    if(activeSyncthing.value && !syncID) { 
-        invoke('get_user_id').then((id) => {syncApiKey.value = id});
-    }
+    // activeSyncthing.value = localStorage.getItem('activeSyncthing');
+    // if(activeSyncthing.value && !syncID) { 
+    //     invoke('get_user_id').then((id) => {syncApiKey.value = id});
+    // }
 });
 
 watch(confirmOnClose, (newVal) => {
@@ -98,9 +103,9 @@ watch(fontSize, (newSize) => {
     document.documentElement.style.fontSize = `${newSize}px`;
 });
 
-watch(activeSyncthing, (newValue) => {
-    localStorage.setItem('activeSyncthing', newValue);
-});
+// watch(activeSyncthing, (newValue) => {
+//     localStorage.setItem('activeSyncthing', newValue);
+// });
 </script>
 
 <template>
@@ -129,7 +134,11 @@ watch(activeSyncthing, (newValue) => {
                 <label><input type="checkbox" v-model="confirmOnClose" /> Confirmer avant de quitter l’application</label>
             </section>
             <section>
-                <h2>Synchronisation</h2>
+                <h2>Synchronisation Drive</h2>
+                <button @click="authGoogle">Connexion Google</button>
+            </section>
+            <!-- <section>
+                <h2>Synchronisation Peer To Peer</h2>
                 <label><input v-model="activeSyncthing" type="checkbox"/> Activer la Synchronisation P2P (Requiert un redémarage pour appliquer)</label>
                 <div v-if="activeSyncthing == true" class="synthing-options">
                     <div class="id">
@@ -149,7 +158,7 @@ watch(activeSyncthing, (newValue) => {
                     </div>
                     <button class="syncthing" @click="openSyncthingUI">Interface Syncthing</button>
                 </div>
-            </section>
+            </section> -->
         </div>
     </div>
 </template>

@@ -99,17 +99,17 @@ onMounted(async () => {
     });
 });
 
-onMounted(() => {
-    const activeSync = localStorage.getItem('activeSyncthing');
-    if(activeSync == true) {
-        invoke("setup_syncthing_sync")
-        .then((id) => { 
-            syncthingUserID.value = id;
-        })
-        .catch((e) => console.error("Erreur Syncthing:", e));
-        console.log("Syncthing setup, activrSync : ", activeSync);
-    }
-});
+// onMounted(() => {
+//     const activeSync = localStorage.getItem('activeSyncthing');
+//     if(activeSync == true) {
+//         invoke("setup_syncthing_sync")
+//         .then((id) => { 
+//             syncthingUserID.value = id;
+//         })
+//         .catch((e) => console.error("Erreur Syncthing:", e));
+//         console.log("Syncthing setup, activrSync : ", activeSync);
+//     }
+// });
 </script>
 
 <template>

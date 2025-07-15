@@ -36,6 +36,7 @@
     ],
     "resources": [
       "default_data/*",
+      "assets/credential.json",
       "bin/windows/syncthing.exe",
       "bin/linux/syncthing",
       "bin/macos/syncthing"

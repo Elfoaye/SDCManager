@@ -4,6 +4,7 @@ mod database_items;
 mod files_setup;
 mod settings;
 mod syncthing;
+mod google_sync;
 use admin_auth::{is_admin, log_in_admin, log_out_admin, update_admin_password};
 use database_doc::{
     delete_devis, delete_facture, duplicate_devis, facture_from_devis, get_client_infos,
@@ -14,6 +15,7 @@ use database_items::{
 };
 use settings::{get_loc_formulas, get_materiel_types, set_loc_formulas, set_materiel_types};
 use syncthing::{setup_syncthing_sync, stop_syncthing, get_user_id, add_user_to_sync_to};
+use google_sync::{get_google_auth_url};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -52,7 +54,8 @@ pub fn run() {
             setup_syncthing_sync,
             stop_syncthing,
             get_user_id,
-            add_user_to_sync_to
+            add_user_to_sync_to,
+            get_google_auth_url
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
