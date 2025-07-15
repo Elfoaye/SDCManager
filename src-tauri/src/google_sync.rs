@@ -37,6 +37,18 @@ fn get_credentials(handle: &tauri::AppHandle) -> Result<InstalledCreds, String> 
     Ok(read_oauth_credentials(&credentials_path)?)
 }
 
+pub fn store_tokens(tokens: &GoogleTokens, handle: &tauri::AppHandle) -> Result<(), String> {
+    let path = handle
+        .path()
+        .resolve("google_tokens.json", BaseDirectory::AppData)
+        .map_err(|e| e.to_string())?;
+
+    let content = serde_json::to_string_pretty(tokens).map_err(|e| e.to_string())?;
+    std::fs::write(path, content).map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
 fn exchange_code_for_token(code: &str, creds: &InstalledCreds,) -> Result<GoogleTokens, String> {
     let redirect_uri = creds
         .redirect_uris
@@ -91,5 +103,7 @@ pub fn exchange_code_from_url(auth_url: String, handle: tauri::AppHandle) -> Res
 
     let tokens = exchange_code_for_token(&code, &creds)?;
 
+    store_tokens(&tokens, &handle).map_err(|e| format!("Erreur sauvegarde des tokens : {}", e))?;
+    
     Ok(tokens)
 }
