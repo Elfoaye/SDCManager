@@ -51,6 +51,14 @@ jobs:
       - name: Fix permissions
         run: chmod +x node_modules/.bin/vite node_modules/.bin/tauri
 
+      - name: Set up credentials file
+        run: |
+          echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" | python3 -m base64 -d > src-tauri/assets/credential.json
+
+      - name: Set up Releve file
+        run: |
+          echo "${{ secrets.RELEVE_SDC }}" | python3 -m base64 -d > src/components/Releve.vue
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

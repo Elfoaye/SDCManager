@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useDevisStore } from '../composables/devisStore';
-import SecretRib from './Releve.vue';
+import Releve from './Releve.vue';
 import DevisPageTemplate from './DevisPageTemplate.vue';
 
 const store = useDevisStore();
@@ -206,7 +206,7 @@ const yearMembership = computed(() => {
                 </table>
                 <p>En vous remerciant pour votre confiance.</p>
             </div>
-            <SecretRib v-if="store.isFacture" />
+            <Releve v-if="store.isFacture" />
 
             <footer>
                 <p class="legal">

@@ -12,5 +12,5 @@ qs
 .vscode/
 .venv/
 
-src/components/SecretRib.vue
+src/components/Releve.vue
 src-tauri/assets/credential.json
