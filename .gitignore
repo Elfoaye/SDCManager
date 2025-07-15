@@ -11,4 +11,6 @@ target/
 qs
 .vscode/
 .venv/
+
 src/components/SecretRib.vue
+src-tauri/assets/credential.json

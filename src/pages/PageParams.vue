@@ -84,7 +84,6 @@ onMounted(() => {
     }
 
     activeSyncthing.value = localStorage.getItem('activeSyncthing');
-    console.log("Getting ", activeSyncthing.value)
     if(activeSyncthing.value && !syncID) { 
         invoke('get_user_id').then((id) => {syncApiKey.value = id});
     }
@@ -101,7 +100,6 @@ watch(fontSize, (newSize) => {
 
 watch(activeSyncthing, (newValue) => {
     localStorage.setItem('activeSyncthing', newValue);
-    console.log(newValue);
 });
 </script>
 

@@ -43,7 +43,7 @@ async fn wait_for_config_file(path: &Path, timeout_secs: u64) -> Result<(), Stri
     Err(format!("Fichier {:?} non trouvé après {} secondes", path, timeout_secs))
 }
 
-pub fn launch_syncthing(handle: &tauri::AppHandle) -> Result<(), String> {
+fn launch_syncthing(handle: &tauri::AppHandle) -> Result<(), String> {
     let os_name = std::env::consts::OS;
     let binary_name = if os_name == "windows" {
         "syncthing.exe"
@@ -77,29 +77,6 @@ pub fn launch_syncthing(handle: &tauri::AppHandle) -> Result<(), String> {
     *SYNCTHING_PROCESS.lock().unwrap() = Some(child);
 
     Ok(())
-}
-
-#[cfg(windows)]
-fn kill_process_tree(pid: u32) -> std::io::Result<()> {
-    Command::new("taskkill")
-        .args(&["/PID", &pid.to_string(), "/T", "/F"])
-        .status()?;
-    Ok(())
-}
-
-#[tauri::command]
-pub fn stop_syncthing() {
-    if let Some(mut child) = SYNCTHING_PROCESS.lock().unwrap().take() {
-        #[cfg(windows)]
-        {
-            let _ = kill_process_tree(child.id());
-        }
-        #[cfg(not(windows))]
-        {
-            let _ = child.kill();
-        }
-        let _ = child.wait();
-    }
 }
 
 async fn wait_for_syncthing_api(api_key: &str) -> Result<(), String> {
@@ -257,6 +234,29 @@ fn clear_syncthing_indexes(config_path: &Path) -> Result<(), String> {
     }
 
     Ok(())
+}
+
+#[cfg(windows)]
+fn kill_process_tree(pid: u32) -> std::io::Result<()> {
+    Command::new("taskkill")
+        .args(&["/PID", &pid.to_string(), "/T", "/F"])
+        .status()?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn stop_syncthing() {
+    if let Some(mut child) = SYNCTHING_PROCESS.lock().unwrap().take() {
+        #[cfg(windows)]
+        {
+            let _ = kill_process_tree(child.id());
+        }
+        #[cfg(not(windows))]
+        {
+            let _ = child.kill();
+        }
+        let _ = child.wait();
+    }
 }
 
 #[tauri::command]
