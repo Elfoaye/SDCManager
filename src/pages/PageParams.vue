@@ -102,7 +102,7 @@ async function sendDataToDrive() {
         await invoke("upload_sync_data_to_drive");
         console.log("Données envoyées au drive");
     } catch (err) {
-        console.error("Erreur lors de l'ouverture de l'auth Google : ", err);
+        console.error("Erreur lors de l'envoi des données : ", err);
     }
 }
 
@@ -111,7 +111,7 @@ async function getDataFromDrive() {
         await invoke("download_sync_data_from_drive", { force: true });
         console.log("Données mise à jour");
     } catch (err) {
-        console.error("Erreur lors de l'ouverture de l'auth Google : ", err);
+        console.error("Erreur lors de la récupération des données : ", err);
     }
 }
 

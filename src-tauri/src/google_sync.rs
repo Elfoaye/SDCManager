@@ -259,32 +259,46 @@ pub fn download_sync_data_from_drive(force: bool, handle: tauri::AppHandle) -> R
     Ok(())
 }
 
-fn upload_file_to_drive(file_path: &Path, access_token: &str) -> Result<(), String> {
+fn upload_file_to_drive(file_path: &Path, access_token: &str, existing_files: &[DriveFile]) -> Result<(), String> {
     let file_name = file_path.file_name()
         .ok_or("Nom de fichier introuvable")?
         .to_string_lossy();
 
-    let metadata = json!({"name": file_name, "parents": FOLDER_ID});
-
-    let boundary = "boundary123";
-    let body = format!(
-        "--{0}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n{1}\r\n--{0}\r\nContent-Type: application/octet-stream\r\n\r\n",
-        boundary,
-        metadata.to_string()
-    );
+    let existing_file = existing_files.iter().find(|f| f.name == file_name);
 
     let file_bytes = fs::read(file_path).map_err(|e| e.to_string())?;
 
-    let mut request_body = body.into_bytes();
-    request_body.extend(file_bytes);
-    request_body.extend(format!("\r\n--{}--", boundary).as_bytes());
-
-
-    let response = ureq::post("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart")
+    let response = if let Some(existing) = existing_file {
+        // Update existing file
+        ureq::patch(&format!(
+            "https://www.googleapis.com/upload/drive/v3/files/{}?uploadType=media",
+            existing.id
+        ))
         .header("Authorization", &format!("Bearer {}", access_token))
-        .header("Content-Type", &format!("multipart/related; boundary={}", boundary))
-        .send(&request_body)
-        .map_err(|e| format!("Erreur upload: {}", e))?;
+        .header("Content-Type", "application/octet-stream")
+        .send(&file_bytes)
+        .map_err(|e| format!("Erreur upload (PATCH): {}", e))?
+    } else {
+        // Create new file
+        let metadata = json!({ "name": file_name, "parents": [FOLDER_ID] });
+
+        let boundary = "boundary123";
+        let body = format!(
+            "--{0}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n{1}\r\n--{0}\r\nContent-Type: application/octet-stream\r\n\r\n",
+            boundary,
+            metadata.to_string()
+        );
+
+        let mut request_body = body.into_bytes();
+        request_body.extend(file_bytes);
+        request_body.extend(format!("\r\n--{}--", boundary).as_bytes());
+
+        ureq::post("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart")
+            .header("Authorization", &format!("Bearer {}", access_token))
+            .header("Content-Type", &format!("multipart/related; boundary={}", boundary))
+            .send(&request_body)
+            .map_err(|e| format!("Erreur upload (POST): {}", e))?
+    };
 
     if response.status() != 200 {
         return Err(format!("Échec upload: {}", response.status()));
@@ -298,19 +312,19 @@ pub fn upload_sync_data_to_drive(handle: tauri::AppHandle) -> Result<(), String>
     let folder_path = get_or_create_data_dir(&handle)?;
     let access_token = get_valid_access_token(&handle)?;
 
+    let existing_files = list_drive_files(&access_token, FOLDER_ID)?;
+
     for entry in std::fs::read_dir(&folder_path).map_err(|e| e.to_string())? {
         let entry = entry.map_err(|e| e.to_string())?;
         let path = entry.path();
 
         if path.is_file() {
-            upload_file_to_drive(&path, &access_token)?;
+            upload_file_to_drive(&path, &access_token, &existing_files)?;
         }
     }
 
     Ok(())
 }
-
-
 
 #[tauri::command]
 pub fn get_google_auth_url(handle: tauri::AppHandle) -> Result<String, String> {
