@@ -22,10 +22,13 @@ const tempPeerSyncID = ref('');
 const addSyncMessage = ref({ class: '', message: '' });
 const copyMessage = ref({ class: '', message: '' }); 
 
+const isSyncedDrive = ref(false);
 const authURL = ref('');
 const addTokenResult = ref({ class: '', message: '' });
+const forceDownload =ref(false);
 const isUploading = ref(false);
 const isDownloading = ref(false);
+const syncResult = ref({ class: '', message: '' });
 
 const confirmOnClose = ref(true);
 const fontSize = ref('16');
@@ -92,8 +95,9 @@ async function getTokenFromURL() {
 
     try {
         const tokens = await invoke("save_tokens_from_url", {authUrl : authURL.value});
-        console.log(tokens);
         addTokenResult.value = { class:"success", message: "Identifiants de synchronisation ajoutés !" };
+        syncResult.value = { class: '', message: '' };
+        invoke("is_synced_to_drive").then((value) => { isSyncedDrive.value = value});
     } catch (err) {
         console.error("Erreur lors de l'obtetion des tokens : ", err);
         addTokenResult.value = { class:"error", message: err };
@@ -103,27 +107,29 @@ async function getTokenFromURL() {
 async function sendDataToDrive() {
     if(isUploading.value) return;
 
-    try {
-        isUploading.value = true;
+    isUploading.value = true;
+    try {       
         await invoke("upload_sync_data_to_drive");
-        console.log("Données envoyées au drive");
-        isUploading.value = false;
+        syncResult.value = { class:"success", message: "Données envoyées au drive !" };       
     } catch (err) {
         console.error("Erreur lors de l'envoi des données : ", err);
+        syncResult.value = { class:"error", message: err };
     }
+    isUploading.value = false;
 }
 
 async function getDataFromDrive() {
     if(isDownloading.value) return;
 
+    isDownloading.value = true;
     try {
-        isDownloading.value = true;
-        await invoke("download_sync_data_from_drive", { force: true });
-        console.log("Données mise à jour");
-        isDownloading.value = false;
+        await invoke("download_sync_data_from_drive", { force: forceDownload.value });
+        syncResult.value = { class:"success", message: "Données locales mise à jour !" };
     } catch (err) {
         console.error("Erreur lors de la récupération des données : ", err);
+        syncResult.value = { class:"error", message: err };
     }
+    isDownloading.value = false;
 }
 
 onMounted(() => {
@@ -135,6 +141,8 @@ onMounted(() => {
         fontSize.value = storedFont;
         document.documentElement.style.fontSize = `${storedFont}px`;
     }
+
+    invoke("is_synced_to_drive").then((value) => {  isSyncedDrive.value = value});
 
     // activeSyncthing.value = localStorage.getItem('activeSyncthing');
     // if(activeSyncthing.value && !syncID) { 
@@ -183,21 +191,33 @@ watch(fontSize, (newSize) => {
             </section>
             <section>
                 <h2>Synchronisation Drive</h2>
-                <button @click="authGoogle">Connexion Google</button>
-                <p>Connectez vous, puis lorsque vous arrivez sur une page qui ne charge pas, copiez l'URL de la page ci-dessous</p>
-                <div class="id">
-                    <label>URL D'authentifiaction : </label><input v-model="authURL"/>
-                    <button @click="getTokenFromURL">
-                        Ajouter
-                    </button>
+                <div>
+                    <h3>Mise en place de la synchronisation</h3>
+                    <p v-if="isSyncedDrive">&#10003; Synchronisation active</p>
+                    <p v-else>&#10060; Synchronisation désactivée</p>
+                    <button @click="authGoogle">Connexion Google</button>
+                    <p>Connectez vous, puis lorsque vous arrivez sur une page qui ne charge pas, copiez l'URL de la page ci-dessous</p>
+                    <div class="id">
+                        <label>URL D'authentifiaction : </label><input v-model="authURL"/>
+                        <button @click="getTokenFromURL">
+                            Ajouter
+                        </button>
+                    </div>
+                    <p v-if="addTokenResult.message" :class="addTokenResult.class">{{ addTokenResult.message }}</p>
                 </div>
-                <p v-if="addTokenResult.message" :class="addTokenResult.class">{{ addTokenResult.message }}</p>
-                <button @click="sendDataToDrive" :class="{ disabled: isUploading }">
-                    Envoyer les données
-                </button>
-                <button @click="getDataFromDrive" :class="{ disabled: isDownloading }">
-                    Mettre à jour
-                </button>
+                <div>
+                    <h3>Synchronisation manuelle</h3>
+                    <div class="sync-buttons">
+                        <button @click="sendDataToDrive" :class="{ disabled: isUploading }">
+                            Envoyer les données au drive
+                        </button>
+                        <button @click="getDataFromDrive" :class="{ disabled: isDownloading }">
+                            Mettre à jour les données locales
+                        </button>
+                    </div>
+                </div>
+                <label><input type="checkbox" v-model="forceDownload" />Forcer la mise à jour (&#9888; écrase les données locales)</label>
+                <p v-if="syncResult.message" :class="syncResult.class">{{ syncResult.message }}</p>
             </section>
             <!-- <section>
                 <h2>Synchronisation Peer To Peer</h2>
@@ -229,8 +249,10 @@ watch(fontSize, (newSize) => {
 section {
     display: flex;
     flex-direction: column;
-    margin: 1rem;
-    margin-bottom: 2rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
 }
 
 h2 {
@@ -328,6 +350,25 @@ label:hover, input:not(.text):hover {
 
 .disabled:hover {
     cursor: default;
+}
+
+.sync-buttons {
+    display: flex;
+    gap: 1rem;
+    height: 4rem;
+}
+
+.sync-buttons button {
+    flex: 1;
+    max-width: 12rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+h3 {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
 }
 
 select {

@@ -242,8 +242,26 @@ fn is_remote_newer(local_path: &Path, remote_modified_time: &str) -> bool {
     true // Default : take distant file
 }
 
+fn is_synced(handle: &tauri::AppHandle) -> Result<bool, String> {
+    let token_path = handle
+        .path()
+        .resolve("google_tokens.json", BaseDirectory::AppData)
+        .map_err(|e| format!("Erreur de chemin AppData: {}", e))?;
+
+    Ok(token_path.exists())
+}
+
+#[tauri::command]
+pub fn is_synced_to_drive(handle: tauri::AppHandle) -> Result<bool, String> {
+    Ok(is_synced(&handle)?)
+}
+
 #[tauri::command]
 pub async fn download_sync_data_from_drive(force: bool, handle: tauri::AppHandle) -> Result<(), String> {
+    if !(is_synced(&handle)?) {
+        return Err("Synchronisation désactivée, veuillez vous identifier".to_string());
+    }
+
     tauri::async_runtime::spawn_blocking(move || {
         let folder = get_or_create_data_dir(&handle)?;
         let token = get_valid_access_token(&handle)?;
@@ -313,6 +331,10 @@ fn upload_file_to_drive(file_path: &Path, access_token: &str, existing_files: &[
 
 #[tauri::command]
 pub async fn upload_sync_data_to_drive(handle: tauri::AppHandle) -> Result<(), String> {
+    if !(is_synced(&handle)?) {
+        return Err("Synchronisation désactivée, veuillez vous identifier".to_string());
+    }
+
     tauri::async_runtime::spawn_blocking(move || {
         let folder_path = get_or_create_data_dir(&handle)?;
         let access_token = get_valid_access_token(&handle)?;

@@ -99,6 +99,10 @@ onMounted(async () => {
     });
 });
 
+onMounted(() => {
+    invoke("download_sync_data_from_drive", { force: false });
+});
+
 // onMounted(() => {
 //     const activeSync = localStorage.getItem('activeSyncthing');
 //     if(activeSync == true) {
