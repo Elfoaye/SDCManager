@@ -23,8 +23,11 @@ const addSyncMessage = ref({ class: '', message: '' });
 const copyMessage = ref({ class: '', message: '' }); 
 
 const authURL = ref('');
-const confirmOnClose = ref(true);
 const addTokenResult = ref({ class: '', message: '' });
+const isUploading = ref(false);
+const isDownloading = ref(false);
+
+const confirmOnClose = ref(true);
 const fontSize = ref('16');
 
 const displayedSyncID = computed(() => {
@@ -98,18 +101,26 @@ async function getTokenFromURL() {
 }
 
 async function sendDataToDrive() {
+    if(isUploading.value) return;
+
     try {
+        isUploading.value = true;
         await invoke("upload_sync_data_to_drive");
         console.log("Données envoyées au drive");
+        isUploading.value = false;
     } catch (err) {
         console.error("Erreur lors de l'envoi des données : ", err);
     }
 }
 
 async function getDataFromDrive() {
+    if(isDownloading.value) return;
+
     try {
+        isDownloading.value = true;
         await invoke("download_sync_data_from_drive", { force: true });
         console.log("Données mise à jour");
+        isDownloading.value = false;
     } catch (err) {
         console.error("Erreur lors de la récupération des données : ", err);
     }
@@ -181,10 +192,10 @@ watch(fontSize, (newSize) => {
                     </button>
                 </div>
                 <p v-if="addTokenResult.message" :class="addTokenResult.class">{{ addTokenResult.message }}</p>
-                <button @click="sendDataToDrive">
+                <button @click="sendDataToDrive" :class="{ disabled: isUploading }">
                     Envoyer les données
                 </button>
-                <button @click="getDataFromDrive">
+                <button @click="getDataFromDrive" :class="{ disabled: isDownloading }">
                     Mettre à jour
                 </button>
             </section>
@@ -309,6 +320,14 @@ label:hover, input:not(.text):hover {
 
 .id p {
     padding-left: 1rem;
+}
+
+.disabled {
+    background-color: var(--disabled);
+}
+
+.disabled:hover {
+    cursor: default;
 }
 
 select {

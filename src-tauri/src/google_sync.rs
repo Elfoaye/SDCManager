@@ -243,20 +243,24 @@ fn is_remote_newer(local_path: &Path, remote_modified_time: &str) -> bool {
 }
 
 #[tauri::command]
-pub fn download_sync_data_from_drive(force: bool, handle: tauri::AppHandle) -> Result<(), String> {
-    let folder = get_or_create_data_dir(&handle)?;
-    let token = get_valid_access_token(&handle)?;
-    let files = list_drive_files(&token, &FOLDER_ID)?;
+pub async fn download_sync_data_from_drive(force: bool, handle: tauri::AppHandle) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let folder = get_or_create_data_dir(&handle)?;
+        let token = get_valid_access_token(&handle)?;
+        let files = list_drive_files(&token, &FOLDER_ID)?;
 
-    for file in files {
-        let local_path = folder.join(&file.name);
+        for file in files {
+            let local_path = folder.join(&file.name);
 
-        if force || is_remote_newer(&local_path, &file.modified_time) {
-            download_file_from_drive(&file, &token, &folder)?;
+            if force || is_remote_newer(&local_path, &file.modified_time) {
+                download_file_from_drive(&file, &token, &folder)?;
+            }
         }
-    }
 
-    Ok(())
+        Ok(())
+        })
+        .await
+    .map_err(|e| format!("Erreur tâche bloquante : {}", e))?
 }
 
 fn upload_file_to_drive(file_path: &Path, access_token: &str, existing_files: &[DriveFile]) -> Result<(), String> {
@@ -308,22 +312,26 @@ fn upload_file_to_drive(file_path: &Path, access_token: &str, existing_files: &[
 }
 
 #[tauri::command]
-pub fn upload_sync_data_to_drive(handle: tauri::AppHandle) -> Result<(), String> {
-    let folder_path = get_or_create_data_dir(&handle)?;
-    let access_token = get_valid_access_token(&handle)?;
+pub async fn upload_sync_data_to_drive(handle: tauri::AppHandle) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let folder_path = get_or_create_data_dir(&handle)?;
+        let access_token = get_valid_access_token(&handle)?;
 
-    let existing_files = list_drive_files(&access_token, FOLDER_ID)?;
+        let existing_files = list_drive_files(&access_token, FOLDER_ID)?;
 
-    for entry in std::fs::read_dir(&folder_path).map_err(|e| e.to_string())? {
-        let entry = entry.map_err(|e| e.to_string())?;
-        let path = entry.path();
+        for entry in std::fs::read_dir(&folder_path).map_err(|e| e.to_string())? {
+            let entry = entry.map_err(|e| e.to_string())?;
+            let path = entry.path();
 
-        if path.is_file() {
-            upload_file_to_drive(&path, &access_token, &existing_files)?;
+            if path.is_file() {
+                upload_file_to_drive(&path, &access_token, &existing_files)?;
+            }
         }
-    }
 
-    Ok(())
+        Ok(())
+    })
+    .await
+    .map_err(|e| format!("Erreur tâche bloquante : {}", e))?
 }
 
 #[tauri::command]
