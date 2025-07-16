@@ -88,12 +88,21 @@ async function getTokenFromURL() {
     if(!authURL.value) return;
 
     try {
-        const tokens = await invoke("exchange_code_from_url", {authUrl : authURL.value});
+        const tokens = await invoke("save_tokens_from_url", {authUrl : authURL.value});
         console.log(tokens);
         addTokenResult.value = { class:"success", message: "Identifiants de synchronisation ajoutés !" };
     } catch (err) {
         console.error("Erreur lors de l'obtetion des tokens : ", err);
         addTokenResult.value = { class:"error", message: err };
+    }
+}
+
+async function sendDataToDrive() {
+    try {
+        await invoke("upload_sync_data_to_drive");
+        console.log("Données envoyées au drive");
+    } catch (err) {
+        console.error("Erreur lors de l'ouverture de l'auth Google : ", err);
     }
 }
 
@@ -163,6 +172,9 @@ watch(fontSize, (newSize) => {
                     </button>
                 </div>
                 <p v-if="addTokenResult.message" :class="addTokenResult.class">{{ addTokenResult.message }}</p>
+                <button @click="sendDataToDrive">
+                    Envoyer les données
+                </button>
             </section>
             <!-- <section>
                 <h2>Synchronisation Peer To Peer</h2>
