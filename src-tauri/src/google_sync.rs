@@ -2,9 +2,12 @@ use crate::files_setup::get_or_create_data_dir;
 use tauri::{path::BaseDirectory, Manager};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::fs;
+use std::fs::{self, File};
+use std::io::copy;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
+
+const FOLDER_ID: &str = "1lSVZb_C9WxF5yx6dewwcORbx0ACZyVXr";
 
 #[derive(Deserialize)]
 struct OAuthCredentials {
@@ -41,6 +44,20 @@ pub struct GoogleTokens {
     token_type: String,
     received_at: u64,
 }
+
+#[derive(serde::Deserialize)]
+struct DriveFileList {
+    files: Vec<DriveFile>,
+}
+
+#[derive(serde::Deserialize)]
+pub struct DriveFile {
+    pub id: String,
+    pub name: String,
+    #[serde(rename = "modifiedTime")]
+    pub modified_time: String,
+}
+
 
 fn read_oauth_credentials(path: &Path) -> Result<InstalledCreds, String> {
     let file = std::fs::File::open(path).map_err(|e| e.to_string())?;
@@ -164,12 +181,90 @@ pub fn get_valid_access_token(handle: &tauri::AppHandle) -> Result<String, Strin
     Ok(refreshed.access_token)
 }
 
+fn list_drive_files(access_token: &str, folder_id: &str) -> Result<Vec<DriveFile>, String> {
+    let response = ureq::get("https://www.googleapis.com/drive/v3/files")
+        .query("fields", "files(id,name,modifiedTime)")
+        .query("q", format!("'{}' in parents", folder_id))
+        .query("pageSize", "1000")
+        .header("Authorization", &format!("Bearer {}", access_token))
+        .call()
+        .map_err(|e| format!("Erreur lors de la récupération des fichiers : {}", e))?;
+
+    let file_list: DriveFileList = response
+        .into_body()
+        .read_json()
+        .map_err(|e| format!("Erreur parsing JSON Drive: {}", e))?;
+
+    Ok(file_list.files)
+}
+
+fn download_file_from_drive(file: &DriveFile, access_token: &str, destination: &Path) -> Result<(), String> {
+    let download_url = format!(
+        "https://www.googleapis.com/drive/v3/files/{}?alt=media",
+        file.id
+    );
+
+    let response = ureq::get(&download_url)
+        .header("Authorization", &format!("Bearer {}", access_token))
+        .call()
+        .map_err(|e| format!("Erreur téléchargement fichier {} : {}", file.name, e))?;
+
+    if response.status() != 200 {
+        return Err(format!("Erreur HTTP {} pour {}", response.status(), file.name));
+    }
+
+    let mut body = response.into_body();
+    let mut reader = body.as_reader();  
+
+    let target_path = destination.join(&file.name);
+    let mut output_file = File::create(&target_path)
+        .map_err(|e| format!("Erreur création fichier : {}", e))?;
+
+    copy(&mut reader, &mut output_file)
+        .map_err(|e| format!("Erreur écriture fichier : {}", e))?;
+
+    Ok(())
+}
+
+fn is_remote_newer(local_path: &Path, remote_modified_time: &str) -> bool {
+    use chrono::{DateTime, Utc};
+    use std::fs;
+
+    let remote_time = DateTime::parse_from_rfc3339(remote_modified_time)
+        .unwrap_or_else(|_| Utc::now().into());
+
+    if let Ok(metadata) = fs::metadata(local_path) {
+        if let Ok(local_time) = metadata.modified() {
+            let local_time: DateTime<Utc> = local_time.into();
+            return remote_time > local_time;
+        }
+    }
+    true // Default : take distant file
+}
+
+#[tauri::command]
+pub fn download_sync_data_from_drive(force: bool, handle: tauri::AppHandle) -> Result<(), String> {
+    let folder = get_or_create_data_dir(&handle)?;
+    let token = get_valid_access_token(&handle)?;
+    let files = list_drive_files(&token, &FOLDER_ID)?;
+
+    for file in files {
+        let local_path = folder.join(&file.name);
+
+        if force || is_remote_newer(&local_path, &file.modified_time) {
+            download_file_from_drive(&file, &token, &folder)?;
+        }
+    }
+
+    Ok(())
+}
+
 fn upload_file_to_drive(file_path: &Path, access_token: &str) -> Result<(), String> {
     let file_name = file_path.file_name()
         .ok_or("Nom de fichier introuvable")?
         .to_string_lossy();
 
-    let metadata = json!({"name": file_name});
+    let metadata = json!({"name": file_name, "parents": FOLDER_ID});
 
     let boundary = "boundary123";
     let body = format!(
@@ -214,6 +309,8 @@ pub fn upload_sync_data_to_drive(handle: tauri::AppHandle) -> Result<(), String>
 
     Ok(())
 }
+
+
 
 #[tauri::command]
 pub fn get_google_auth_url(handle: tauri::AppHandle) -> Result<String, String> {

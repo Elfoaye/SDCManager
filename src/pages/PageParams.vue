@@ -106,6 +106,15 @@ async function sendDataToDrive() {
     }
 }
 
+async function getDataFromDrive() {
+    try {
+        await invoke("download_sync_data_from_drive", { force: true });
+        console.log("Données mise à jour");
+    } catch (err) {
+        console.error("Erreur lors de l'ouverture de l'auth Google : ", err);
+    }
+}
+
 onMounted(() => {
     const confirm = localStorage.getItem('confirmOnClose');
     confirmOnClose.value = confirm !== null ? confirm === 'true' : true;
@@ -174,6 +183,9 @@ watch(fontSize, (newSize) => {
                 <p v-if="addTokenResult.message" :class="addTokenResult.class">{{ addTokenResult.message }}</p>
                 <button @click="sendDataToDrive">
                     Envoyer les données
+                </button>
+                <button @click="getDataFromDrive">
+                    Mettre à jour
                 </button>
             </section>
             <!-- <section>
