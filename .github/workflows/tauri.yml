@@ -53,6 +53,7 @@ jobs:
 
       - name: Set up credentials file
         run: |
+          mkdir -p src-tauri/assets
           echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" | python3 -m base64 -d > src-tauri/assets/credential.json
 
       - name: Set up Releve file
