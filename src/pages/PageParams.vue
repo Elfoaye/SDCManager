@@ -6,7 +6,7 @@ import { useTheme } from '../composables/useTheme'
 import { ref, computed, watch, onMounted } from 'vue';
 import { useHasUploaded } from '../composables/hasUploadedStore';
 
-const { setHasUploaded } = useHasUploaded();
+const { setHasUploaded, setSyncError } = useHasUploaded();
 
 const { syncID } = defineProps(['syncID']);
 
@@ -28,7 +28,7 @@ const copyMessage = ref({ class: '', message: '' });
 const isSyncedDrive = ref(false);
 const authURL = ref('');
 const addTokenResult = ref({ class: '', message: '' });
-const forceDownload =ref(false);
+const forceDownload = ref(false);
 const isUploading = ref(false);
 const isDownloading = ref(false);
 const syncResult = ref({ class: '', message: '' });
@@ -93,20 +93,6 @@ async function authGoogle() {
     }
 }
 
-async function getTokenFromURL() {
-    if(!authURL.value) return;
-
-    try {
-        const tokens = await invoke("save_tokens_from_url", {authUrl : authURL.value});
-        addTokenResult.value = { class:"success", message: "Identifiants de synchronisation ajoutés !" };
-        syncResult.value = { class: '', message: '' };
-        invoke("is_synced_to_drive").then((value) => { isSyncedDrive.value = value});
-    } catch (err) {
-        console.error("Erreur lors de l'obtetion des tokens : ", err);
-        addTokenResult.value = { class:"error", message: err };
-    }
-}
-
 async function sendDataToDrive() {
     if(isDownloading.value || isUploading.value) return;
 
@@ -114,26 +100,46 @@ async function sendDataToDrive() {
     try {       
         await invoke("upload_sync_data_to_drive");
         syncResult.value = { class:"success", message: "Données envoyées au drive !" };   
+        setSyncError('');
         setHasUploaded(true);  
     } catch (err) {
         console.error("Erreur lors de l'envoi des données : ", err);
+        setSyncError("Erreur lors de l'envoi des données : " + err);
         syncResult.value = { class:"error", message: err };
     }
     isUploading.value = false;
 }
 
-async function getDataFromDrive() {
+async function getDataFromDrive(eraseLocal) {
     if(isDownloading.value || isUploading.value) return;
 
     isDownloading.value = true;
     try {
-        await invoke("download_sync_data_from_drive", { force: forceDownload.value });
+        await invoke("download_sync_data_from_drive", { force: eraseLocal });
         syncResult.value = { class:"success", message: "Données locales mise à jour !" };
+        setSyncError('');
     } catch (err) {
         console.error("Erreur lors de la récupération des données : ", err);
+        setSyncError("Erreur lors de la récupération des données : " + err);
         syncResult.value = { class:"error", message: err };
     }
     isDownloading.value = false;
+}
+
+async function getTokenFromURL() {
+    if(!authURL.value) return;
+
+    try {
+        await invoke("save_tokens_from_url", {authUrl : authURL.value});
+        addTokenResult.value = { class:"success", message: "Identifiants de synchronisation ajoutés !" };
+        syncResult.value = { class: '', message: '' };
+        await getDataFromDrive(true);
+        invoke("is_synced_to_drive").then((value) => { isSyncedDrive.value = value});
+
+    } catch (err) {
+        console.error("Erreur lors de l'obtetion des tokens : ", err);
+        addTokenResult.value = { class:"error", message: err };
+    }
 }
 
 onMounted(() => {
@@ -200,7 +206,7 @@ watch(fontSize, (newSize) => {
                 <div v-if="isSyncedDrive">
                     <h3>Synchronisation manuelle</h3>
                     <div class="sync-buttons">
-                        <button @click="getDataFromDrive" :class="{ disabled: isDownloading }">
+                        <button @click="getDataFromDrive(forceDownload)" :class="{ disabled: isDownloading }">
                             Mettre à jour les données locales
                         </button>
                         <button @click="sendDataToDrive" :class="{ disabled: isUploading }">

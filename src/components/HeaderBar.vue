@@ -5,7 +5,7 @@ import { listen } from '@tauri-apps/api/event';
 import { useBreadcrumb } from '../composables/breadcrumb';
 import { useHasUploaded } from '../composables/hasUploadedStore';
 const { breadcrumb } = useBreadcrumb();
-const { hasUploaded, setHasUploaded } = useHasUploaded();
+const { hasUploaded, syncError, setHasUploaded, setSyncError } = useHasUploaded();
 
 const props = defineProps(['setPage']);
 const emit = defineEmits(['cancel']);
@@ -29,10 +29,12 @@ async function sendDataToDrive() {
 
     isUploading.value = true;
     try {       
-        await invoke("upload_sync_data_to_drive");      
+        await invoke("upload_sync_data_to_drive");     
+        setSyncError(''); 
         setHasUploaded(true);  
     } catch (err) {
         console.error("Erreur lors de l'envoi des données : ", err);
+         setSyncError("Erreur lors de l'envoi des données : " + err);
         syncResult.value = err;
     }
     isUploading.value = false;
@@ -44,8 +46,10 @@ async function getDataFromDrive() {
     isDownloading.value = true;
     try {
         await invoke("download_sync_data_from_drive", { force: false});
+        setSyncError('');
     } catch (err) {
         console.error("Erreur lors de la récupération des données : ", err);
+        setSyncError("Erreur lors de la récupération des données : " + err);
         syncResult.value = err;
     }
     isDownloading.value = false;
@@ -102,8 +106,11 @@ onMounted(() => {
             </div>
         </nav>
         <div v-if="isSyncedDrive" class="sync">
-            <p v-if="hasUploadedChanges">&#10003;</p>
-            <p v-else>&#9888;</p>
+            <div class="sync-status">
+                <span v-if="syncError" class="tooltip error" data-tooltip="Erreur : {{ syncError }}">&#10060;</span>
+                <span v-else-if="hasUploadedChanges" class="tooltip success" data-tooltip="Pas de changements non envoyés">&#10003;</span>
+                <span v-else class="tooltip warning" data-tooltip="Changements locaux non envoyés">&#9888;</span>
+            </div>
             <p>Sync : </p>
             <button @click="getDataFromDrive" :class="{ disabled: isDownloading }">Mettre à jour</button>
             <button @click="sendDataToDrive" :class="{ disabled: isUploading }">Envoyer</button>
@@ -166,6 +173,7 @@ header {
     width: auto;
     padding: 0.5rem;
     border: 2px solid var(--warning);
+    background-color: var(--background);
     border-radius: 2rem;
     font-weight: 600;
 }
@@ -224,10 +232,6 @@ header {
     background-color: var(--disabled);
 }
 
-span {
-    font-weight: 600;
-}
-
 .sync {
     display: flex;
     align-items: center;
@@ -247,6 +251,42 @@ span {
     width: clamp(5rem, 10vw, 8rem);
     height: 4rem;
     max-height: 100%;
+}
+
+.sync-status {
+    font-size: 1.5rem;
+    padding: 0 0.5rem;
+}
+
+.tooltip {
+    position: relative;
+    cursor: help;
+}
+
+.tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: 125%;
+    right: 0;
+    transform: translateX(50%);
+    background-color: #333;
+    color: #fff;
+    white-space: nowrap;
+    padding: 0.4rem 0.6rem;
+    border-radius: 0.3rem;
+    font-size: 0.75rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 10;
+}
+
+.tooltip:hover::after {
+    opacity: 1;
+}
+
+.warning {
+    color: var(--warning);
 }
 
 .disabled {
