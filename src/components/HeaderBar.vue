@@ -11,17 +11,53 @@ const emit = defineEmits(['cancel']);
 const isAdmin = ref(false);
 const confirm = ref(false);
 
+const isSyncedDrive = ref(false);
+const isUploading = ref(false);
+const isDownloading = ref(false);
+const syncResult = ref('');
+
 async function logOutAdmin() {
     await invoke('log_out_admin');
     confirm.value = false;
+}
+
+async function sendDataToDrive() {
+    if(isDownloading.value || isUploading.value) return;
+
+    isUploading.value = true;
+    try {       
+        await invoke("upload_sync_data_to_drive");      
+    } catch (err) {
+        console.error("Erreur lors de l'envoi des données : ", err);
+        syncResult.value = err;
+    }
+    isUploading.value = false;
+}
+
+async function getDataFromDrive() {
+    if(isDownloading.value || isUploading.value) return;
+
+    isDownloading.value = true;
+    try {
+        await invoke("download_sync_data_from_drive", { force: false});
+    } catch (err) {
+        console.error("Erreur lors de la récupération des données : ", err);
+        syncResult.value = err;
+    }
+    isDownloading.value = false;
 }
 
 listen('log_in_admin', (event) => {
     isAdmin.value = event.payload;
 });
 
+listen('set_up_sync', () => {
+    invoke("is_synced_to_drive").then((value) => isSyncedDrive.value = value);
+});
+
 onMounted(() => {
     invoke('is_admin').then((value) => isAdmin.value = value);
+    invoke("is_synced_to_drive").then((value) => isSyncedDrive.value = value);
 });
 </script>
 
@@ -53,6 +89,11 @@ onMounted(() => {
                 <span v-if="index < breadcrumb.length - 1">></span>
             </div>
         </nav>
+        <div v-if="isSyncedDrive" class="sync">
+            <p>Sync : </p>
+            <button @click="getDataFromDrive" :class="{ disabled: isDownloading }">Mettre à jour</button>
+            <button @click="sendDataToDrive" :class="{ disabled: isUploading }">Envoyer</button>
+        </div>
     </header>
 </template>
 
@@ -86,7 +127,7 @@ header {
     max-height: 100%;
 }
 
-button {
+.path button {
     border: 0;
     hyphens: auto;
     white-space: normal;
@@ -98,7 +139,7 @@ button {
     transition: all 0.15s;
 }
 
-button:hover {
+.path button:hover {
     background-color: var(--accent);
 
     transition: all 0.15s;
@@ -171,5 +212,34 @@ button:hover {
 
 span {
     font-weight: 600;
+}
+
+.sync {
+    display: flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    margin-left: auto;
+    margin-right: 0.5rem;
+    height: 70%;
+    gap: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+}
+
+.sync button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: clamp(5rem, 10vw, 8rem);
+    height: 4rem;
+    max-height: 100%;
+}
+
+.disabled {
+    background-color: var(--disabled);
+}
+
+.disabled:hover {
+    cursor: default;
 }
 </style>

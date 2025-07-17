@@ -105,7 +105,7 @@ async function getTokenFromURL() {
 }
 
 async function sendDataToDrive() {
-    if(isUploading.value) return;
+    if(isDownloading.value || isUploading.value) return;
 
     isUploading.value = true;
     try {       
@@ -119,7 +119,7 @@ async function sendDataToDrive() {
 }
 
 async function getDataFromDrive() {
-    if(isDownloading.value) return;
+    if(isDownloading.value || isUploading.value) return;
 
     isDownloading.value = true;
     try {
@@ -142,7 +142,7 @@ onMounted(() => {
         document.documentElement.style.fontSize = `${storedFont}px`;
     }
 
-    invoke("is_synced_to_drive").then((value) => {  isSyncedDrive.value = value});
+    invoke("is_synced_to_drive").then((value) => isSyncedDrive.value = value);
 
     // activeSyncthing.value = localStorage.getItem('activeSyncthing');
     // if(activeSyncthing.value && !syncID) { 
@@ -191,12 +191,37 @@ watch(fontSize, (newSize) => {
             </section>
             <section>
                 <h2>Synchronisation Drive</h2>
+                <p v-if="isSyncedDrive" class="sync-info active">&#10003; Synchronisation mise en place</p>
+                <p v-else class="sync-info">&#10060; Synchronisation désactivée</p>
+                <div v-if="isSyncedDrive">
+                    <h3>Synchronisation manuelle</h3>
+                    <div class="sync-buttons">
+                        <button @click="getDataFromDrive" :class="{ disabled: isDownloading }">
+                            Mettre à jour les données locales
+                        </button>
+                        <button @click="sendDataToDrive" :class="{ disabled: isUploading }">
+                            Envoyer les données au drive
+                        </button>
+                    </div>
+                    <label class="option"><input type="checkbox" v-model="forceDownload" />Forcer la mise à jour (&#9888; écrase les données locales)</label>
+                    <p v-if="syncResult.message" :class="syncResult.class">{{ syncResult.message }}</p>
+                </div>
                 <div>
                     <h3>Mise en place de la synchronisation</h3>
-                    <p v-if="isSyncedDrive">&#10003; Synchronisation active</p>
-                    <p v-else>&#10060; Synchronisation désactivée</p>
+                    <div class="guide">
+                        <h3>Guide: Mettre en place la synchronisation</h3>
+                        <p>
+                            1 - Cliquez sur le bouton "Connexion Google" ci-desous. Cela devrait ouvrir votre navigateur.<br>
+                            2 - Connectez vous à votre compte Google, puis cliquez sur "Continuer" jusqu'à que vous arriviez sur une page qui ne charge pas (Qui affiche quelque chose comme "Impossible de se connecter").<br>
+                            3 - Copiez l'URL de la page EN ENTIER (Il devrait commencer par http://localhost/?code=).<br>
+                            4 - Collez l'URL dans le champ "URL D'authentifiaction" ci-dessous, et cliquez sur "Ajouter".<br>
+                            <span>&#9888; Cette étape télechargera les données du drive et écrasera les données locales</span><br>
+                            5 - La synchronisation devrait être en place !<br>
+                            L'app est synchronisée automatiquement à chaque démarrage. Pensez à télécharger les données du drive avant chaque changement, 
+                            et envoyer vos données quand vos changements sont terminés !
+                        </p>
+                    </div>
                     <button @click="authGoogle">Connexion Google</button>
-                    <p>Connectez vous, puis lorsque vous arrivez sur une page qui ne charge pas, copiez l'URL de la page ci-dessous</p>
                     <div class="id">
                         <label>URL D'authentifiaction : </label><input v-model="authURL"/>
                         <button @click="getTokenFromURL">
@@ -205,19 +230,6 @@ watch(fontSize, (newSize) => {
                     </div>
                     <p v-if="addTokenResult.message" :class="addTokenResult.class">{{ addTokenResult.message }}</p>
                 </div>
-                <div>
-                    <h3>Synchronisation manuelle</h3>
-                    <div class="sync-buttons">
-                        <button @click="sendDataToDrive" :class="{ disabled: isUploading }">
-                            Envoyer les données au drive
-                        </button>
-                        <button @click="getDataFromDrive" :class="{ disabled: isDownloading }">
-                            Mettre à jour les données locales
-                        </button>
-                    </div>
-                </div>
-                <label><input type="checkbox" v-model="forceDownload" />Forcer la mise à jour (&#9888; écrase les données locales)</label>
-                <p v-if="syncResult.message" :class="syncResult.class">{{ syncResult.message }}</p>
             </section>
             <!-- <section>
                 <h2>Synchronisation Peer To Peer</h2>
@@ -286,6 +298,19 @@ label:hover, input:not(.text):hover {
     margin: 0;
 }
 
+.sync-info {
+    width: fit-content;
+    font-weight: 500;
+    padding: 1rem;
+    margin: 0;
+    border: 1px solid var(--error);
+    border-radius: 0.5rem;
+}
+
+.sync-info.active {
+    border: 1px solid var(--success);
+}
+
 .synthing-options {
     display: flex;
     flex-direction: column;
@@ -303,7 +328,7 @@ label:hover, input:not(.text):hover {
 
 .id {
     width: 100%;
-    margin-bottom: 0.5rem;
+    margin-top: 1rem;
     display: flex;
     align-items: center;
 }
@@ -352,10 +377,18 @@ label:hover, input:not(.text):hover {
     cursor: default;
 }
 
+.guide {
+    padding-left: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+}
+
 .sync-buttons {
     display: flex;
     gap: 1rem;
     height: 4rem;
+    margin-bottom: 1rem;
 }
 
 .sync-buttons button {

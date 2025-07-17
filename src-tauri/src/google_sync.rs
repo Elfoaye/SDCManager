@@ -6,6 +6,7 @@ use std::fs::{self, File};
 use std::io::copy;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
+use tauri::Emitter;
 
 const FOLDER_ID: &str = "1lSVZb_C9WxF5yx6dewwcORbx0ACZyVXr";
 
@@ -385,5 +386,6 @@ pub fn save_tokens_from_url(auth_url: String, handle: tauri::AppHandle) -> Resul
 
     store_tokens(&tokens, &handle).map_err(|e| format!("Erreur sauvegarde des tokens : {}", e))?;
     
+    handle.emit("set_up_sync", true).unwrap();
     Ok(tokens)
 }
