@@ -22,7 +22,7 @@ import PageParams from './pages/PageParams.vue';
 const { loadTheme } = useTheme()
 loadTheme()
 
-const { setHasUploaded } = useHasUploaded();
+const { hasUploaded, setHasUploaded } = useHasUploaded();
 
 const currentPage = ref(null);
 const lastPage = ref(null);
@@ -82,21 +82,27 @@ onMounted(async () => {
 
     appWindow.onCloseRequested(async (event) => {
         const confirmOnClose = localStorage.getItem('confirmOnClose') !== 'false';
+        const synced = await invoke("is_synced_to_drive");
+        const needConfirm = synced && !hasUploaded.value
+        console.log("Synced : " + synced + " Has uploaded : " + hasUploaded.value + " needConfirm : " + needConfirm);
         
-        if(!confirmOnClose || closeFlag) {
-            await invoke('stop_syncthing');
+        if((!confirmOnClose && !needConfirm) || closeFlag) {
+            // await invoke('stop_syncthing');
             return;
         }
         event.preventDefault();
 
-        const shouldClose = await confirm(
-            'Voulez-vous vraiment quitter l’application ?',
-            { title: 'Confirmer la fermeture', type: 'warning' }
-        );
 
-        if (shouldClose) {
+        const shouldClose = needConfirm ? 
+            await confirm("Des changements n'ont pas été envoyés au cloud, voulez-vous vraiment quitter l’application ? Ces changements seront perdus.",
+                { title: 'Confirmer la fermeture', type: 'warning' }) :
+            await confirm('Voulez-vous vraiment quitter l’application ?',
+                { title: 'Confirmer la fermeture', type: 'warning' }) ;
+        
+
+        if(shouldClose) {
             closeFlag = true;
-            await invoke('stop_syncthing');
+            // await invoke('stop_syncthing');
             await appWindow.close();
         }
     });

@@ -107,7 +107,8 @@ onMounted(() => {
         </nav>
         <div v-if="isSyncedDrive" class="sync">
             <div class="sync-status">
-                <span v-if="syncError" class="tooltip error" data-tooltip="Erreur : {{ syncError }}">&#10060;</span>
+                <span v-if="isDownloading || isUploading" class="spinner"></span>
+                <span v-else-if="syncError" class="tooltip error" :data-tooltip="`Erreur : ${syncError}`">&#10060;</span>
                 <span v-else-if="hasUploadedChanges" class="tooltip success" data-tooltip="Pas de changements non envoyés">&#10003;</span>
                 <span v-else class="tooltip warning" data-tooltip="Changements locaux non envoyés">&#9888;</span>
             </div>
@@ -295,5 +296,22 @@ header {
 
 .disabled:hover {
     cursor: default;
+}
+
+.spinner {
+  width: 0.75em;
+  height: 0.75em;
+  border: 2px solid transparent;
+  border-top: 2px solid var(--text);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

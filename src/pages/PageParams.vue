@@ -135,7 +135,7 @@ async function getTokenFromURL() {
         syncResult.value = { class: '', message: '' };
         await getDataFromDrive(true);
         invoke("is_synced_to_drive").then((value) => { isSyncedDrive.value = value});
-
+        setHasUploaded(true);  
     } catch (err) {
         console.error("Erreur lors de l'obtetion des tokens : ", err);
         addTokenResult.value = { class:"error", message: err };
