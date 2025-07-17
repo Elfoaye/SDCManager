@@ -5,6 +5,7 @@ import { listen } from '@tauri-apps/api/event';
 import { useTheme } from './composables/useTheme'
 import { Window } from '@tauri-apps/api/window';
 import { confirm } from '@tauri-apps/plugin-dialog';
+import { useHasUploaded } from './composables/hasUploadedStore';
 
 import NavBar from './components/NavBar.vue';
 import HeaderBar from './components/HeaderBar.vue';
@@ -20,6 +21,8 @@ import PageParams from './pages/PageParams.vue';
 
 const { loadTheme } = useTheme()
 loadTheme()
+
+const { setHasUploaded } = useHasUploaded();
 
 const currentPage = ref(null);
 const lastPage = ref(null);
@@ -99,8 +102,9 @@ onMounted(async () => {
     });
 });
 
-onMounted(() => {
-    invoke("download_sync_data_from_drive", { force: false });
+onMounted(async () => {
+    await invoke("download_sync_data_from_drive", { force: false });
+    setHasUploaded(true);
 });
 
 // onMounted(() => {

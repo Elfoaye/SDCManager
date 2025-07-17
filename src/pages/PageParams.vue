@@ -4,6 +4,9 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { useBreadcrumb } from '../composables/breadcrumb';
 import { useTheme } from '../composables/useTheme'
 import { ref, computed, watch, onMounted } from 'vue';
+import { useHasUploaded } from '../composables/hasUploadedStore';
+
+const { setHasUploaded } = useHasUploaded();
 
 const { syncID } = defineProps(['syncID']);
 
@@ -110,7 +113,8 @@ async function sendDataToDrive() {
     isUploading.value = true;
     try {       
         await invoke("upload_sync_data_to_drive");
-        syncResult.value = { class:"success", message: "Données envoyées au drive !" };       
+        syncResult.value = { class:"success", message: "Données envoyées au drive !" };   
+        setHasUploaded(true);  
     } catch (err) {
         console.error("Erreur lors de l'envoi des données : ", err);
         syncResult.value = { class:"error", message: err };

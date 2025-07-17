@@ -1,7 +1,10 @@
 <script setup>
 import { useBreadcrumb } from '../composables/breadcrumb';
 import { invoke } from '@tauri-apps/api/core';
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
+import { useHasUploaded } from '../composables/hasUploadedStore';
+
+const { setHasUploaded } = useHasUploaded();
 
 const { setBreadcrumb } = useBreadcrumb();
 setBreadcrumb([
@@ -81,6 +84,7 @@ async function applyChanges() {
         await applyPassword();
         resetFields();
         applyMessage.value = {class: 'success', message: "Changements appliqués"};
+        setHasUploaded(false);  
     } catch (err) {
         applyMessage.value = {class: 'error', message: err};
         console.error(err);
@@ -164,7 +168,6 @@ async function applyChanges() {
                 </div>
                 <div class="submit">
                     <button class="apply" @click="applyChanges">Appliquer</button>
-                    <button class="cancel" @click="cancelChanges">Annuler</button>
                 </div>
                 <p v-if="applyMessage.message" :class="applyMessage.class">{{ applyMessage.message }}</p>
             </section>

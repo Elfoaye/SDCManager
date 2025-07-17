@@ -1,6 +1,8 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
 import { ref, reactive, computed, watch } from 'vue';
+import { useHasUploaded } from '../composables/hasUploadedStore';
+const { setHasUploaded } = useHasUploaded();
 
 const props = defineProps(['item','setItem', 'setItemRefresh', 'create']);
 const emit = defineEmits(['item-change']);
@@ -102,6 +104,7 @@ async function deleteItem() {
     try {
         await invoke('delete_item', { id: props.item.id }).then();
         props.setItemRefresh(null);
+        setHasUploaded(false);  
     } catch (err) {
         submitError.value = err;
         console.error(err);
@@ -115,6 +118,7 @@ function applyItemChanges() {
     try {
         invoke('update_item', { item: tempItem.value });
         emit('item-change');
+        setHasUploaded(false);  
     } catch (err) {
         submitError.value = err;
         console.error(err);
@@ -135,6 +139,7 @@ async function addItem() {
     try {
         id = await invoke('add_item', { item: tempItem.value });
         props.setItemRefresh(id);
+        setHasUploaded(false);  
     } catch (err) {
         if(err === 'UNIQUE constraint failed: Materiel.nom') {
             submitError.value = 'Un objet avec ce nom existe déjà';

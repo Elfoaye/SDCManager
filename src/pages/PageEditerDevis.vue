@@ -4,6 +4,8 @@ import { ref, computed ,onMounted, watch } from 'vue';
 import { useBreadcrumb } from '../composables/breadcrumb';
 import { useDevisStore } from '../composables/devisStore';
 import ListeSelectionDevis from '../components/ListeSelectionDevis.vue';
+import { useHasUploaded } from '../composables/hasUploadedStore';
+const { setHasUploaded } = useHasUploaded();
 
 const props = defineProps(['document', 'setDocument']);
 
@@ -169,6 +171,7 @@ async function endModif() {
         const valid = isValid.value ? 'devis valide' : 'devis';
         await store.saveDevis(valid);
         props.setDocument({id: store.devisInfos.id, facture: false}, false);
+        setHasUploaded(false); 
     } catch(err) {
         console.error("Erreur lors de la sauvegarde du devis : ", err);
         saveMassage.value = err;

@@ -3,7 +3,9 @@ import { ref, onMounted } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { useBreadcrumb } from '../composables/breadcrumb';
+import { useHasUploaded } from '../composables/hasUploadedStore';
 const { breadcrumb } = useBreadcrumb();
+const { hasUploaded, setHasUploaded } = useHasUploaded();
 
 const props = defineProps(['setPage']);
 const emit = defineEmits(['cancel']);
@@ -12,6 +14,7 @@ const isAdmin = ref(false);
 const confirm = ref(false);
 
 const isSyncedDrive = ref(false);
+const hasUploadedChanges = ref(hasUploaded);
 const isUploading = ref(false);
 const isDownloading = ref(false);
 const syncResult = ref('');
@@ -27,6 +30,7 @@ async function sendDataToDrive() {
     isUploading.value = true;
     try {       
         await invoke("upload_sync_data_to_drive");      
+        setHasUploaded(true);  
     } catch (err) {
         console.error("Erreur lors de l'envoi des données : ", err);
         syncResult.value = err;
@@ -53,6 +57,14 @@ listen('log_in_admin', (event) => {
 
 listen('set_up_sync', () => {
     invoke("is_synced_to_drive").then((value) => isSyncedDrive.value = value);
+});
+
+window.addEventListener('storage', (event) => {
+    console.log("Storage update");
+    if (event.key === 'uploadedLatest') {
+        hasUploadedChanges.value = event.newValue;
+        console.log("Changed upload : ", hasUploadedChanges.value);
+    }
 });
 
 onMounted(() => {
@@ -90,6 +102,8 @@ onMounted(() => {
             </div>
         </nav>
         <div v-if="isSyncedDrive" class="sync">
+            <p v-if="hasUploadedChanges">&#10003;</p>
+            <p v-else>&#9888;</p>
             <p>Sync : </p>
             <button @click="getDataFromDrive" :class="{ disabled: isDownloading }">Mettre à jour</button>
             <button @click="sendDataToDrive" :class="{ disabled: isUploading }">Envoyer</button>
