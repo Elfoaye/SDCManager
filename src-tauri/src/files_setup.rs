@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use tauri::{path::BaseDirectory, Manager};
+use base64::{engine::general_purpose, Engine as _};
 
 fn copy_recursively(src: &Path, dst: &Path) -> Result<(), String> {
     for entry in fs::read_dir(src).map_err(|e| e.to_string())? {
@@ -41,17 +42,19 @@ pub fn get_or_create_data_dir(handle: &tauri::AppHandle) -> Result<PathBuf, Stri
 }
 
 pub fn get_settings_json(handle: &tauri::AppHandle) -> Result<serde_json::Value, String> {
-    let path = get_or_create_data_dir(&handle)?.join("settings.json");
+    let path = get_or_create_data_dir(&handle)?.join("settings.sdcdata");
 
-    let file = std::fs::File::open(&path).map_err(|e| e.to_string())?;
-    serde_json::from_reader(file).map_err(|e| e.to_string())
+    let encoded = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    let decoded_bytes = general_purpose::STANDARD.decode(&encoded).map_err(|e| e.to_string())?;
+
+    serde_json::from_slice(&decoded_bytes).map_err(|e| e.to_string())
 }
 
-pub fn set_settings_json(
-    value: &serde_json::Value,
-    handle: &tauri::AppHandle,
-) -> Result<(), String> {
-    let path = get_or_create_data_dir(&handle)?.join("settings.json");
+pub fn set_settings_json(value: &serde_json::Value, handle: &tauri::AppHandle) -> Result<(), String> {
+    let path = get_or_create_data_dir(&handle)?.join("settings.sdcdata");
 
-    std::fs::write(&path, serde_json::to_vec_pretty(value).unwrap()).map_err(|e| e.to_string())
+    let json_bytes = serde_json::to_vec_pretty(value).map_err(|e| e.to_string())?;
+    let encoded = general_purpose::STANDARD.encode(&json_bytes);
+
+    std::fs::write(&path, encoded).map_err(|e| e.to_string())
 }
