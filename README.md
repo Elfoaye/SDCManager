@@ -6,7 +6,6 @@
 
 L’application permet de suivre un inventaire de materiel synchronisé entre plusieurs utilisateurs, de gérer la disponibilité et la rentabilité des équipements, et de créer et gérer des devis et factures, en utilisant l'inventaire de materiel qui gardera compte des sorties.
 
----
 
 ## Fonctionnalités principales
 
@@ -20,24 +19,20 @@ L’application permet de suivre un inventaire de materiel synchronisé entre pl
   - Génération automatique des factures à partir des devis
   - Visualisation des évenements à venir sous forme de planning
 
+- **Synchronisation :**  
+  - Synchronisation des données via un Google Drive centralisé
+  - Envoi et récupération des données intégrées à l'application
+
 - **Fonctions administratives (mode Administrateur) :**  
   - Ajout, suppression et modification du matériel  
   - Personnalisation des formules de calcul des prix de location
 
-  A venir :
-  - Gestion des utilisateurs et synchronisation  
-  - Gestion des sauvegardes et restauration de versions antérieures de la base de données  
-
----
-
 ## Technologies utilisées
 
 - **Interface utilisateur :** Vue.js (HTML, CSS, JavaScript)  
-- **Backend & logique métier :** Rust via Tauri  
+- **Backend :** Rust via Tauri  
 - **Base de données :** SQLite  
-- **Synchronisation :** Peer-to-peer avec Syncthing  
-
----
+- **Synchronisation :** Google Drive
 
 ## Installation
 
@@ -45,21 +40,18 @@ Les exécutables d’installation sont disponibles dans le dossier [`release`](.
 
 1. Télécharger l'exécutable correspondant à votre système d’exploitation (Windows, macOS, Linux).  
 2. Lancer l’installation via l’exécutable, qui s’occupera d’installer et configurer automatiquement les dépendances nécessaires.  
-3. Au premier lancement, échangez un code de synchronisation simple et intégré dans l’interface pour connecter votre application aux autres utilisateurs de l’association.  
-4. Utilisez l’application même hors connexion : la synchronisation des données se fera automatiquement dès que la connexion sera disponible.
+3. Pour synchroniser, allez dans les paramêtres dans la section "Synchronisation Drive" et suivez le guide (Compte Google requis).
+4. Utilisez l’application même hors connexion : la synchronisation des données sera disponible dès que la connexion sera disponible.
 
----
 
 ## Utilisation
 
 - Navigation simple via menu de navigation sur le côté gauche. 
-- Accès aux différentes sections :  
-  - Accueil  
+- Accès aux différentes sections :   
   - Matériel (liste, détail, historique des sorties)  
   - Documents (devis, factures, planning)  
-  - Administration (matériel, formules, modèles, utilisateurs, sauvegardes)  
-
----
+  - Administration (formules decontribution, données par défault)
+  - Paramêtres (accessiblité, synchronisation)  
 
 ## Licence
 
