@@ -12,7 +12,7 @@ const LINES_FIRST_PAGE = 15;
 const LINES_PER_PAGE = 30;
 
 const materielAssur = computed(() => {
-    return store.selectedItems.reduce((sum, item) => sum + item.valeur, 0);
+    return store.selectedItems.reduce((sum, item) => sum + item.valeur * item.quantity, 0);
 });
 
 const materielCost = computed(() => {
