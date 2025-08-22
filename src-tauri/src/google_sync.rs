@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::Emitter;
 
-const FOLDER_ID: &str = "1lSVZb_C9WxF5yx6dewwcORbx0ACZyVXr";
+const FOLDER_ID: &str = "1b0zXr_j_gISDIoXt0Z2hDlzVAaWiZcVY";
 
 #[derive(Deserialize)]
 struct OAuthCredentials {
